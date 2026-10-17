@@ -106,7 +106,7 @@ export default function DocView() {
     <>
       <PageHead title={`${title || "Doc"} | TTM Portal`} />
       <div className="h-full overflow-y-auto">
-        <div className="m-auto max-w-[820px] px-5 pb-24 pt-6 md:px-10 md:pt-10">
+        <div className="m-auto max-w-[820px] px-4 pb-24 pt-6 sm:px-6 md:px-10 md:pt-10">
           <div className="mb-6 flex items-center justify-between gap-3 text-sm">
             <Link
               href="/docs"
@@ -159,7 +159,7 @@ export default function DocView() {
             placeholder="Untitled doc"
             maxLength={255}
             aria-label="Doc title"
-            className="mb-4 w-full border-0 bg-transparent p-0 text-3xl font-extrabold tracking-tight text-light-1000 placeholder:text-light-700 focus:ring-0 dark:text-dark-1000 dark:placeholder:text-dark-700"
+            className="mb-4 w-full border-0 bg-transparent p-0 text-2xl md:text-3xl font-extrabold tracking-tight text-light-1000 placeholder:text-light-700 focus:ring-0 dark:text-dark-1000 dark:placeholder:text-dark-700"
           />
 
           <div className="ttm-doc prose prose-sm max-w-none dark:prose-invert prose-headings:font-extrabold prose-headings:text-light-1000 prose-a:text-ttm-green dark:prose-headings:text-dark-1000 dark:prose-a:text-ttm-gold">

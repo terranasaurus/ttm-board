@@ -5,6 +5,7 @@ import type { NextPage, Viewport } from "next";
 import type { AppProps, AppType } from "next/app";
 import type { ReactElement, ReactNode } from "react";
 import { Montserrat } from "next/font/google";
+import Head from "next/head";
 import Script from "next/script";
 import { env } from "next-runtime-env";
 import { ThemeProvider } from "next-themes";
@@ -81,6 +82,15 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
           data-website-id={env("NEXT_PUBLIC_UMAMI_ID")}
         />
       )}
+      {/* TTM: pages-router apps ignore the exported `viewport` above, so set the
+          tag here for every page. PageHead uses the same key, so no duplicate. */}
+      <Head>
+        <meta
+          key="viewport"
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1"
+        />
+      </Head>
       <script src="/__ENV.js" />
       <main className={`${montserrat.variable} font-sans`}>
         <KeyboardShortcutProvider>

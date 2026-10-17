@@ -17,9 +17,9 @@ export function PageShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="m-auto h-full max-w-[1100px] overflow-y-auto p-6 px-5 md:px-16 md:py-12">
+    <div className="m-auto h-full max-w-[1100px] overflow-y-auto px-4 py-6 sm:px-6 md:px-16 md:py-12">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="text-xl font-extrabold tracking-tight text-light-1000 dark:text-dark-1000">
             {title}
           </h1>
@@ -53,7 +53,7 @@ export function Card({
     <section
       id={id}
       className={twMerge(
-        "rounded-lg border border-light-500 bg-light-50 p-5 dark:border-dark-400 dark:bg-dark-100",
+        "min-w-0 rounded-lg border border-light-500 bg-light-50 p-4 sm:p-5 dark:border-dark-400 dark:bg-dark-100",
         className,
       )}
     >

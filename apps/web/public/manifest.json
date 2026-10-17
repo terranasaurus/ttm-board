@@ -1,11 +1,6 @@
 {
-  "background_color": "#000000",
-  "categories": [
-    "business",
-    "productivity",
-    "utilities"
-  ],
-  "description": "The open source Trello alternative.",
+  "background_color": "#f6f6f6",
+  "description": "Team and personal boards for Terran Through Milestones.",
   "display": "standalone",
   "icons": [
     {
@@ -13,27 +8,19 @@
       "src": "/icon-512.png",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "sizes": "180x180",
+      "src": "/apple-touch-icon.png",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "id": "/",
-  "screenshots": [
-    {
-      "sizes": "1624x1561",
-      "src": "/screenshot-wide.png",
-      "type": "image/png",
-      "form_factor": "wide"
-    },
-    {
-      "sizes": "1290x2796",
-      "src": "/screenshot-narrow.png",
-      "type": "image/png",
-      "form_factor": "narrow"
-    }
-  ],
   "orientation": "portrait-primary",
-  "name": "Kan.bn | The open source alternative to Trello",
+  "name": "TTM Portal | Terran Through Milestones",
   "scope": "/",
-  "short_name": "Kan.bn",
+  "short_name": "TTM Portal",
   "start_url": "/",
-  "theme_color": "#000000"
+  "theme_color": "#134c00"
 }

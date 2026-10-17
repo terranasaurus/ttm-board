@@ -4,7 +4,7 @@ import "~/utils/i18n";
 import type { NextPage, Viewport } from "next";
 import type { AppProps, AppType } from "next/app";
 import type { ReactElement, ReactNode } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Montserrat } from "next/font/google";
 import Script from "next/script";
 import { env } from "next-runtime-env";
 import { ThemeProvider } from "next-themes";
@@ -19,14 +19,15 @@ import { ModalProvider } from "~/providers/modal";
 import { PopupProvider } from "~/providers/popup";
 import { api } from "~/utils/api";
 
-const jakarta = Plus_Jakarta_Sans({
+const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-montserrat",
 });
 
 export const metadata = {
-  title: "Kan",
-  description: "The open source Trello alternative",
+  title: "TTM Portal",
+  description: "Terran Through Milestones team portal",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
@@ -67,7 +68,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
     <>
       <style jsx global>{`
         html {
-          font-family: ${jakarta.style.fontFamily};
+          font-family: ${montserrat.style.fontFamily};
         }
         body {
           position: relative;
@@ -81,7 +82,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
         />
       )}
       <script src="/__ENV.js" />
-      <main className="font-sans">
+      <main className={`${montserrat.variable} font-sans`}>
         <KeyboardShortcutProvider>
           <LinguiProviderWrapper>
             <FontSizeProvider>

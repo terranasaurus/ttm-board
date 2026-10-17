@@ -437,7 +437,7 @@ export function Auth({
               isLoading={isLoginWithEmailPending}
               fullWidth
               size="lg"
-              variant="secondary"
+              variant="primary"
             >
               {isSignUp ? t`Sign up with ` : t`Continue with `}
               {isMagicLinkMode ? t`magic link` : t`email`}

@@ -30,6 +30,7 @@ import UserMenu from "~/components/UserMenu";
 import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
+import BrandMark from "~/components/BrandMark";
 
 interface SideNavigationProps {
   user: UserType;
@@ -162,9 +163,7 @@ export default function SideNavigation({
           <div className="hidden h-[45px] items-center justify-between pb-3 md:flex">
             {!isCollapsed && (
               <Link href="/" className="block">
-                <h1 className="pl-2 text-[16px] font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
-                  kan.bn
-                </h1>
+                <BrandMark size="sm" className="pl-1" />
               </Link>
             )}
             <Button

@@ -31,6 +31,7 @@ import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
 import BrandMark from "~/components/BrandMark";
+import TtmNav from "~/views/ttm/TtmNav";
 
 interface SideNavigationProps {
   user: UserType;
@@ -204,6 +205,7 @@ export default function SideNavigation({
               </li>
             ))}
           </ul>
+          <TtmNav isCollapsed={isCollapsed} onCloseSideNav={onCloseSideNav} />
         </div>
 
         <div className="space-y-2">

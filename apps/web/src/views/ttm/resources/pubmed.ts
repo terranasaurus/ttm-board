@@ -114,12 +114,12 @@ const decode = (s: string) =>
     .trim();
 
 export function parseEsearch(json: unknown): string[] {
-  const ids = (json as { esearchresult?: { idlist?: unknown } })?.esearchresult?.idlist;
+  const ids = (json as { esearchresult?: { idlist?: unknown } } | null)?.esearchresult?.idlist;
   return Array.isArray(ids) ? ids.filter((x): x is string => typeof x === "string" && /^\d+$/.test(x)) : [];
 }
 
 export function parseEsummary(json: unknown, ids: string[]): FeedItem[] {
-  const result = (json as { result?: Record<string, SummaryRecord> })?.result ?? {};
+  const result = (json as { result?: Record<string, SummaryRecord> } | null)?.result ?? {};
   const items: FeedItem[] = [];
   for (const id of ids) {
     const r = result[id];

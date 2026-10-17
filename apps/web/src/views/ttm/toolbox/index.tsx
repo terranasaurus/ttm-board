@@ -4,11 +4,13 @@ import { BillingUnits } from "./BillingUnits";
 import { CorrectedAge } from "./CorrectedAge";
 import { EvalComplexity } from "./EvalComplexity";
 import { GoalBuilder } from "./GoalBuilder";
+import { OutcomeMeasures } from "./measures";
 import { Milestones } from "./Milestones";
 import { QuickLinks } from "./QuickLinks";
 
 const SECTIONS = [
   { id: "corrected-age", label: "Corrected age" },
+  { id: "measures", label: "Outcome measures" },
   { id: "milestones", label: "Milestones" },
   { id: "goal-builder", label: "Goal builder" },
   { id: "billing-units", label: "Billing units" },
@@ -22,12 +24,12 @@ export default function ToolboxView() {
       <PageHead title="Clinician Toolbox | TTM Portal" />
       <PageShell
         title="Clinician Toolbox"
-        subtitle="Quick calculators and references for pediatric PT sessions."
+        subtitle="Calculators, free outcome measures and references for pediatric PT sessions."
       >
         <PrivacyNote>
           <strong>Nothing here is saved or sent.</strong> Every tool runs in your browser and forgets when you leave the page. Don't type names or other identifiers; patient details stay in the EMR and Drive.
         </PrivacyNote>
-        <nav className="sticky top-0 z-10 -mx-1 mb-6 flex gap-1 overflow-x-auto bg-light-100/90 px-1 py-2 backdrop-blur dark:bg-dark-50/90">
+        <nav className="sticky top-0 z-10 mb-6 flex gap-1 overflow-x-auto bg-light-100/90 py-2 backdrop-blur dark:bg-dark-50/90">
           {SECTIONS.map((s) => (
             <a
               key={s.id}
@@ -40,6 +42,7 @@ export default function ToolboxView() {
         </nav>
         <div className="space-y-6 pb-16">
           <CorrectedAge />
+          <OutcomeMeasures />
           <Milestones />
           <GoalBuilder />
           <BillingUnits />

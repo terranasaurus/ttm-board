@@ -2,16 +2,21 @@ import { describe, expect, it } from "vitest";
 
 import { esearchUrl, FEED_TOPICS, parseEsearch, parseEsummary } from "./pubmed";
 
+function must<T>(x: T | undefined | null): T {
+  if (x == null) throw new Error("expected a value");
+  return x;
+}
+
 describe("esearchUrl", () => {
   it("adds the free-full-text filter only when the topic asks for it", () => {
-    const free = FEED_TOPICS.find((t) => t.freeOnly)!;
-    const paid = FEED_TOPICS.find((t) => !t.freeOnly)!;
+    const free = must(FEED_TOPICS.find((t) => t.freeOnly));
+    const paid = must(FEED_TOPICS.find((t) => !t.freeOnly));
     expect(decodeURIComponent(esearchUrl(free).replace(/\+/g, " "))).toContain("free full text[sb]");
     expect(decodeURIComponent(esearchUrl(paid).replace(/\+/g, " "))).not.toContain("free full text[sb]");
   });
 
   it("asks for newest first within the window", () => {
-    const url = new URL(esearchUrl(FEED_TOPICS[0]!));
+    const url = new URL(esearchUrl(must(FEED_TOPICS[0])));
     expect(url.hostname).toBe("eutils.ncbi.nlm.nih.gov");
     expect(url.searchParams.get("sort")).toBe("pub_date");
     expect(url.searchParams.get("reldate")).toBe("365");

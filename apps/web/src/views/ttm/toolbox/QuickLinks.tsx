@@ -19,6 +19,14 @@ const LINKS: { group: string; items: { label: string; href: string; note?: strin
     ],
   },
   {
+    group: "Measures (link only)",
+    items: [
+      { label: "GMFCS-E&R (CanChild)", href: "https://canchild.ca/resources/42-gmfcs-e-r/", note: "© CanChild; use the official descriptors" },
+      { label: "Rehabilitation Measures Database", href: "https://www.sralab.org/rehabilitation-measures", note: "Norms, MCIDs and forms (Shirley Ryan AbilityLab)" },
+      { label: "CMT clinical practice guideline (2024)", href: "https://doi.org/10.1097/PEP.0000000000001114", note: "APTA Pediatrics; members get full text" },
+    ],
+  },
+  {
     group: "Billing & compliance",
     items: [
       {
@@ -33,7 +41,7 @@ const LINKS: { group: string; items: { label: string; href: string; note?: strin
 export function QuickLinks() {
   return (
     <Card id="links" title="Quick links">
-      <div className="grid gap-6 sm:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {LINKS.map((g) => (
           <div key={g.group}>
             <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-light-900 dark:text-dark-900">

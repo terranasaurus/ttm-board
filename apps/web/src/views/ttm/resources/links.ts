@@ -56,10 +56,16 @@ export const EMPLOYEE: ResourceGroup = {
 
 /** Free, reputable learning for pediatric / early-intervention PT. */
 export const LEARNING: ResourceLink[] = [
-  { label: "Physical Therapy Board of California", href: "https://www.ptbc.ca.gov", note: "License renewal and continuing competency rules" },
-  { label: "APTA Pediatrics", href: "https://pediatricapta.org", note: "Fact sheets, clinical practice guidelines" },
-  { label: "CDC Learn the Signs. Act Early.", href: "https://www.cdc.gov/act-early/", note: "Milestones, family materials" },
-  { label: "CanChild", href: "https://canchild.ca", note: "Free measures and research summaries (GMFCS, FMS…)" },
+  {
+    label: "License renewal: continuing competency",
+    href: "https://www.ptbc.ca.gov/licensees/continuing_competency/index.shtml",
+    note: "30 h every 2 years (incl. 2 h ethics/laws and 4 h hands-on BLS); 15 h for an on-time first renewal. Keep records 5 years.",
+  },
+  { label: "CDC Watch Me! training", href: "https://www.cdc.gov/watch-me-training/about/index.html", note: "Free; talking with families about milestones. CE via CDC TRAIN" },
+  { label: "California Early Start training", href: "https://www.dds.ca.gov/services/early-start/training-and-technical-assistance/", note: "DDS training and technical assistance" },
+  { label: "APTA Pediatrics education", href: "https://pediatricapta.org/education/", note: "Courses, webinars, practice guidelines" },
+  { label: "Pathways.org for providers", href: "https://www.pathways.org/provider-homepage", note: "Free milestone materials and courses" },
+  { label: "ZERO TO THREE learning", href: "https://www.zerotothree.org/our-work/learn-professional-development/", note: "Infant–toddler development and family practice" },
 ];
 
 /**

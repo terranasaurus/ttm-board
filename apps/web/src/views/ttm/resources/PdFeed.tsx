@@ -13,8 +13,8 @@ async function fetchTopic(key: string): Promise<FeedItem[]> {
 }
 
 export function PdFeed() {
-  const [topic, setTopic] = useState(FEED_TOPICS[0]!.key);
-  const current = FEED_TOPICS.find((t) => t.key === topic)!;
+  const [topic, setTopic] = useState<string>("early-intervention");
+  const current = FEED_TOPICS.find((t) => t.key === topic);
   const { data, isLoading, error } = useQuery({
     queryKey: ["ttm-pd-feed", topic],
     queryFn: () => fetchTopic(topic),
@@ -43,13 +43,13 @@ export function PdFeed() {
         ))}
       </div>
       <p className="mb-2 text-xs text-light-900 dark:text-dark-900">
-        Newest first, published in the last year{current.freeOnly ? ", free full text only" : ""}.
-        {current.note ? ` ${current.note}` : ""}
+        Newest first, published in the last year{current?.freeOnly ? ", free full text only" : ""}.
+        {current?.note ? ` ${current.note}` : ""}
       </p>
       {isLoading ? (
         <p className="py-6 text-sm text-light-900 dark:text-dark-900">Loading…</p>
       ) : error ? (
-        <p className="py-6 text-sm text-red-600 dark:text-red-400">{(error as Error).message}</p>
+        <p className="py-6 text-sm text-red-600 dark:text-red-400">{error.message}</p>
       ) : !data?.length ? (
         <p className="py-6 text-sm text-light-900 dark:text-dark-900">Nothing new in the last year.</p>
       ) : (

@@ -5,6 +5,7 @@ export const PageHead = ({ title }: { title: string }) => {
     <Head>
       <title>{title}</title>
       <meta
+        key="viewport"
         name="viewport"
         content="width=device-width, initial-scale=1, maximum-scale=1"
       />

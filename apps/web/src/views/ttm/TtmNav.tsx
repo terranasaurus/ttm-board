@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import {
+  HiOutlineBookOpen,
   HiOutlineDocumentText,
   HiOutlineSquares2X2,
   HiOutlineWrenchScrewdriver,
@@ -13,6 +14,7 @@ const ITEMS = [
   { name: "My work", href: "/my-work", Icon: HiOutlineSquares2X2 },
   { name: "Docs", href: "/docs", Icon: HiOutlineDocumentText },
   { name: "Clinician Toolbox", href: "/toolbox", Icon: HiOutlineWrenchScrewdriver },
+  { name: "Resources", href: "/resources", Icon: HiOutlineBookOpen },
 ];
 
 /** TTM-specific sidebar section, rendered under Kan's own navigation. */

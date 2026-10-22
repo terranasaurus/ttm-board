@@ -46,6 +46,7 @@
     "@electric-sql/pglite": "^0.3.7",
     "@kan/logger": "workspace:^",
     "@kan/shared": "workspace:^",
+    "@vercel/functions": "^3.10.2",
     "drizzle-orm": "^0.42.0",
     "drizzle-zod": "^0.5.1",
     "ioredis": "^5.9.2",

@@ -1,0 +1,81 @@
+name: Upstream sync (kanbn/kan)
+
+# Weekly merge of upstream Kan into a PR branch. Never auto-merges: the PR is
+# reviewed and merged by hand so TTM-specific changes (branding, redirects,
+# DB client, auth hooks) are reconciled deliberately.
+#
+# Monday 18:00 UTC = 08:00 HST, so the PR is waiting at the start of the
+# Hawaii workday.
+on:
+  schedule:
+    - cron: "0 18 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Merge upstream main
+        id: merge
+        env:
+          UPSTREAM: https://github.com/kanbn/kan.git
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git remote add upstream "$UPSTREAM"
+          git fetch upstream main
+
+          UPSTREAM_SHA="$(git rev-parse --short upstream/main)"
+          echo "upstream_sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+
+          if git merge-base --is-ancestor upstream/main HEAD; then
+            echo "Already up to date with upstream/main ($UPSTREAM_SHA)."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Merge (not rebase) so the PR shows exactly what upstream changed.
+          # A conflicting merge still opens the PR: the conflict markers are
+          # committed so the reviewer resolves them on the branch.
+          if git merge --no-ff --no-edit upstream/main; then
+            echo "conflicts=false" >> "$GITHUB_OUTPUT"
+          else
+            git add -A
+            git -c core.editor=true commit --no-verify \
+              -m "chore: merge upstream kanbn/kan main ($UPSTREAM_SHA) with conflicts to resolve"
+            echo "conflicts=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the sync PR
+        if: steps.merge.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: upstream-sync
+          base: main
+          title: "chore: sync upstream kanbn/kan (${{ steps.merge.outputs.upstream_sha }})"
+          commit-message: "chore: merge upstream kanbn/kan main"
+          delete-branch: true
+          labels: upstream-sync
+          body: |
+            Weekly merge of [kanbn/kan](https://github.com/kanbn/kan) `main` at `${{ steps.merge.outputs.upstream_sha }}` into `main`.
+
+            - Conflicts to resolve on this branch: **${{ steps.merge.outputs.conflicts }}**
+            - Review the TTM-specific areas before merging: `apps/web` branding and marketing redirects, `packages/db/src/client.ts`, `packages/auth`.
+            - This PR is never merged automatically.

@@ -221,7 +221,15 @@ export function Auth({
                 message: t`You have been signed up successfully.`,
                 icon: "success",
               }),
-            onError: ({ error }) => setLoginError(error.message),
+            onError: ({ error }) =>
+              setLoginError(
+                // TTM: sign-up is invite-only, so explain the usual cause.
+                error.code === "FAILED_TO_CREATE_USER"
+                  ? "We couldn't create an account for that address. Use your @terranthroughmilestones.com address, and ask Terran to add you under Members if you haven't been added yet."
+                  : error.code === "USER_ALREADY_EXISTS"
+                    ? "There's already an account for that address. Sign in instead, or ask Terran for a password reset link."
+                    : error.message,
+              ),
           },
         );
       } else {

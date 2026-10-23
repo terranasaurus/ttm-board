@@ -1,10 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@kan/db/repository/member.repo", () => ({ create: vi.fn() }));
+vi.mock("@kan/db/repository/member.repo", () => ({ create: vi.fn(), getByPublicId: vi.fn() }));
+vi.mock("next-runtime-env", () => ({ env: vi.fn(() => "https://portal.terranthroughmilestones.com/") }));
 vi.mock("@kan/db/repository/permission.repo", () => ({ getRoleByWorkspaceIdAndName: vi.fn() }));
 vi.mock("@kan/db/repository/ttmMember.repo", () => ({
   getLiveByWorkspaceAndEmail: vi.fn(),
   activateMember: vi.fn(),
+  replaceResetToken: vi.fn(),
 }));
 vi.mock("@kan/db/repository/user.repo", () => ({ getByEmail: vi.fn() }));
 vi.mock("@kan/db/repository/workspace.repo", () => ({ getByPublicId: vi.fn() }));
@@ -29,8 +31,8 @@ describe("ttmMember.addDirect", () => {
     vi.clearAllMocks();
     process.env.BETTER_AUTH_ALLOWED_DOMAINS = "terranthroughmilestones.com";
     vi.mocked(workspaceRepo.getByPublicId).mockResolvedValue({ id: 1 } as never);
-    vi.mocked(permissionRepo.getRoleByWorkspaceIdAndName).mockImplementation(async (_db, _ws, name) =>
-      ({ id: name === "admin" ? 1 : 2 }) as never,
+    vi.mocked(permissionRepo.getRoleByWorkspaceIdAndName).mockImplementation((_db, _ws, name) =>
+      Promise.resolve({ id: name === "admin" ? 1 : 2 } as never),
     );
     vi.mocked(memberRepo.create).mockResolvedValue({ id: 9, publicId: "newmember123" });
     vi.mocked(ttmMemberRepo.getLiveByWorkspaceAndEmail).mockResolvedValue(undefined);
@@ -102,5 +104,70 @@ describe("ttmMember.addDirect", () => {
     await expect(caller(null).addDirect({ workspacePublicId: WS, email: "sheila@terranthroughmilestones.com" })).rejects.toMatchObject({
       code: "UNAUTHORIZED",
     });
+  });
+});
+
+describe("ttmMember.createResetLink", () => {
+  const input = { workspacePublicId: WS, memberPublicId: "member000001" };
+  const activeMember = {
+    id: 5,
+    publicId: "member000001",
+    workspaceId: 1,
+    userId: "cass-id",
+    email: "cassandra@terranthroughmilestones.com",
+    status: "active",
+    deletedAt: null,
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(workspaceRepo.getByPublicId).mockResolvedValue({ id: 1 } as never);
+    vi.mocked(memberRepo.getByPublicId).mockResolvedValue(activeMember as never);
+  });
+
+  it("issues a one-hour, single-token link for an active member", async () => {
+    const before = Date.now();
+    const res = await caller().createResetLink(input);
+    expect(assertPermission).toHaveBeenCalledWith(db, "terran-id", 1, "member:edit");
+    const token = new URL(res.url).searchParams.get("token") ?? "";
+    expect(res.url.startsWith("https://portal.terranthroughmilestones.com/reset-password?token=")).toBe(true);
+    expect(token).toMatch(/^[A-Za-z0-9_-]{32}$/);
+    expect(res.email).toBe("cassandra@terranthroughmilestones.com");
+    expect(res.expiresAt.getTime() - before).toBeGreaterThanOrEqual(59 * 60 * 1000);
+    expect(res.expiresAt.getTime() - before).toBeLessThanOrEqual(61 * 60 * 1000);
+    expect(ttmMemberRepo.replaceResetToken).toHaveBeenCalledWith(db, "cass-id", token, res.expiresAt);
+  });
+
+  it("issues a different token every time", async () => {
+    const a = await caller().createResetLink(input);
+    const b = await caller().createResetLink(input);
+    expect(a.url).not.toBe(b.url);
+  });
+
+  it("refuses members of another workspace", async () => {
+    vi.mocked(memberRepo.getByPublicId).mockResolvedValue({ ...activeMember, workspaceId: 2 } as never);
+    await expect(caller().createResetLink(input)).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect(ttmMemberRepo.replaceResetToken).not.toHaveBeenCalled();
+  });
+
+  it("refuses removed members", async () => {
+    vi.mocked(memberRepo.getByPublicId).mockResolvedValue({ ...activeMember, deletedAt: new Date() } as never);
+    await expect(caller().createResetLink(input)).rejects.toMatchObject({ code: "NOT_FOUND" });
+  });
+
+  it("explains when the person hasn't created their account yet", async () => {
+    vi.mocked(memberRepo.getByPublicId).mockResolvedValue({ ...activeMember, userId: null, status: "invited" } as never);
+    await expect(caller().createResetLink(input)).rejects.toMatchObject({ code: "BAD_REQUEST" });
+    expect(ttmMemberRepo.replaceResetToken).not.toHaveBeenCalled();
+  });
+
+  it("is admin-only (member:edit)", async () => {
+    vi.mocked(assertPermission).mockRejectedValueOnce(new Error("FORBIDDEN"));
+    await expect(caller().createResetLink(input)).rejects.toThrow();
+    expect(ttmMemberRepo.replaceResetToken).not.toHaveBeenCalled();
+  });
+
+  it("requires a signed-in user", async () => {
+    await expect(caller(null).createResetLink(input)).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 });

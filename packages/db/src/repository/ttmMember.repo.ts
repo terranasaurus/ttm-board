@@ -2,7 +2,7 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { dbClient } from "@kan/db/client";
-import { workspaceMembers } from "@kan/db/schema";
+import { verification, workspaceMembers } from "@kan/db/schema";
 
 const sameEmail = (email: string) =>
   sql`lower(${workspaceMembers.email}) = ${email.trim().toLowerCase()}`;
@@ -36,4 +36,24 @@ export const activateMember = async (db: dbClient, memberId: number, userId: str
     .where(eq(workspaceMembers.id, memberId))
     .returning({ id: workspaceMembers.id, publicId: workspaceMembers.publicId });
   return row;
+};
+
+/**
+ * Issue a password-reset token in Better Auth's own format
+ * (verification row "reset-password:<token>" -> userId), so its standard
+ * POST /api/auth/reset-password endpoint validates and consumes it. Any older
+ * reset tokens for the same user are removed, so only the newest link works.
+ */
+export const replaceResetToken = async (db: dbClient, userId: string, token: string, expiresAt: Date) => {
+  const now = new Date();
+  await db
+    .delete(verification)
+    .where(and(eq(verification.value, userId), sql`${verification.identifier} like 'reset-password:%'`));
+  await db.insert(verification).values({
+    identifier: `reset-password:${token}`,
+    value: userId,
+    expiresAt,
+    createdAt: now,
+    updatedAt: now,
+  });
 };

@@ -33,6 +33,7 @@ import { getAvatarUrl } from "~/utils/helpers";
 import { DeleteMemberConfirmation } from "./components/DeleteMemberConfirmation";
 import { EditMemberPermissionsModal } from "./components/EditMemberPermissionsModal";
 import { InviteMemberForm } from "./components/InviteMemberForm";
+import { ResetPasswordModal } from "~/views/ttm/members/ResetPasswordModal";
 
 export default function MembersPage() {
   const { modalContentType, openModal, isOpen } = useModal();
@@ -249,6 +250,20 @@ export default function MembersPage() {
                           memberEmail ?? "",
                         ),
                     },
+                    // TTM: email is off, so admins hand out reset links.
+                    ...(memberStatus === "active"
+                      ? [
+                          {
+                            label: "Password reset link",
+                            action: () =>
+                              openModal(
+                                "TTM_RESET_PASSWORD",
+                                memberPublicId,
+                                memberEmail ?? "",
+                              ),
+                          },
+                        ]
+                      : []),
                     {
                       label: t`Remove member`,
                       action: () =>
@@ -421,6 +436,13 @@ export default function MembersPage() {
             isVisible={isOpen && modalContentType === "REMOVE_MEMBER"}
           >
             <DeleteMemberConfirmation />
+          </Modal>
+
+          <Modal
+            modalSize="sm"
+            isVisible={isOpen && modalContentType === "TTM_RESET_PASSWORD"}
+          >
+            <ResetPasswordModal />
           </Modal>
 
           <Modal

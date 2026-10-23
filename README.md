@@ -173,6 +173,7 @@ pnpm dev
 | Variable                                  | Description                                               | Required                                    | Example                                                     |
 | ----------------------------------------- | --------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------- |
 | `POSTGRES_URL`                            | PostgreSQL connection URL                                 | To use external database                    | `postgres://user:pass@localhost:5432/db`                    |
+| `POSTGRES_CA_CERT`                        | Database CA certificate (PEM, raw or base64) for verified TLS; see [Database TLS](#database-tls) | Recommended with Supabase                   | `-----BEGIN CERTIFICATE-----...`                            |
 | `REDIS_URL`                               | Redis connection URL                                      | For rate limiting (optional)                | `redis://localhost:6379` or `redis://redis:6379` (Docker)   |
 | `EMAIL_FROM`                              | Sender email address                                      | For Email                                   | `"Kan <hello@mail.kan.bn>"`                                 |
 | `SMTP_HOST`                               | SMTP server hostname                                      | For Email                                   | `smtp.resend.com`                                           |
@@ -216,6 +217,25 @@ pnpm dev
 | `LOG_LEVEL`                               | Log verbosity level (debug, info, warn, error)            | No (defaults to debug in dev, info in prod) | `info`                                                      |
 
 See `.env.example` for a complete list of supported environment variables.
+
+## Database TLS 🔒
+
+When `POSTGRES_URL` points at Supabase (or any managed Postgres), pin its CA so the
+connection is fully verified instead of relying on `sslmode=no-verify`:
+
+1. Supabase dashboard → **Project Settings → Database → SSL → Download certificate**
+   (`prod-ca-2021.crt`).
+2. Put the PEM into `POSTGRES_CA_CERT`. Either paste the raw PEM, or base64-encode it
+   (`base64 -w0 prod-ca-2021.crt`) so it fits on one line.
+3. Drop any `?sslmode=no-verify` (or `sslmode=require`) from `POSTGRES_URL`. The client
+   strips it anyway when a CA is set, because node-postgres lets the URL's `sslmode`
+   override the pinned CA.
+
+`packages/db/src/client.ts` then connects with `ssl: { ca, rejectUnauthorized: true }`,
+caps the pool at 3 connections per function instance with a 10 s idle timeout, and
+registers the pool with `@vercel/functions`' `attachDatabasePool` so idle connections
+are released before the instance is suspended. Without `POSTGRES_CA_CERT` it logs a
+warning and falls back to whatever `sslmode` the URL carries.
 
 ## MCP Server (AI Control) 🤖
 

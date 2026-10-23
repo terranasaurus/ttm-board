@@ -10,6 +10,7 @@ services:
       - dokploy-network
     environment:
       - POSTGRES_URL=${POSTGRES_URL}
+      - POSTGRES_CA_CERT=${POSTGRES_CA_CERT}
     restart: "no"
 
   web:
@@ -34,6 +35,7 @@ services:
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - POSTGRES_URL=${POSTGRES_URL}
+      - POSTGRES_CA_CERT=${POSTGRES_CA_CERT}
       - NEXT_PUBLIC_USE_STANDALONE_OUTPUT=${NEXT_PUBLIC_USE_STANDALONE_OUTPUT}
       - REDIS_URL=${REDIS_URL}
 

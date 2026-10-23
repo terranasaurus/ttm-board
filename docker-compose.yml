@@ -10,6 +10,7 @@ services:
       target: migrate
     environment:
       - POSTGRES_URL=${POSTGRES_URL}
+      - POSTGRES_CA_CERT=${POSTGRES_CA_CERT}
     depends_on:
       postgres:
         condition: service_healthy
@@ -33,6 +34,7 @@ services:
       - NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL}
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - POSTGRES_URL=${POSTGRES_URL}
+      - POSTGRES_CA_CERT=${POSTGRES_CA_CERT}
 
       # Redis (optional - for rate limiting)
       - REDIS_URL=${REDIS_URL}

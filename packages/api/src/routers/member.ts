@@ -16,6 +16,7 @@ import {
   hasUnlimitedSeats,
 } from "@kan/shared";
 import { updateSubscriptionSeats } from "@kan/stripe";
+import { allowedDomainsFromEnv, isEmailAllowed } from "@kan/shared/ttm-access";
 
 import { memberInviteResponseSchema } from "../schemas";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
@@ -67,6 +68,14 @@ export const memberRouter = createTRPCRouter({
         });
 
       await assertPermission(ctx.db, userId, workspace.id, "member:invite");
+
+      // TTM: only allowed-domain addresses can be invited.
+      if (!isEmailAllowed(input.email, allowedDomainsFromEnv())) {
+        throw new TRPCError({
+          message: `Only ${allowedDomainsFromEnv().map((d) => `@${d}`).join(", ")} addresses can be invited`,
+          code: "BAD_REQUEST",
+        });
+      }
 
       const isInvitedEmailAlreadyMember = workspace.members.some(
         (member) => member.email === input.email,

@@ -14,6 +14,7 @@ import { userRouter } from "./routers/user";
 import { webhookRouter } from "./routers/webhook";
 import { workspaceRouter } from "./routers/workspace";
 import { ttmDocRouter } from "./routers/ttmDoc";
+import { ttmMemberRouter } from "./routers/ttmMember";
 import { createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
@@ -34,6 +35,7 @@ export const appRouter = createTRPCRouter({
   integration: integrationRouter,
   // TTM additions
   ttmDoc: ttmDocRouter,
+  ttmMember: ttmMemberRouter,
 });
 
 export type AppRouter = typeof appRouter;

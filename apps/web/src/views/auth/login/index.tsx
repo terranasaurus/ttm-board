@@ -57,19 +57,22 @@ export default function LoginPage() {
                 </div>
               </div>
             )}
-            {(!isSignUpDisabled || redirect?.startsWith("/invite/")) && (
-              <p className="mt-4 text-sm text-light-1000 dark:text-dark-1000">
-                <Trans>
-                  Don't have an account?{" "}
+            {/* TTM: always shown. Sign-up is invite-only, but people added
+                under Members still need to reach the form to create their account. */}
+            {!isMagicLinkSent && (
+              <div className="mt-4 space-y-1 text-center text-sm text-light-1000 dark:text-dark-1000">
+                <p>
+                  {isSignUpDisabled ? "First time here? " : "Don't have an account? "}
                   <span className="underline">
-                    <Link
-                      href={redirect ? `/signup?next=${redirect}` : "/signup"}
-                    >
-                      Sign up
+                    <Link href={redirect ? `/signup?next=${redirect}` : "/signup"}>
+                      Create your account
                     </Link>
                   </span>
-                </Trans>
-              </p>
+                </p>
+                <p className="text-xs text-light-900 dark:text-dark-900">
+                  Forgot your password? Ask Terran for a reset link.
+                </p>
+              </div>
             )}
           </div>
           <PatternedBackground />

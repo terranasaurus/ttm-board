@@ -15,6 +15,10 @@
     "./constants": {
       "types": "./src/constants/index.ts",
       "default": "./src/constants/index.ts"
+    },
+    "./ttm-access": {
+      "types": "./src/ttm-access.ts",
+      "default": "./src/ttm-access.ts"
     }
   },
   "license": "GPL-3.0",

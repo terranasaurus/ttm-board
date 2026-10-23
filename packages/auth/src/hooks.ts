@@ -4,10 +4,12 @@ import { env } from "next-runtime-env";
 
 import type { dbClient } from "@kan/db/client";
 import * as memberRepo from "@kan/db/repository/member.repo";
+import * as ttmMemberRepo from "@kan/db/repository/ttmMember.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
 import { createSubscriber, triggerSubscriberWorkflow } from "@kan/email";
 import { createLogger } from "@kan/logger";
 import { createS3Client } from "@kan/shared";
+import { allowedDomainsFromEnv, isEmailAllowed } from "@kan/shared/ttm-access";
 
 import { downloadImage } from "./utils";
 
@@ -42,19 +44,24 @@ export function createDatabaseHooks(db: dbClient) {
 
             // Fall through to any additional checks below
           }
-          // Enforce allowed domains (OIDC/social) if configured
-          const allowed = process.env.BETTER_AUTH_ALLOWED_DOMAINS?.split(",")
-            .map((d) => d.trim().toLowerCase())
-            .filter(Boolean);
-          if (allowed && allowed.length > 0) {
-            const domain = user.email.split("@")[1]?.toLowerCase();
-            if (!domain || !allowed.includes(domain)) {
-              return Promise.resolve(false);
-            }
+          // Enforce allowed domains (all sign-up methods) if configured
+          if (!isEmailAllowed(user.email, allowedDomainsFromEnv())) {
+            return Promise.resolve(false);
           }
           return Promise.resolve(true);
         },
         async after(user: BetterAuthUser, _context: unknown) {
+          // TTM: people added to a workspace before they had an account
+          // join it automatically, no invite link or email needed.
+          try {
+            const activated = await ttmMemberRepo.activatePendingForEmail(db, user.email, user.id);
+            if (activated.length) {
+              log.info({ userId: user.id, workspaces: activated.map((a) => a.workspaceId) }, "Activated pending memberships");
+            }
+          } catch (error) {
+            log.error({ err: error }, "Error activating pending memberships");
+          }
+
           let avatarKey = user.image;
           const storageDomain = process.env.NEXT_PUBLIC_STORAGE_DOMAIN;
           if (
@@ -137,6 +144,27 @@ export function createDatabaseHooks(db: dbClient) {
           } catch (error) {
             log.error({ err: error }, "Error triggering user-signup workflow");
           }
+        },
+      },
+      // TTM: an account can't be moved to an address outside the allowed domains.
+      update: {
+        async before(data: Partial<BetterAuthUser>, _context: unknown) {
+          if (data.email !== undefined && !isEmailAllowed(data.email, allowedDomainsFromEnv())) {
+            return Promise.resolve(false);
+          }
+          return Promise.resolve(true);
+        },
+      },
+    },
+    // TTM: sign-in is refused for any account outside the allowed domains,
+    // so tightening BETTER_AUTH_ALLOWED_DOMAINS also locks out old accounts.
+    session: {
+      create: {
+        async before(session: { userId: string } & Record<string, unknown>, _context: unknown) {
+          const allowed = allowedDomainsFromEnv();
+          if (allowed.length === 0) return Promise.resolve(true);
+          const user = await userRepo.getById(db, session.userId);
+          return Promise.resolve(isEmailAllowed(user?.email, allowed));
         },
       },
     },

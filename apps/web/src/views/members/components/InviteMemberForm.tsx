@@ -22,6 +22,7 @@ import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
 import { api } from "~/utils/api";
+import { AddMemberDirect } from "~/views/ttm/members/AddMemberDirect";
 
 export function InviteMemberForm({
   subscriptions,
@@ -252,6 +253,8 @@ export function InviteMemberForm({
             <HiXMark size={18} className="dark:text-dark-9000 text-light-900" />
           </button>
         </div>
+        {/* TTM: add people directly (no email or invite link needed). */}
+        {!isFreePlan && <AddMemberDirect />}
         {isEmailEnabled && (
           <Input
             id="email"
@@ -268,7 +271,8 @@ export function InviteMemberForm({
           />
         )}
         {!isFreePlan &&
-          (!isEmailEnabled || (isShareInviteLinkEnabled && inviteLink)) && (
+          isShareInviteLinkEnabled &&
+          !!inviteLink && (
             <div className="my-4">
               <div className="relative">
                 <Input
@@ -354,15 +358,15 @@ export function InviteMemberForm({
             >
               {t`Choose plan`}
             </Button>
-          ) : (
+          ) : isEmailEnabled ? (
             <Button
               type="submit"
-              disabled={inviteMember.isPending || !isEmailEnabled}
+              disabled={inviteMember.isPending}
               isLoading={inviteMember.isPending}
             >
               {t`Invite member`}
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
     </form>

@@ -27,8 +27,7 @@ vi.mock("@kan/db/repository/ttmMember.repo", () => ({
 }));
 
 vi.mock("@kan/email", () => ({
-  createSubscriber: vi.fn(),
-  triggerSubscriberWorkflow: vi.fn(),
+  subscriber: null,
 }));
 
 vi.mock("@kan/shared", () => ({

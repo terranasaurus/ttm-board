@@ -63,6 +63,28 @@ jobs:
           fi
           echo "changed=true" >> "$GITHUB_OUTPUT"
 
+          # The default GITHUB_TOKEN may not push changes under .github/workflows
+          # (GitHub refuses without the `workflows` permission, which Actions
+          # tokens cannot get). Keep our own workflow files as they are on main
+          # and list any upstream workflow changes in the PR for a manual port.
+          SKIPPED="$(git diff --name-only HEAD^1 HEAD -- .github/workflows)"
+          if [ -n "$SKIPPED" ]; then
+            for f in $SKIPPED; do
+              if git cat-file -e "HEAD^1:$f" 2>/dev/null; then
+                git checkout HEAD^1 -- "$f"
+              else
+                git rm -q --cached -- "$f"
+                rm -f -- "$f"
+              fi
+            done
+            git -c core.editor=true commit --amend --no-verify --no-edit
+          fi
+          {
+            echo "skipped_workflows<<EOF"
+            if [ -n "$SKIPPED" ]; then echo "$SKIPPED" | sed 's/^/- `/; s/$/`/'; else echo "- none"; fi
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Open or update the sync PR
         if: steps.merge.outputs.changed == 'true'
         uses: peter-evans/create-pull-request@v7
@@ -79,3 +101,6 @@ jobs:
             - Conflicts to resolve on this branch: **${{ steps.merge.outputs.conflicts }}**
             - Review the TTM-specific areas before merging: `apps/web` branding and marketing redirects, `packages/db/src/client.ts`, `packages/auth`.
             - This PR is never merged automatically.
+
+            Upstream workflow changes left out (the Actions token can't push them; port by hand if wanted):
+            ${{ steps.merge.outputs.skipped_workflows }}

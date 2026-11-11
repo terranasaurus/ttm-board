@@ -10,7 +10,7 @@
     "message": ", or see our",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 102]],
+    "origin": [["src/components/FeedbackModal.tsx", 106]],
     "translation": ", oder siehe unsere"
   },
   "J/hVSQ": {
@@ -32,7 +32,7 @@
     "comments": [],
     "origin": [
       ["src/views/boards/index.tsx", 58],
-      ["src/views/card/index.tsx", 326]
+      ["src/views/card/index.tsx", 361]
     ],
     "translation": "{0} | {1}"
   },
@@ -51,7 +51,7 @@
       "0": ["boardName ?? \"Board\""]
     },
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 63]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 71]],
     "translation": "{0} wurde zu deinen Favoriten hinzugefügt."
   },
   "bDI6VI": {
@@ -60,7 +60,7 @@
       "0": ["boardName ?? \"Board\""]
     },
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 64]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 72]],
     "translation": "{0} wurde aus deinen Favoriten entfernt."
   },
   "CJukzS": {
@@ -69,7 +69,7 @@
       "0": ["labelPublicIds.length"]
     },
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 563]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 567]],
     "translation": "{0} Labels"
   },
   "9x4DAL": {
@@ -78,7 +78,7 @@
       "0": ["isTemplate ? \"Template\" : \"Board\""]
     },
     "comments": [],
-    "origin": [["src/views/board/index.tsx", 887]],
+    "origin": [["src/views/board/index.tsx", 889]],
     "translation": "{0} nicht gefunden"
   },
   "0xWkkH": {
@@ -189,7 +189,7 @@
     "message": "A powerful, flexible kanban app that helps you organise work, track progress, and deliver results—all in one place.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 71]],
+    "origin": [["src/views/home/index.tsx", 74]],
     "translation": "Eine leistungsstarke, flexible Kanban-App, die dir hilft, Arbeit zu organisieren, Fortschritte zu verfolgen und Ergebnisse zu liefern – alles an einem Ort."
   },
   "AeXO77": {
@@ -254,8 +254,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/card/index.tsx", 481],
-      ["src/views/public/board/CardModal.tsx", 209]
+      ["src/views/card/index.tsx", 520],
+      ["src/views/public/board/CardModal.tsx", 211]
     ],
     "translation": "Aktivität"
   },
@@ -279,7 +279,7 @@
     "message": "Add / edit label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/CardContextMenu.tsx", 50]],
+    "origin": [["src/views/board/components/CardContextMenu.tsx", 51]],
     "translation": "Label hinzufügen / bearbeiten"
   },
   "B3xxao": {
@@ -295,6 +295,15 @@
     "comments": [],
     "origin": [["src/views/card/components/NewChecklistItemForm.tsx", 157]],
     "translation": "Element hinzufügen..."
+  },
+  "0Jeh9Q": {
+    "message": "Add board member",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 49]
+    ],
+    "translation": "Boardmitglied hinzufügen"
   },
   "sFY+gw": {
     "message": "Add card",
@@ -329,7 +338,7 @@
     "comments": [],
     "origin": [
       ["src/views/card/components/Comment.tsx", 185],
-      ["src/views/card/components/NewCommentForm.tsx", 85]
+      ["src/views/card/components/NewCommentForm.tsx", 90]
     ],
     "translation": "Kommentar hinzufügen... (‚/' für Befehle oder ‚@' zum Erwähnen eingeben)"
   },
@@ -362,6 +371,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 97],
+      ["src/views/board/members/index.tsx", 223],
       ["src/views/card/components/MemberSelector.tsx", 138],
       ["src/views/members/components/InviteMemberForm.tsx", 243]
     ],
@@ -371,7 +382,7 @@
     "message": "Add to favorites",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 138]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 202]],
     "translation": "Zu Favoriten hinzufügen"
   },
   "cWXW+7": {
@@ -388,42 +399,42 @@
       "labelList": ["labelList"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 102]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 103]],
     "translation": "hat {0} Labels hinzugefügt: <0>{labelList}</0>"
   },
   "h4VV67": {
     "message": "added a checklist",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 132]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 133]],
     "translation": "hat eine Checkliste hinzugefügt"
   },
   "O83K21": {
     "message": "added a checklist item",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 135]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 136]],
     "translation": "hat ein Checklisten-Element hinzugefügt"
   },
   "T21jY/": {
     "message": "added a label to the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 128]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 129]],
     "translation": "hat ein Label zur Karte hinzugefügt"
   },
   "rs7L54": {
     "message": "added a member to the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 130]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 131]],
     "translation": "hat ein Mitglied zur Karte hinzugefügt"
   },
   "5y6qY8": {
     "message": "added an attachment",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 140]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 141]],
     "translation": "hat einen Anhang hinzugefügt"
   },
   "CujNX4": {
@@ -432,7 +443,7 @@
       "0": ["truncate(filename)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 278]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 279]],
     "translation": "hat einen Anhang hinzugefügt <0>{0}</0>"
   },
   "wakO3W": {
@@ -441,7 +452,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 208]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 209]],
     "translation": "hat Checkliste <0>{0}</0> hinzugefügt"
   },
   "E0t3jO": {
@@ -450,7 +461,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 232]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 233]],
     "translation": "hat Checklisten-Element <0>{0}</0> hinzugefügt"
   },
   "b5FKyH": {
@@ -459,14 +470,14 @@
       "0": ["truncate(label)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 192]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 193]],
     "translation": "hat Label <0>{0}</0> hinzugefügt"
   },
   "pL78ec": {
     "message": "Added to favorites",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 60]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 68]],
     "translation": "Zu Favoriten hinzugefügt"
   },
   "14Xi3Z": {
@@ -490,7 +501,12 @@
     "message": "Admin",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/members/index.tsx", 221]],
+    "origin": [
+      ["src/views/board/members/index.tsx", 156],
+      ["src/views/board/members/index.tsx", 172],
+      ["src/views/members/index.tsx", 221],
+      ["src/views/settings/components/RolePermissions.tsx", 14]
+    ],
     "translation": "Administrator"
   },
   "3pIq39": {
@@ -700,7 +716,7 @@
     "message": "Archive board",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 118]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 182]],
     "translation": "Board archivieren"
   },
   "TdfEV7": {
@@ -779,7 +795,7 @@
     "message": "Are you sure you want to delete this label?",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/DeleteLabelConfirmation.tsx", 41]],
+    "origin": [["src/components/DeleteLabelConfirmation.tsx", 44]],
     "translation": "Möchten Sie dieses Label wirklich löschen?"
   },
   "74F7N/": {
@@ -791,13 +807,27 @@
     ],
     "translation": "Möchten Sie Ihr Konto wirklich löschen?"
   },
+  "NPVcwK": {
+    "message": "Are you sure you want to remove {entityLabel}?",
+    "placeholders": {
+      "entityLabel": ["entityLabel"]
+    },
+    "comments": [],
+    "origin": [
+      [
+        "src/views/board/members/components/RemoveBoardMemberConfirmation.tsx",
+        46
+      ]
+    ],
+    "translation": "Möchten Sie {entityLabel} wirklich entfernen?"
+  },
   "PyYD/v": {
     "message": "assigned <0>{0}</0> to the card",
     "placeholders": {
       "0": ["truncate(displayName)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 172]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 173]],
     "translation": "hat <0>{0}</0> der Karte zugewiesen"
   },
   "JUce1S": {
@@ -814,8 +844,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/NewCardForm.tsx", 626],
-      ["src/views/board/components/NewCardForm.tsx", 627]
+      ["src/views/board/components/NewCardForm.tsx", 630],
+      ["src/views/board/components/NewCardForm.tsx", 631]
     ],
     "translation": "Dateien anhängen"
   },
@@ -948,6 +978,13 @@
     "origin": [["src/views/settings/BillingSettings.tsx", 98]],
     "translation": "Abrechnungsportal"
   },
+  "OLMhPm": {
+    "message": "Blockquote",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 427]],
+    "translation": "Blockzitat"
+  },
   "4RoY9J": {
     "message": "Blog Post",
     "placeholders": {},
@@ -960,8 +997,9 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 859],
-      ["src/views/card/index.tsx", 326],
+      ["src/views/board/index.tsx", 861],
+      ["src/views/board/members/index.tsx", 209],
+      ["src/views/card/index.tsx", 361],
       ["src/views/public/board/index.tsx", 125]
     ],
     "translation": "Board"
@@ -980,8 +1018,34 @@
     "message": "Board archived",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 49]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 57]],
     "translation": "Board archiviert"
+  },
+  "uxBHQx": {
+    "message": "Board member options",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/members/index.tsx", 193]],
+    "translation": "Optionen für Boardmitglieder"
+  },
+  "tKo0Sh": {
+    "message": "Board members",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/components/BoardDropdown.tsx", 151],
+      ["src/views/board/members/index.tsx", 214]
+    ],
+    "translation": "Boardmitglieder"
+  },
+  "vTPHCg": {
+    "message": "Board members | {0}",
+    "placeholders": {
+      "0": ["board?.name ?? t`Board`"]
+    },
+    "comments": [],
+    "origin": [["src/views/board/members/index.tsx", 209]],
+    "translation": "Boardmitglieder | {0}"
   },
   "wE3hGS": {
     "message": "Board moved",
@@ -994,7 +1058,7 @@
     "message": "Board name",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/index.tsx", 877]],
+    "origin": [["src/views/board/index.tsx", 879]],
     "translation": "Board-Name"
   },
   "wewm3j": {
@@ -1022,7 +1086,7 @@
     "message": "Board options",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 167]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 231]],
     "translation": "Board-Optionen"
   },
   "XNxYxq": {
@@ -1038,7 +1102,7 @@
     "message": "Board unarchived",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 50]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 58]],
     "translation": "Board wiederhergestellt"
   },
   "Xid3K6": {
@@ -1059,15 +1123,26 @@
     "message": "Board URL copied to clipboard",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/public/board/index.tsx", 79]],
+    "origin": [
+      ["src/views/board/components/BoardDropdown.tsx", 122],
+      ["src/views/public/board/index.tsx", 79]
+    ],
     "translation": "Board-URL in Zwischenablage kopiert"
+  },
+  "spRiNh": {
+    "message": "Board URL is required",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/components/UpdateBoardSlugForm.tsx", 42]],
+    "translation": "Board-URL ist erforderlich"
   },
   "TmvrjU": {
     "message": "Board URL must be at least 3 characters long",
     "placeholders": {},
     "comments": [],
     "origin": [["src/views/board/components/UpdateBoardSlugForm.tsx", 42]],
-    "translation": "Board-URL muss mindestens 3 Zeichen lang sein"
+    "translation": "Board-URL muss mindestens 3 Zeichen lang sein",
+    "obsolete": true
   },
   "qzdST2": {
     "message": "Board visibility",
@@ -1091,7 +1166,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/SideNavigation.tsx", 98],
+      ["src/components/SideNavigation.tsx", 101],
+      ["src/utils/permission-category-label.ts", 12],
       ["src/views/boards/index.tsx", 58],
       ["src/views/boards/index.tsx", 63],
       ["src/views/pricing/components/FeatureComparisonTable.tsx", 83]
@@ -1126,6 +1202,13 @@
     "origin": [["src/views/boards/components/TemplateBoards.tsx", 64]],
     "translation": "Bug-Report"
   },
+  "s1c0ja": {
+    "message": "Bullet List",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 417]],
+    "translation": "Aufzählungsliste"
+  },
   "AjVXBS": {
     "message": "Calendar",
     "placeholders": {},
@@ -1138,8 +1221,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 146],
-      ["src/views/settings/components/RolePermissions.tsx", 35]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 149],
+      ["src/views/settings/components/RolePermissions.tsx", 44]
     ],
     "translation": "Kann Kommentare hinzufügen"
   },
@@ -1148,8 +1231,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 131],
-      ["src/views/settings/components/RolePermissions.tsx", 20]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 134],
+      ["src/views/settings/components/RolePermissions.tsx", 29]
     ],
     "translation": "Kann Boards erstellen"
   },
@@ -1158,8 +1241,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 141],
-      ["src/views/settings/components/RolePermissions.tsx", 30]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 144],
+      ["src/views/settings/components/RolePermissions.tsx", 39]
     ],
     "translation": "Kann Karten erstellen"
   },
@@ -1168,8 +1251,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 136],
-      ["src/views/settings/components/RolePermissions.tsx", 25]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 139],
+      ["src/views/settings/components/RolePermissions.tsx", 34]
     ],
     "translation": "Kann Listen erstellen"
   },
@@ -1178,8 +1261,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 133],
-      ["src/views/settings/components/RolePermissions.tsx", 22]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 136],
+      ["src/views/settings/components/RolePermissions.tsx", 31]
     ],
     "translation": "Kann Boards löschen"
   },
@@ -1188,8 +1271,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 143],
-      ["src/views/settings/components/RolePermissions.tsx", 32]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 146],
+      ["src/views/settings/components/RolePermissions.tsx", 41]
     ],
     "translation": "Kann Karten löschen"
   },
@@ -1198,8 +1281,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 148],
-      ["src/views/settings/components/RolePermissions.tsx", 37]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 151],
+      ["src/views/settings/components/RolePermissions.tsx", 46]
     ],
     "translation": "Kann Kommentare löschen"
   },
@@ -1208,8 +1291,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 138],
-      ["src/views/settings/components/RolePermissions.tsx", 27]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 141],
+      ["src/views/settings/components/RolePermissions.tsx", 36]
     ],
     "translation": "Kann Listen löschen"
   },
@@ -1218,8 +1301,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 127],
-      ["src/views/settings/components/RolePermissions.tsx", 16]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 130],
+      ["src/views/settings/components/RolePermissions.tsx", 25]
     ],
     "translation": "Kann Workspace löschen"
   },
@@ -1228,8 +1311,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 132],
-      ["src/views/settings/components/RolePermissions.tsx", 21]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 135],
+      ["src/views/settings/components/RolePermissions.tsx", 30]
     ],
     "translation": "Kann Boards bearbeiten"
   },
@@ -1238,8 +1321,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 142],
-      ["src/views/settings/components/RolePermissions.tsx", 31]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 145],
+      ["src/views/settings/components/RolePermissions.tsx", 40]
     ],
     "translation": "Kann Karten bearbeiten"
   },
@@ -1248,8 +1331,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 147],
-      ["src/views/settings/components/RolePermissions.tsx", 36]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 150],
+      ["src/views/settings/components/RolePermissions.tsx", 45]
     ],
     "translation": "Kann Kommentare bearbeiten"
   },
@@ -1258,8 +1341,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 137],
-      ["src/views/settings/components/RolePermissions.tsx", 26]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 140],
+      ["src/views/settings/components/RolePermissions.tsx", 35]
     ],
     "translation": "Kann Listen bearbeiten"
   },
@@ -1268,8 +1351,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 152],
-      ["src/views/settings/components/RolePermissions.tsx", 41]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 155],
+      ["src/views/settings/components/RolePermissions.tsx", 50]
     ],
     "translation": "Kann Mitgliederrollen und Berechtigungen bearbeiten"
   },
@@ -1278,8 +1361,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 126],
-      ["src/views/settings/components/RolePermissions.tsx", 15]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 129],
+      ["src/views/settings/components/RolePermissions.tsx", 24]
     ],
     "translation": "Kann Workspace bearbeiten"
   },
@@ -1288,8 +1371,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 151],
-      ["src/views/settings/components/RolePermissions.tsx", 40]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 154],
+      ["src/views/settings/components/RolePermissions.tsx", 49]
     ],
     "translation": "Kann Mitglieder einladen"
   },
@@ -1298,8 +1381,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 128],
-      ["src/views/settings/components/RolePermissions.tsx", 17]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 131],
+      ["src/views/settings/components/RolePermissions.tsx", 26]
     ],
     "translation": "Kann Workspace-Einstellungen verwalten"
   },
@@ -1308,8 +1391,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 153],
-      ["src/views/settings/components/RolePermissions.tsx", 42]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 156],
+      ["src/views/settings/components/RolePermissions.tsx", 51]
     ],
     "translation": "Kann Mitglieder entfernen"
   },
@@ -1318,8 +1401,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 130],
-      ["src/views/settings/components/RolePermissions.tsx", 19]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 133],
+      ["src/views/settings/components/RolePermissions.tsx", 28]
     ],
     "translation": "Kann Boards ansehen"
   },
@@ -1328,8 +1411,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 140],
-      ["src/views/settings/components/RolePermissions.tsx", 29]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 143],
+      ["src/views/settings/components/RolePermissions.tsx", 38]
     ],
     "translation": "Kann Karten ansehen"
   },
@@ -1338,8 +1421,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 145],
-      ["src/views/settings/components/RolePermissions.tsx", 34]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 148],
+      ["src/views/settings/components/RolePermissions.tsx", 43]
     ],
     "translation": "Kann Kommentare ansehen"
   },
@@ -1348,8 +1431,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 135],
-      ["src/views/settings/components/RolePermissions.tsx", 24]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 138],
+      ["src/views/settings/components/RolePermissions.tsx", 33]
     ],
     "translation": "Kann Listen ansehen"
   },
@@ -1358,8 +1441,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 150],
-      ["src/views/settings/components/RolePermissions.tsx", 39]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 153],
+      ["src/views/settings/components/RolePermissions.tsx", 48]
     ],
     "translation": "Kann Mitglieder ansehen"
   },
@@ -1368,8 +1451,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 125],
-      ["src/views/settings/components/RolePermissions.tsx", 14]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 128],
+      ["src/views/settings/components/RolePermissions.tsx", 23]
     ],
     "translation": "Kann Workspace ansehen"
   },
@@ -1378,11 +1461,16 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/DeleteLabelConfirmation.tsx", 49],
+      ["src/components/DeleteLabelConfirmation.tsx", 52],
       ["src/components/YouTubeEmbed/EditYouTubeModal.tsx", 176],
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 267],
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 255],
       ["src/views/board/components/DeleteBoardConfirmation.tsx", 44],
       ["src/views/board/components/MoveBoardForm.tsx", 99],
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 89],
+      [
+        "src/views/board/members/components/RemoveBoardMemberConfirmation.tsx",
+        54
+      ],
       ["src/views/card/components/Comment.tsx", 195],
       ["src/views/card/components/DeleteCardConfirmation.tsx", 86],
       ["src/views/card/components/DeleteChecklistConfirmation.tsx", 64],
@@ -1405,7 +1493,7 @@
     "message": "Card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/index.tsx", 326]],
+    "origin": [["src/views/card/index.tsx", 361]],
     "translation": "Karte"
   },
   "sU2uWc": {
@@ -1413,7 +1501,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 67],
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 55],
       ["src/views/card/components/Dropdown.tsx", 46]
     ],
     "translation": "Karte dupliziert"
@@ -1437,8 +1525,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/card/index.tsx", 389],
-      ["src/views/card/index.tsx", 426]
+      ["src/views/card/index.tsx", 424],
+      ["src/views/card/index.tsx", 461]
     ],
     "translation": "Karte nicht gefunden"
   },
@@ -1453,7 +1541,7 @@
     "message": "Card title",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 429]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 433]],
     "translation": "Kartentitel"
   },
   "rQXTmd": {
@@ -1461,11 +1549,18 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 432],
+      ["src/views/board/index.tsx", 441],
       ["src/views/card/components/Dropdown.tsx", 74],
-      ["src/views/public/board/CardModal.tsx", 38]
+      ["src/views/public/board/CardModal.tsx", 40]
     ],
     "translation": "Karten-URL in Zwischenablage kopiert"
+  },
+  "Ccpbzh": {
+    "message": "Cards",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/utils/permission-category-label.ts", 16]],
+    "translation": "Karten"
   },
   "VhMDMg": {
     "message": "Change Password",
@@ -1500,8 +1595,8 @@
     },
     "comments": [],
     "origin": [
-      ["src/views/card/components/ActivityList.tsx", 303],
-      ["src/views/card/components/ActivityList.tsx", 317]
+      ["src/views/card/components/ActivityList.tsx", 304],
+      ["src/views/card/components/ActivityList.tsx", 318]
     ],
     "translation": "hat das Fälligkeitsdatum auf <0>{formattedDate}</0> geändert"
   },
@@ -1518,6 +1613,7 @@
     "comments": [],
     "origin": [
       ["src/pages/partner/activate.tsx", 56],
+      ["src/views/auth/forgot-password/index.tsx", 68],
       ["src/views/auth/login/index.tsx", 43],
       ["src/views/auth/signup/index.tsx", 71]
     ],
@@ -1614,11 +1710,18 @@
     "comments": [],
     "origin": [
       ["src/components/Dashboard.tsx", 281],
-      ["src/views/card/index.tsx", 380],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 172],
+      ["src/views/card/index.tsx", 415],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 175],
       ["src/views/settings/components/NewApiKeyModal.tsx", 136]
     ],
     "translation": "Schließen"
+  },
+  "N2eHWq": {
+    "message": "Code Block",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 432]],
+    "translation": "Codeblock"
   },
   "TcXcmk": {
     "message": "Code Review",
@@ -1662,6 +1765,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      ["src/utils/permission-category-label.ts", 18],
       ["src/views/home/components/Features.tsx", 105],
       ["src/views/pricing/components/FeatureComparisonTable.tsx", 156]
     ],
@@ -1671,7 +1775,7 @@
     "message": "Company",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 95]],
+    "origin": [["src/views/home/components/Footer.tsx", 96]],
     "translation": "Unternehmen"
   },
   "bD8I7O": {
@@ -1692,7 +1796,7 @@
     "message": "completed a checklist item",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 137]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 138]],
     "translation": "hat einen Checklistenpunkt abgeschlossen"
   },
   "29sSki": {
@@ -1701,7 +1805,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 249]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 250]],
     "translation": "hat Checklistenpunkt <0>{0}</0> abgeschlossen"
   },
   "tOZp9v": {
@@ -1742,6 +1846,13 @@
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 188]
     ],
     "translation": "Bestätigen Sie Ihr neues Passwort"
+  },
+  "t0qQZE": {
+    "message": "Confirm your password",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 112]],
+    "translation": "Passwort bestätigen"
   },
   "iSLIjg": {
     "message": "Connect",
@@ -1790,7 +1901,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/home/components/Footer.tsx", 38],
+      ["src/views/home/components/Footer.tsx", 42],
       ["src/views/home/components/Header.tsx", 42]
     ],
     "translation": "Kontakt"
@@ -1807,7 +1918,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/FeedbackModal.tsx", 100],
+      ["src/components/FeedbackModal.tsx", 104],
       ["src/views/pricing/components/PricingTiers.tsx", 75],
       ["src/views/pricing/components/PricingTiers.tsx", 75]
     ],
@@ -1834,7 +1945,7 @@
     "message": "Continue with ",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 442]],
+    "origin": [["src/components/AuthForm.tsx", 477]],
     "translation": "Weiter mit "
   },
   "gkzAEM": {
@@ -1843,7 +1954,7 @@
       "0": ["key === \"oidc\" ? oidcProviderName : provider.name"]
     },
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 360]],
+    "origin": [["src/components/AuthForm.tsx", 364]],
     "translation": "Weiter mit {0}"
   },
   "va/3u1": {
@@ -1864,9 +1975,8 @@
     "message": "Copy board link",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/UpdateBoardSlugButton.tsx", 87]],
-    "translation": "Board-Link kopieren",
-    "obsolete": true
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 133]],
+    "translation": "Board-Link kopieren"
   },
   "F0YmUY": {
     "message": "Copy card link",
@@ -1880,7 +1990,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 257]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 245]
     ],
     "translation": "Checklisten kopieren"
   },
@@ -1889,7 +1999,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 221]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 209]
     ],
     "translation": "Labels kopieren"
   },
@@ -1897,7 +2007,7 @@
     "message": "Copy link to card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/CardContextMenu.tsx", 62]],
+    "origin": [["src/views/board/components/CardContextMenu.tsx", 63]],
     "translation": "Link zur Karte kopieren"
   },
   "uvH2xS": {
@@ -1905,9 +2015,16 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 239]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 227]
     ],
     "translation": "Mitglieder kopieren"
+  },
+  "FO91Ip": {
+    "message": "Copy public link",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 140]],
+    "translation": "Öffentlichen Link kopieren"
   },
   "7mrkyO": {
     "message": "Copy ticket ID",
@@ -1939,9 +2056,9 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/LabelForm.tsx", 208],
-      ["src/views/board/components/NewCardForm.tsx", 658],
-      ["src/views/board/components/NewListForm.tsx", 156]
+      ["src/components/LabelForm.tsx", 217],
+      ["src/views/board/components/NewCardForm.tsx", 662],
+      ["src/views/board/components/NewListForm.tsx", 162]
     ],
     "translation": "Weitere erstellen"
   },
@@ -1956,7 +2073,7 @@
     "message": "Create card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 668]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 672]],
     "translation": "Karte erstellen"
   },
   "d33Usy": {
@@ -1977,14 +2094,14 @@
     "message": "Create label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/LabelForm.tsx", 231]],
+    "origin": [["src/components/LabelForm.tsx", 240]],
     "translation": "Label erstellen"
   },
   "XTKtey": {
     "message": "Create list",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewListForm.tsx", 168]],
+    "origin": [["src/views/board/components/NewListForm.tsx", 174]],
     "translation": "Liste erstellen"
   },
   "VKoDQD": {
@@ -2011,7 +2128,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/NewCardForm.tsx", 525],
+      ["src/views/board/components/NewCardForm.tsx", 529],
       ["src/views/card/components/LabelSelector.tsx", 101]
     ],
     "translation": "Neues Label erstellen"
@@ -2021,8 +2138,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 138],
-      ["src/views/board/index.tsx", 1012]
+      ["src/views/board/index.tsx", 139],
+      ["src/views/board/index.tsx", 1017]
     ],
     "translation": "Neue Liste erstellen"
   },
@@ -2061,7 +2178,7 @@
     "message": "created the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 124]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 125]],
     "translation": "hat die Karte erstellt"
   },
   "J5nbej": {
@@ -2229,8 +2346,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/DeleteLabelConfirmation.tsx", 51],
-      ["src/components/LabelForm.tsx", 223],
+      ["src/components/DeleteLabelConfirmation.tsx", 54],
+      ["src/components/LabelForm.tsx", 232],
       ["src/components/YouTubeEmbed/YouTubeDropdown.tsx", 52],
       ["src/views/board/components/DeleteBoardConfirmation.tsx", 47],
       ["src/views/card/components/DeleteCardConfirmation.tsx", 92],
@@ -2256,7 +2373,7 @@
     "message": "Delete board",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 149]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 213]],
     "translation": "Board löschen"
   },
   "nabda1": {
@@ -2264,7 +2381,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextMenu.tsx", 74],
+      ["src/views/board/components/CardContextMenu.tsx", 75],
       ["src/views/card/components/Dropdown.tsx", 152]
     ],
     "translation": "Karte löschen"
@@ -2294,7 +2411,7 @@
     "message": "Delete template",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 149]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 213]],
     "translation": "Vorlage löschen"
   },
   "snMaH4": {
@@ -2321,14 +2438,14 @@
     "message": "deleted a checklist",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 134]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 135]],
     "translation": "hat eine Checkliste gelöscht"
   },
   "W5r8Qh": {
     "message": "deleted a checklist item",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 139]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 140]],
     "translation": "hat ein Checklisten-Element gelöscht"
   },
   "BMkVQ3": {
@@ -2337,7 +2454,7 @@
       "0": ["truncate(fromTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 224]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 225]],
     "translation": "hat Checkliste <0>{0}</0> gelöscht"
   },
   "CHZ1jC": {
@@ -2346,7 +2463,7 @@
       "0": ["truncate(fromTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 267]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 268]],
     "translation": "hat Checklisten-Element <0>{0}</0> gelöscht"
   },
   "f8fH8W": {
@@ -2383,6 +2500,13 @@
     "comments": [],
     "origin": [["src/views/home/components/Features.tsx", 106]],
     "translation": "Diskutieren und arbeiten Sie an Karten zusammen."
+  },
+  "7oGBMv": {
+    "message": "Discussions",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/home/components/Footer.tsx", 39]],
+    "translation": "Diskussionen"
   },
   "pfa8F0": {
     "message": "Display name",
@@ -2434,7 +2558,7 @@
     "message": "docs",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 109]],
+    "origin": [["src/components/FeedbackModal.tsx", 113]],
     "translation": "Docs"
   },
   "TbjyhA": {
@@ -2453,7 +2577,7 @@
       ["src/views/boards/components/TemplateBoards.tsx", 24],
       ["src/views/boards/components/TemplateBoards.tsx", 30],
       ["src/views/boards/components/TemplateBoards.tsx", 36],
-      ["src/views/home/components/Footer.tsx", 78],
+      ["src/views/home/components/Footer.tsx", 79],
       ["src/views/home/components/Header.tsx", 36]
     ],
     "translation": "Dokumentation"
@@ -2495,8 +2619,8 @@
     "comments": [],
     "origin": [
       ["src/views/board/components/Filters.tsx", 178],
-      ["src/views/board/components/NewCardForm.tsx", 580],
-      ["src/views/card/index.tsx", 154]
+      ["src/views/board/components/NewCardForm.tsx", 584],
+      ["src/views/card/index.tsx", 159]
     ],
     "translation": "Fälligkeitsdatum"
   },
@@ -2533,7 +2657,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 279]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 267]
     ],
     "translation": "Duplizieren"
   },
@@ -2542,8 +2666,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 111],
-      ["src/views/board/components/CardContextMenu.tsx", 68],
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 99],
+      ["src/views/board/components/CardContextMenu.tsx", 69],
       ["src/views/card/components/Dropdown.tsx", 130]
     ],
     "translation": "Karte duplizieren"
@@ -2553,7 +2677,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 279]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 267]
     ],
     "translation": "Wird dupliziert…"
   },
@@ -2572,7 +2696,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/BoardDropdown.tsx", 109],
+      ["src/views/board/components/BoardDropdown.tsx", 173],
       ["src/views/board/components/UpdateBoardSlugForm.tsx", 116]
     ],
     "translation": "Board-URL bearbeiten"
@@ -2588,7 +2712,7 @@
     "message": "Edit label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/LabelForm.tsx", 114]],
+    "origin": [["src/components/LabelForm.tsx", 123]],
     "translation": "Label bearbeiten"
   },
   "TCOMOO": {
@@ -2596,7 +2720,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 162],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 165],
       ["src/views/members/index.tsx", 244]
     ],
     "translation": "Berechtigungen bearbeiten"
@@ -2633,7 +2757,7 @@
     "message": "email",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 443]],
+    "origin": [["src/components/AuthForm.tsx", 478]],
     "translation": "E-Mail"
   },
   "O3oNi5": {
@@ -2674,7 +2798,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 200]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 188]
     ],
     "translation": "Ende der Liste"
   },
@@ -2702,6 +2826,13 @@
     "comments": [],
     "origin": [["src/components/YouTubeEmbed/EditYouTubeModal.tsx", 131]],
     "translation": "Benutzerdefinierten Titel eingeben"
+  },
+  "dDyAXD": {
+    "message": "Enter a new password",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 99]],
+    "translation": "Neues Passwort eingeben"
   },
   "rQRXo8": {
     "message": "Enter new secret to update",
@@ -2732,14 +2863,17 @@
     "message": "Enter your email address",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 407]],
+    "origin": [
+      ["src/components/AuthForm.tsx", 432],
+      ["src/views/auth/forgot-password/index.tsx", 85]
+    ],
     "translation": "Geben Sie Ihre E-Mail-Adresse ein"
   },
   "n9V+ps": {
     "message": "Enter your name",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 395]],
+    "origin": [["src/components/AuthForm.tsx", 420]],
     "translation": "Geben Sie Ihren Namen ein"
   },
   "0StR7t": {
@@ -2755,7 +2889,7 @@
     "message": "Enter your password",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 421]],
+    "origin": [["src/components/AuthForm.tsx", 446]],
     "translation": "Geben Sie Ihr Passwort ein"
   },
   "GpB8YV": {
@@ -2822,7 +2956,7 @@
     "message": "Error deleting label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/DeleteLabelConfirmation.tsx", 25]],
+    "origin": [["src/components/DeleteLabelConfirmation.tsx", 27]],
     "translation": "Fehler beim Löschen des Labels"
   },
   "9s9O5h": {
@@ -2939,6 +3073,15 @@
     ],
     "translation": "Ereignisse"
   },
+  "6ZIzI/": {
+    "message": "Every active workspace member is already on this board.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 61]
+    ],
+    "translation": "Alle aktiven Mitglieder des Workspace sind bereits auf diesem Board."
+  },
   "8iP0S8": {
     "message": "Everything in the free plan, plus:",
     "placeholders": {},
@@ -3020,7 +3163,7 @@
       "0": ["provider.at(0)?.toUpperCase() + provider.slice(1)"]
     },
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 296]],
+    "origin": [["src/components/AuthForm.tsx", 300]],
     "translation": "Anmeldung mit {0} fehlgeschlagen. Bitte versuchen Sie es erneut."
   },
   "5ntVtp": {
@@ -3060,7 +3203,7 @@
     "comments": [],
     "origin": [
       ["src/views/home/components/Faqs.tsx", 143],
-      ["src/views/home/components/Footer.tsx", 52]
+      ["src/views/home/components/Footer.tsx", 56]
     ],
     "translation": "FAQs"
   },
@@ -3088,7 +3231,7 @@
     "comments": [],
     "origin": [
       ["src/views/home/components/Features.tsx", 132],
-      ["src/views/home/components/Footer.tsx", 50],
+      ["src/views/home/components/Footer.tsx", 54],
       ["src/views/home/components/Header.tsx", 17],
       ["src/views/home/components/Header.tsx", 33]
     ],
@@ -3099,7 +3242,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/FeedbackModal.tsx", 59],
+      ["src/components/FeedbackModal.tsx", 63],
       ["src/components/UserMenu.tsx", 217]
     ],
     "translation": "Feedback"
@@ -3108,7 +3251,7 @@
     "message": "Feedback sent",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 33]],
+    "origin": [["src/components/FeedbackModal.tsx", 34]],
     "translation": "Feedback gesendet"
   },
   "F6m23G": {
@@ -3145,6 +3288,27 @@
     "comments": [],
     "origin": [["src/views/home/components/Faqs.tsx", 41]],
     "translation": "Für langfristige Nachhaltigkeit erkennen wir an, dass alle guten Open-Source-Projekte eine Einnahmequelle benötigen. Unsere stammt aus dem kostenpflichtigen Cloud-Angebot für Workspaces mit mehreren Benutzern und für benutzerdefinierte Workspace-Slugs. Es besteht keine Verpflichtung zur Nutzung, und Sie können die Software kostenlos auf Ihrer eigenen Infrastruktur selbst hosten."
+  },
+  "GbjlZL": {
+    "message": "Forgot password | kan.bn",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/forgot-password/index.tsx", 58]],
+    "translation": "Passwort vergessen | kan.bn"
+  },
+  "UNMVei": {
+    "message": "Forgot password?",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/AuthForm.tsx", 460]],
+    "translation": "Passwort vergessen?"
+  },
+  "glx6on": {
+    "message": "Forgot your password?",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/forgot-password/index.tsx", 68]],
+    "translation": "Haben Sie Ihr Passwort vergessen?"
   },
   "2POOFK": {
     "message": "Free",
@@ -3258,7 +3422,7 @@
     "message": "Get started by creating a new list",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/index.tsx", 994]],
+    "origin": [["src/views/board/index.tsx", 999]],
     "translation": "Legen Sie los, indem Sie eine neue Liste erstellen"
   },
   "oW13KZ": {
@@ -3279,7 +3443,7 @@
     "message": "Get started on Cloud",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 75]],
+    "origin": [["src/views/home/index.tsx", 78]],
     "translation": "In der Cloud starten"
   },
   "7hktsm": {
@@ -3335,7 +3499,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/SideNavigation.tsx", 106],
+      ["src/components/SideNavigation.tsx", 109],
       ["src/pages/404.tsx", 44]
     ],
     "translation": "Zu den Boards"
@@ -3351,21 +3515,21 @@
     "message": "Go to members",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/SideNavigation.tsx", 130]],
+    "origin": [["src/components/SideNavigation.tsx", 133]],
     "translation": "Zu den Mitgliedern"
   },
   "1WuwiM": {
     "message": "Go to settings",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/SideNavigation.tsx", 142]],
+    "origin": [["src/components/SideNavigation.tsx", 145]],
     "translation": "Zu den Einstellungen"
   },
   "csFbe+": {
     "message": "Go to templates",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/SideNavigation.tsx", 118]],
+    "origin": [["src/components/SideNavigation.tsx", 121]],
     "translation": "Zu Vorlagen gehen"
   },
   "SUvm1Y": {
@@ -3398,8 +3562,32 @@
     "message": "Guest",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/members/index.tsx", 223]],
+    "origin": [
+      ["src/views/members/index.tsx", 223],
+      ["src/views/settings/components/RolePermissions.tsx", 18]
+    ],
     "translation": "Gast"
+  },
+  "lXKZGw": {
+    "message": "Heading 1",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 395]],
+    "translation": "Überschrift 1"
+  },
+  "El7NbA": {
+    "message": "Heading 2",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 401]],
+    "translation": "Überschrift 2"
+  },
+  "SFN6dN": {
+    "message": "Heading 3",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 407]],
+    "translation": "Überschrift 3"
   },
   "CB/NpV": {
     "message": "High Priority",
@@ -3507,7 +3695,7 @@
     "message": "Ideas to improve this page...",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 75]],
+    "origin": [["src/components/FeedbackModal.tsx", 79]],
     "translation": "Ideen zur Verbesserung dieser Seite..."
   },
   "l3s5ri": {
@@ -3781,9 +3969,9 @@
     "origin": [
       ["src/views/board/components/CardContextLabelsModal.tsx", 31],
       ["src/views/board/components/Filters.tsx", 160],
-      ["src/views/board/components/NewCardForm.tsx", 529],
+      ["src/views/board/components/NewCardForm.tsx", 533],
       ["src/views/card/components/LabelSelector.tsx", 102],
-      ["src/views/card/index.tsx", 134]
+      ["src/views/card/index.tsx", 139]
     ],
     "translation": "Labels"
   },
@@ -3858,14 +4046,14 @@
     "message": "Legal",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 131]],
+    "origin": [["src/views/home/components/Footer.tsx", 132]],
     "translation": "Rechtliches"
   },
   "iQmbPb": {
     "message": "License",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 45]],
+    "origin": [["src/views/home/components/Footer.tsx", 49]],
     "translation": "Lizenz"
   },
   "aDzbuM": {
@@ -3903,9 +4091,10 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 430],
+      ["src/views/board/components/BoardDropdown.tsx", 106],
+      ["src/views/board/index.tsx", 439],
       ["src/views/card/components/Dropdown.tsx", 72],
-      ["src/views/public/board/CardModal.tsx", 36],
+      ["src/views/public/board/CardModal.tsx", 38],
       ["src/views/public/board/index.tsx", 77]
     ],
     "translation": "Link kopiert"
@@ -3915,8 +4104,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 117],
-      ["src/views/card/index.tsx", 125]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 105],
+      ["src/views/card/index.tsx", 130]
     ],
     "translation": "Liste"
   },
@@ -3926,7 +4115,7 @@
     "comments": [],
     "origin": [
       ["src/views/board/components/List.tsx", 124],
-      ["src/views/board/components/NewListForm.tsx", 144]
+      ["src/views/board/components/NewListForm.tsx", 150]
     ],
     "translation": "Listenname"
   },
@@ -3942,6 +4131,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      ["src/utils/permission-category-label.ts", 14],
       ["src/views/board/components/Filters.tsx", 169],
       ["src/views/board/components/ViewToggle.tsx", 31]
     ],
@@ -3951,7 +4141,7 @@
     "message": "Load more activities",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 579]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 664]],
     "translation": "Weitere Aktivitäten laden"
   },
   "0qyZ4b": {
@@ -3959,7 +4149,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 180]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 183]
     ],
     "translation": "Berechtigungen werden geladen ..."
   },
@@ -3967,7 +4157,7 @@
     "message": "Loading...",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 579]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 664]],
     "translation": "Wird geladen ..."
   },
   "N/bcWA": {
@@ -4009,14 +4199,14 @@
     "message": "magic link",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 443]],
+    "origin": [["src/components/AuthForm.tsx", 478]],
     "translation": "Magic-Link"
   },
   "DbZgsJ": {
     "message": "Make template",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 98]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 162]],
     "translation": "Vorlage erstellen"
   },
   "hB02vO": {
@@ -4025,7 +4215,7 @@
     "comments": [],
     "origin": [
       ["src/views/board/components/CardContextMembersModal.tsx", 51],
-      ["src/views/board/components/CardContextMenu.tsx", 38]
+      ["src/views/board/components/CardContextMenu.tsx", 39]
     ],
     "translation": "Mitglieder verwalten"
   },
@@ -4033,7 +4223,7 @@
     "message": "marked a checklist item as incomplete",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 138]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 139]],
     "translation": "hat ein Checklistenelement als unvollständig markiert"
   },
   "jl3aEJ": {
@@ -4042,7 +4232,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 258]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 259]],
     "translation": "hat Checklistenelement <0>{0}</0> als unvollständig markiert"
   },
   "vo2a+a": {
@@ -4078,9 +4268,12 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/card/components/ActivityList.tsx", 55],
-      ["src/views/card/components/ActivityList.tsx", 88],
-      ["src/views/members/index.tsx", 222]
+      ["src/views/board/members/index.tsx", 156],
+      ["src/views/board/members/index.tsx", 173],
+      ["src/views/card/components/ActivityList.tsx", 56],
+      ["src/views/card/components/ActivityList.tsx", 89],
+      ["src/views/members/index.tsx", 222],
+      ["src/views/settings/components/RolePermissions.tsx", 16]
     ],
     "translation": "Mitglied"
   },
@@ -4103,11 +4296,12 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/SideNavigation.tsx", 122],
+      ["src/components/SideNavigation.tsx", 125],
+      ["src/utils/permission-category-label.ts", 20],
       ["src/views/board/components/Filters.tsx", 151],
-      ["src/views/board/components/NewCardForm.tsx", 487],
+      ["src/views/board/components/NewCardForm.tsx", 491],
       ["src/views/card/components/MemberSelector.tsx", 116],
-      ["src/views/card/index.tsx", 144],
+      ["src/views/card/index.tsx", 149],
       ["src/views/members/index.tsx", 284],
       ["src/views/pricing/components/FeatureComparisonTable.tsx", 90]
     ],
@@ -4176,7 +4370,7 @@
     "message": "Move to another list",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/CardContextMenu.tsx", 44]],
+    "origin": [["src/views/board/components/CardContextMenu.tsx", 45]],
     "translation": "In andere Liste verschieben"
   },
   "J4+OTA": {
@@ -4190,7 +4384,7 @@
     "message": "Move to workspace",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 129]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 193]],
     "translation": "In Workspace verschieben"
   },
   "BOqTi5": {
@@ -4200,14 +4394,14 @@
       "1": ["truncate(toList)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 160]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 161]],
     "translation": "hat die Karte von <0>{0}</0> nach <1>{1}</1> verschoben"
   },
   "T7LJic": {
     "message": "moved the card to another list",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 127]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 128]],
     "translation": "hat die Karte in eine andere Liste verschoben"
   },
   "uEGGDs": {
@@ -4222,7 +4416,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/LabelForm.tsx", 130],
+      ["src/components/LabelForm.tsx", 139],
       ["src/views/board/components/NewTemplateForm.tsx", 118],
       ["src/views/boards/components/NewBoardForm.tsx", 134],
       ["src/views/settings/components/NewWebhookModal.tsx", 227],
@@ -4241,7 +4435,7 @@
     "message": "Need help?",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 95]],
+    "origin": [["src/components/FeedbackModal.tsx", 99]],
     "translation": "Benötigen Sie Hilfe?"
   },
   "PSXKxs": {
@@ -4281,7 +4475,7 @@
     "message": "New card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 412]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 416]],
     "translation": "Neue Karte"
   },
   "cWcxrL": {
@@ -4302,7 +4496,7 @@
     "message": "New label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/LabelForm.tsx", 114]],
+    "origin": [["src/components/LabelForm.tsx", 123]],
     "translation": "Neues Label"
   },
   "Sb2gYF": {
@@ -4310,8 +4504,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/NewListForm.tsx", 128],
-      ["src/views/board/index.tsx", 939]
+      ["src/views/board/components/NewListForm.tsx", 134],
+      ["src/views/board/index.tsx", 941]
     ],
     "translation": "Neue Liste"
   },
@@ -4402,7 +4596,7 @@
     "message": "No authentication methods are currently available",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 374]],
+    "origin": [["src/components/AuthForm.tsx", 379]],
     "translation": "Derzeit sind keine Authentifizierungsmethoden verfügbar"
   },
   "2Bu8xj": {
@@ -4423,7 +4617,7 @@
     "message": "No credit card required",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 85]],
+    "origin": [["src/views/home/index.tsx", 88]],
     "translation": "Keine Kreditkarte erforderlich"
   },
   "MK16u2": {
@@ -4458,14 +4652,14 @@
     "message": "No lists",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/index.tsx", 990]],
+    "origin": [["src/views/board/index.tsx", 995]],
     "translation": "Keine Listen"
   },
   "fvLNDy": {
     "message": "No lists have been created yet",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/index.tsx", 995]],
+    "origin": [["src/views/board/index.tsx", 1000]],
     "translation": "Es wurden noch keine Listen erstellt"
   },
   "i30J2U": {
@@ -4488,7 +4682,7 @@
     "message": "No roles found for this workspace yet.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/settings/components/RolePermissions.tsx", 110]],
+    "origin": [["src/views/settings/components/RolePermissions.tsx", 120]],
     "translation": "Für diesen Workspace wurden noch keine Rollen gefunden."
   },
   "TX0bT7": {
@@ -4576,8 +4770,15 @@
     "message": "or",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 385]],
+    "origin": [["src/components/AuthForm.tsx", 410]],
     "translation": "oder"
+  },
+  "Uci+Ph": {
+    "message": "Ordered List",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/components/Editor.tsx", 422]],
+    "translation": "Nummerierte Liste"
   },
   "ZqDqbi": {
     "message": "Organize and find cards quickly with powerful filtering tools.",
@@ -4591,7 +4792,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/home/components/Footer.tsx", 39],
+      ["src/views/home/components/Footer.tsx", 43],
       ["src/views/oss-friends/index.tsx", 52]
     ],
     "translation": "OSS Friends"
@@ -4651,14 +4852,14 @@
     "message": "Password is required to login.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 263]],
+    "origin": [["src/components/AuthForm.tsx", 267]],
     "translation": "Passwort ist für die Anmeldung erforderlich."
   },
   "tTbref": {
     "message": "Password is required to sign up.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 262]],
+    "origin": [["src/components/AuthForm.tsx", 266]],
     "translation": "Passwort ist für die Registrierung erforderlich."
   },
   "vwGkYB": {
@@ -4666,6 +4867,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      ["src/views/auth/reset-password/index.tsx", 27],
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 23]
     ],
     "translation": "Passwort muss mindestens 8 Zeichen lang sein"
@@ -4684,6 +4886,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      ["src/views/auth/reset-password/index.tsx", 31],
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 30]
     ],
     "translation": "Passwörter stimmen nicht überein"
@@ -4742,7 +4945,7 @@
     "message": "Permission",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/settings/components/RolePermissions.tsx", 119]],
+    "origin": [["src/views/settings/components/RolePermissions.tsx", 129]],
     "translation": "Berechtigung"
   },
   "9cDpsw": {
@@ -4757,7 +4960,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 80]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 83]
     ],
     "translation": "Berechtigungen zurückgesetzt"
   },
@@ -4766,8 +4969,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 34],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 57]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 37],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 60]
     ],
     "translation": "Berechtigungen aktualisiert"
   },
@@ -4831,21 +5034,27 @@
     "message": "Please enter a valid email address",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 411]],
+    "origin": [
+      ["src/components/AuthForm.tsx", 436],
+      ["src/views/auth/forgot-password/index.tsx", 89]
+    ],
     "translation": "Bitte geben Sie eine gültige E-Mail-Adresse ein"
   },
   "CJ3zUq": {
     "message": "Please enter a valid name",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 399]],
+    "origin": [["src/components/AuthForm.tsx", 424]],
     "translation": "Bitte geben Sie einen gültigen Namen ein"
   },
   "7b2yuC": {
     "message": "Please enter a valid password",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 426]],
+    "origin": [
+      ["src/components/AuthForm.tsx", 451],
+      ["src/views/auth/reset-password/index.tsx", 104]
+    ],
     "translation": "Bitte geben Sie ein gültiges Passwort ein"
   },
   "jEw0Mr": {
@@ -4877,19 +5086,19 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/DeleteLabelConfirmation.tsx", 26],
-      ["src/components/FeedbackModal.tsx", 41],
+      ["src/components/DeleteLabelConfirmation.tsx", 28],
+      ["src/components/FeedbackModal.tsx", 42],
       ["src/components/NewWorkspaceForm.tsx", 110],
-      ["src/views/board/components/BoardDropdown.tsx", 72],
-      ["src/views/board/components/NewCardForm.tsx", 200],
-      ["src/views/board/components/NewListForm.tsx", 94],
+      ["src/views/board/components/BoardDropdown.tsx", 80],
+      ["src/views/board/components/NewCardForm.tsx", 204],
+      ["src/views/board/components/NewListForm.tsx", 97],
       ["src/views/board/components/NewTemplateForm.tsx", 61],
       ["src/views/board/components/NewTemplateForm.tsx", 77],
       ["src/views/board/components/UpdateBoardSlugForm.tsx", 73],
       ["src/views/board/components/VisibilityButton.tsx", 57],
-      ["src/views/board/index.tsx", 284],
-      ["src/views/board/index.tsx", 340],
-      ["src/views/board/index.tsx", 377],
+      ["src/views/board/index.tsx", 292],
+      ["src/views/board/index.tsx", 349],
+      ["src/views/board/index.tsx", 386],
       ["src/views/boards/components/ImportBoardsForm.tsx", 243],
       ["src/views/boards/components/ImportBoardsForm.tsx", 395],
       ["src/views/card/components/AttachmentThumbnails.tsx", 74],
@@ -4907,13 +5116,13 @@
       ["src/views/card/components/MemberSelector.tsx", 82],
       ["src/views/card/components/NewChecklistForm.tsx", 82],
       ["src/views/card/components/NewChecklistItemForm.tsx", 106],
-      ["src/views/card/components/NewCommentForm.tsx", 38],
-      ["src/views/card/index.tsx", 241],
-      ["src/views/card/index.tsx", 254],
+      ["src/views/card/components/NewCommentForm.tsx", 43],
+      ["src/views/card/index.tsx", 259],
+      ["src/views/card/index.tsx", 272],
       ["src/views/members/components/DeleteMemberConfirmation.tsx", 28],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 42],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 65],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 93],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 45],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 68],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 96],
       ["src/views/members/components/InviteMemberForm.tsx", 112],
       ["src/views/members/index.tsx", 70],
       ["src/views/onboarding/workspace-details/index.tsx", 119],
@@ -4944,13 +5153,14 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 76],
+      ["src/views/board/components/BoardDropdown.tsx", 111],
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 64],
       ["src/views/board/components/CardContextMoveListModal.tsx", 42],
-      ["src/views/board/index.tsx", 439],
+      ["src/views/board/index.tsx", 448],
       ["src/views/card/components/Dropdown.tsx", 55],
       ["src/views/card/components/Dropdown.tsx", 81],
       ["src/views/card/components/Dropdown.tsx", 100],
-      ["src/views/public/board/CardModal.tsx", 45],
+      ["src/views/public/board/CardModal.tsx", 47],
       ["src/views/public/board/index.tsx", 86]
     ],
     "translation": "Bitte versuchen Sie es erneut."
@@ -4960,7 +5170,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 193]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 181]
     ],
     "translation": "Position in Liste (0 = erste, leer lassen für Ende)"
   },
@@ -4976,12 +5186,12 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/home/components/Footer.tsx", 51],
+      ["src/views/home/components/Footer.tsx", 55],
       ["src/views/home/components/Header.tsx", 18],
       ["src/views/home/components/Header.tsx", 34],
       ["src/views/pricing/components/Pricing.tsx", 85],
-      ["src/views/pricing/index.tsx", 34],
-      ["src/views/pricing/index.tsx", 40]
+      ["src/views/pricing/index.tsx", 35],
+      ["src/views/pricing/index.tsx", 43]
     ],
     "translation": "Preise"
   },
@@ -5000,7 +5210,7 @@
     "message": "Privacy policy",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 43]],
+    "origin": [["src/views/home/components/Footer.tsx", 47]],
     "translation": "Datenschutzerklärung"
   },
   "zwBp5t": {
@@ -5060,6 +5270,13 @@
     "origin": [["src/views/board/components/VisibilityButton.tsx", 79]],
     "translation": "Öffentlich"
   },
+  "NBrXwv": {
+    "message": "Public board URL copied to clipboard",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 128]],
+    "translation": "Öffentliche Board-URL in die Zwischenablage kopiert"
+  },
   "ABCjd9": {
     "message": "Publishing",
     "placeholders": {},
@@ -5102,6 +5319,16 @@
     "origin": [["src/views/boards/components/TemplateBoards.tsx", 35]],
     "translation": "Abgelehnt"
   },
+  "OSmrFy": {
+    "message": "Remembered your password? <0><1>Sign in</1></0>",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/auth/forgot-password/index.tsx", 111],
+      ["src/views/auth/reset-password/index.tsx", 146]
+    ],
+    "translation": "Passwort wieder eingefallen? <0><1>Anmelden</1></0>"
+  },
   "qlAIQ1": {
     "message": "Remote",
     "placeholders": {},
@@ -5114,6 +5341,10 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      [
+        "src/views/board/members/components/RemoveBoardMemberConfirmation.tsx",
+        57
+      ],
       ["src/views/members/components/DeleteMemberConfirmation.tsx", 58]
     ],
     "translation": "Entfernen"
@@ -5122,14 +5353,21 @@
     "message": "Remove file",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 645]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 649]],
     "translation": "Datei entfernen"
+  },
+  "Tir5Ud": {
+    "message": "Remove from board",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/members/index.tsx", 183]],
+    "translation": "Vom Board entfernen"
   },
   "T/pF0Z": {
     "message": "Remove from favorites",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 138]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 202]],
     "translation": "Aus Favoriten entfernen"
   },
   "99VIgC": {
@@ -5146,28 +5384,28 @@
       "labelList": ["labelList"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 116]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 117]],
     "translation": "hat {0} Labels entfernt: <0>{labelList}</0>"
   },
   "kQwvU8": {
     "message": "removed a label from the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 129]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 130]],
     "translation": "hat ein Label von der Karte entfernt"
   },
   "uck1tz": {
     "message": "removed a member from the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 131]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 132]],
     "translation": "hat ein Mitglied von der Karte entfernt"
   },
   "KEim/+": {
     "message": "removed an attachment",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 141]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 142]],
     "translation": "hat einen Anhang entfernt"
   },
   "zwTiVn": {
@@ -5176,14 +5414,14 @@
       "0": ["truncate(filename)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 288]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 289]],
     "translation": "hat einen Anhang entfernt <0>{0}</0>"
   },
   "Qh7QmR": {
     "message": "Removed from favorites",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 61]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 69]],
     "translation": "Aus Favoriten entfernt"
   },
   "YVT40D": {
@@ -5192,7 +5430,7 @@
       "0": ["truncate(label)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 200]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 201]],
     "translation": "hat Label entfernt <0>{0}</0>"
   },
   "aHRWVI": {
@@ -5200,8 +5438,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/card/components/ActivityList.tsx", 144],
-      ["src/views/card/components/ActivityList.tsx", 324]
+      ["src/views/card/components/ActivityList.tsx", 145],
+      ["src/views/card/components/ActivityList.tsx", 325]
     ],
     "translation": "hat das Fälligkeitsdatum entfernt"
   },
@@ -5209,7 +5447,7 @@
     "message": "renamed a checklist",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 133]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 134]],
     "translation": "hat eine Checkliste umbenannt"
   },
   "3ZjRJY": {
@@ -5218,7 +5456,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 216]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 217]],
     "translation": "hat Checkliste umbenannt <0>{0}</0>"
   },
   "NH54UR": {
@@ -5227,7 +5465,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 240]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 241]],
     "translation": "hat Checklistenelement umbenannt in <0>{0}</0>"
   },
   "Yx0Ud8": {
@@ -5247,12 +5485,26 @@
     "origin": [["src/views/boards/components/TemplateBoards.tsx", 89]],
     "translation": "Recherche"
   },
+  "RfwZxd": {
+    "message": "Reset password",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 130]],
+    "translation": "Passwort zurücksetzen"
+  },
+  "S57AHL": {
+    "message": "Reset password | kan.bn",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 79]],
+    "translation": "Passwort zurücksetzen | kan.bn"
+  },
   "e4hPSt": {
     "message": "Reset to role defaults",
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 245]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 248]
     ],
     "translation": "Auf Rollenstandards zurücksetzen"
   },
@@ -5267,7 +5519,7 @@
     "message": "Resources",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 114]],
+    "origin": [["src/views/home/components/Footer.tsx", 115]],
     "translation": "Ressourcen"
   },
   "5k0NLb": {
@@ -5293,7 +5545,11 @@
     "message": "Role",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/members/index.tsx", 353]],
+    "origin": [
+      ["src/views/board/members/index.tsx", 169],
+      ["src/views/board/members/index.tsx", 250],
+      ["src/views/members/index.tsx", 353]
+    ],
     "translation": "Rolle"
   },
   "jQ6I8X": {
@@ -5441,9 +5697,18 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 131]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 119]
     ],
     "translation": "Liste auswählen"
+  },
+  "E5eC82": {
+    "message": "Select a member",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 77]
+    ],
+    "translation": "Mitglied auswählen"
   },
   "NM2hyD": {
     "message": "Select a workspace",
@@ -5487,22 +5752,38 @@
     "message": "Self host with Github",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 81]],
+    "origin": [["src/views/home/index.tsx", 84]],
     "translation": "Self-Hosting mit Github"
   },
   "VXk54Y": {
     "message": "self-assigned the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 169]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 170]],
     "translation": "hat sich die Karte selbst zugewiesen"
+  },
+  "f2zPy/": {
+    "message": "Self-hosting? Set <0>{CREDENTIALS_ENV_HINT}</0> to enable email and password sign in, or configure an OAuth provider. See the <1>self-hosting guide</1>.",
+    "placeholders": {
+      "CREDENTIALS_ENV_HINT": ["CREDENTIALS_ENV_HINT"]
+    },
+    "comments": [],
+    "origin": [["src/components/AuthForm.tsx", 385]],
+    "translation": "Self-Hosting? Setze <0>{CREDENTIALS_ENV_HINT}</0>, um die Anmeldung mit E-Mail und Passwort zu aktivieren, oder konfiguriere einen OAuth-Anbieter. Lies dazu die <1>Self-Hosting-Anleitung</1>."
   },
   "RoafuO": {
     "message": "Send feedback",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 116]],
+    "origin": [["src/components/FeedbackModal.tsx", 120]],
     "translation": "Feedback senden"
+  },
+  "eaUTwS": {
+    "message": "Send reset link",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/forgot-password/index.tsx", 103]],
+    "translation": "Link zum Zurücksetzen senden"
   },
   "eus61c": {
     "message": "Send test",
@@ -5518,6 +5799,13 @@
     "origin": [["src/views/boards/components/TemplateBoards.tsx", 82]],
     "translation": "Senior"
   },
+  "+DlsTY": {
+    "message": "Set a new password",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 89]],
+    "translation": "Neues Passwort festlegen"
+  },
   "GXGbXi": {
     "message": "Set a password to enable password-based login.",
     "placeholders": {},
@@ -5531,7 +5819,7 @@
     "comments": [],
     "origin": [
       ["src/views/board/components/CardContextDueDateModal.tsx", 20],
-      ["src/views/board/components/CardContextMenu.tsx", 56],
+      ["src/views/board/components/CardContextMenu.tsx", 57],
       ["src/views/card/components/DueDateSelector.tsx", 121]
     ],
     "translation": "Fälligkeitsdatum festlegen"
@@ -5552,7 +5840,7 @@
     "message": "set the due date",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 142]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 143]],
     "translation": "hat das Fälligkeitsdatum festgelegt"
   },
   "JjEJSy": {
@@ -5568,7 +5856,7 @@
     "comments": [],
     "origin": [
       ["src/components/SettingsLayout.tsx", 102],
-      ["src/components/SideNavigation.tsx", 134]
+      ["src/components/SideNavigation.tsx", 137]
     ],
     "translation": "Einstellungen"
   },
@@ -5627,6 +5915,20 @@
     "comments": [],
     "origin": [["src/components/UserMenu.tsx", 187]],
     "translation": "Tastenkombinationen"
+  },
+  "0XmVWH": {
+    "message": "Show newest activity first",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/card/components/ActivitySortOrderToggle.tsx", 17]],
+    "translation": "Neueste Aktivität zuerst anzeigen"
+  },
+  "EL+7I2": {
+    "message": "Show oldest activity first",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/card/components/ActivitySortOrderToggle.tsx", 16]],
+    "translation": "Älteste Aktivität zuerst anzeigen"
   },
   "5lWFkC": {
     "message": "Sign in",
@@ -5703,7 +6005,7 @@
     "message": "Sign up with ",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 442]],
+    "origin": [["src/components/AuthForm.tsx", 477]],
     "translation": "Registrieren mit "
   },
   "m2nk0i": {
@@ -5712,9 +6014,16 @@
     "comments": [],
     "origin": [
       ["src/views/pricing/components/Pricing.tsx", 89],
-      ["src/views/pricing/index.tsx", 44]
+      ["src/views/pricing/index.tsx", 47]
     ],
     "translation": "Einfache Preisgestaltung"
+  },
+  "/ty94x": {
+    "message": "Simple, transparent pricing. Start free with unlimited boards and cards, upgrade as your team grows. No hidden fees, no contracts.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/pricing/index.tsx", 36]],
+    "translation": "Einfache, transparente Preise. Starte kostenlos mit unbegrenzt vielen Boards und Karten und wechsle zu einem größeren Tarif, wenn dein Team wächst. Keine versteckten Gebühren, keine Vertragsbindung."
   },
   "sBhOFG": {
     "message": "Simple, visual task management that just works. Drag and drop cards, collaborate with your team, and get more done.",
@@ -5764,7 +6073,7 @@
     "message": "Some attachments failed",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 332]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 336]],
     "translation": "Einige Anhänge sind fehlgeschlagen"
   },
   "J9+zIR": {
@@ -5781,6 +6090,13 @@
     "origin": [["src/components/Dashboard.tsx", 132]],
     "translation": "Bei der Lizenzaktivierung ist ein Fehler aufgetreten."
   },
+  "kf83Ld": {
+    "message": "Something went wrong.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/forgot-password/index.tsx", 49]],
+    "translation": "Etwas ist schiefgelaufen."
+  },
   "vnS6Rf": {
     "message": "SSO",
     "placeholders": {},
@@ -5794,7 +6110,7 @@
     "message": "Star on Github",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 37]],
+    "origin": [["src/views/home/index.tsx", 40]],
     "translation": "Auf Github mit Stern markieren"
   },
   "veIDCY": {
@@ -5812,9 +6128,9 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/SideNavigation.tsx", 228],
-      ["src/components/SideNavigation.tsx", 229],
-      ["src/components/SideNavigation.tsx", 239]
+      ["src/components/SideNavigation.tsx", 232],
+      ["src/components/SideNavigation.tsx", 233],
+      ["src/components/SideNavigation.tsx", 243]
     ],
     "translation": "Kostenlose Testversion starten"
   },
@@ -5822,7 +6138,7 @@
     "message": "Start free. Upgrade as your team grows. No hidden fees, no contracts.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/pricing/index.tsx", 47]],
+    "origin": [["src/views/pricing/index.tsx", 50]],
     "translation": "Kostenlos starten. Upgraden Sie, wenn Ihr Team wächst. Keine versteckten Gebühren, keine Verträge."
   },
   "lUlbS2": {
@@ -5843,14 +6159,14 @@
     "message": "Submit",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/NewCommentForm.tsx", 60]],
+    "origin": [["src/views/card/components/NewCommentForm.tsx", 65]],
     "translation": "Absenden"
   },
   "DJUhvh": {
     "message": "Submit comment",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/NewCommentForm.tsx", 92]],
+    "origin": [["src/views/card/components/NewCommentForm.tsx", 97]],
     "translation": "Kommentar absenden"
   },
   "WYDptz": {
@@ -5865,8 +6181,9 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/AuthForm.tsx", 220],
-      ["src/components/AuthForm.tsx", 237]
+      ["src/components/AuthForm.tsx", 224],
+      ["src/components/AuthForm.tsx", 241],
+      ["src/views/auth/reset-password/index.tsx", 70]
     ],
     "translation": "Erfolg"
   },
@@ -5947,8 +6264,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 859],
-      ["src/views/board/index.tsx", 896]
+      ["src/views/board/index.tsx", 861],
+      ["src/views/board/index.tsx", 898]
     ],
     "translation": "Vorlage"
   },
@@ -5980,12 +6297,19 @@
     "origin": [["src/views/board/components/NewTemplateForm.tsx", 18]],
     "translation": "Vorlagenname ist erforderlich"
   },
+  "2oYalC": {
+    "message": "Template URL copied to clipboard",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 121]],
+    "translation": "Vorlagen-URL in die Zwischenablage kopiert"
+  },
   "iTylMl": {
     "message": "Templates",
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/SideNavigation.tsx", 110],
+      ["src/components/SideNavigation.tsx", 113],
       ["src/views/boards/index.tsx", 58],
       ["src/views/boards/index.tsx", 63],
       ["src/views/home/components/Features.tsx", 115]
@@ -5996,7 +6320,7 @@
     "message": "Terms of service",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/components/Footer.tsx", 42]],
+    "origin": [["src/views/home/components/Footer.tsx", 46]],
     "translation": "Nutzungsbedingungen"
   },
   "NnH3pK": {
@@ -6047,7 +6371,7 @@
     "message": "Thank you for your feedback!",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 34]],
+    "origin": [["src/components/FeedbackModal.tsx", 35]],
     "translation": "Vielen Dank für Ihr Feedback!"
   },
   "ssK7k+": {
@@ -6061,7 +6385,7 @@
     "message": "The board has been archived.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 52]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 60]],
     "translation": "Das Board wurde archiviert."
   },
   "ZWk38w": {
@@ -6077,7 +6401,7 @@
     "message": "The board has been unarchived.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 53]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 61]],
     "translation": "Das Board wurde wiederhergestellt."
   },
   "nKBUeF": {
@@ -6085,7 +6409,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 69]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 57]
     ],
     "translation": "Die Karte wurde dupliziert."
   },
@@ -6096,7 +6420,7 @@
       "failedCount": ["failedCount"]
     },
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 333]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 337]],
     "translation": "Die Karte wurde erstellt, aber {failedCount} von {0} Anhängen konnten nicht hochgeladen werden."
   },
   "jlB2RY": {
@@ -6120,8 +6444,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 35],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 58]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 38],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 61]
     ],
     "translation": "Die Berechtigungen des Mitglieds wurden aktualisiert."
   },
@@ -6136,7 +6460,7 @@
     "message": "The open source <0/> alternative to Trello",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/home/index.tsx", 65]],
+    "origin": [["src/views/home/index.tsx", 68]],
     "translation": "Die Open-Source-<0/>Alternative zu Trello"
   },
   "0xD8Of": {
@@ -6171,12 +6495,24 @@
     ],
     "translation": "Sie können nicht mehr auf diesen Workspace zugreifen."
   },
+  "TZtx59": {
+    "message": "They'll lose access to this board, but will remain a member of the workspace.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      [
+        "src/views/board/members/components/RemoveBoardMemberConfirmation.tsx",
+        49
+      ]
+    ],
+    "translation": "Die Person verliert den Zugriff auf dieses Board, bleibt aber Mitglied des Workspace."
+  },
   "3LDCpD": {
     "message": "This action can't be undone.",
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/components/DeleteLabelConfirmation.tsx", 44],
+      ["src/components/DeleteLabelConfirmation.tsx", 47],
       ["src/views/board/components/DeleteBoardConfirmation.tsx", 39],
       ["src/views/card/components/DeleteCardConfirmation.tsx", 78],
       ["src/views/card/components/DeleteChecklistConfirmation.tsx", 59],
@@ -6217,9 +6553,19 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 81]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 84]
     ],
     "translation": "Die Berechtigungen dieses Mitglieds wurden auf die Standardwerte seiner Rolle zurückgesetzt."
+  },
+  "ROcqIU": {
+    "message": "This password reset link is invalid or has expired.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/auth/reset-password/index.tsx", 65],
+      ["src/views/auth/reset-password/index.tsx", 139]
+    ],
+    "translation": "Dieser Link zum Zurücksetzen des Passworts ist ungültig oder abgelaufen."
   },
   "HQVm6e": {
     "message": "This URL has already been taken",
@@ -6314,7 +6660,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 180]
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 168]
     ],
     "translation": "Titel (optional)"
   },
@@ -6405,15 +6751,24 @@
     "message": "Unable to add comment",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/NewCommentForm.tsx", 37]],
+    "origin": [["src/views/card/components/NewCommentForm.tsx", 42]],
     "translation": "Kommentar konnte nicht hinzugefügt werden"
   },
   "2Q871c": {
     "message": "Unable to add label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/index.tsx", 253]],
+    "origin": [["src/views/card/index.tsx", 271]],
     "translation": "Label konnte nicht hinzugefügt werden"
+  },
+  "RHGJpb": {
+    "message": "Unable to add member",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 30]
+    ],
+    "translation": "Mitglied konnte nicht hinzugefügt werden"
   },
   "LeM5RY": {
     "message": "Unable to clear overrides",
@@ -6434,9 +6789,10 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 437],
+      ["src/views/board/components/BoardDropdown.tsx", 110],
+      ["src/views/board/index.tsx", 446],
       ["src/views/card/components/Dropdown.tsx", 79],
-      ["src/views/public/board/CardModal.tsx", 43],
+      ["src/views/public/board/CardModal.tsx", 45],
       ["src/views/public/board/index.tsx", 84]
     ],
     "translation": "Link konnte nicht kopiert werden"
@@ -6445,7 +6801,7 @@
     "message": "Unable to create card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewCardForm.tsx", 197]],
+    "origin": [["src/views/board/components/NewCardForm.tsx", 201]],
     "translation": "Karte konnte nicht erstellt werden"
   },
   "mHhffx": {
@@ -6459,7 +6815,7 @@
     "message": "Unable to create list",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/NewListForm.tsx", 93]],
+    "origin": [["src/views/board/components/NewListForm.tsx", 96]],
     "translation": "Liste konnte nicht erstellt werden"
   },
   "YcyP2z": {
@@ -6540,7 +6896,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/components/CardContextDuplicateModal.tsx", 75],
+      ["src/views/board/components/CardContextDuplicateModal.tsx", 63],
       ["src/views/card/components/Dropdown.tsx", 53]
     ],
     "translation": "Karte konnte nicht dupliziert werden"
@@ -6564,6 +6920,10 @@
     "placeholders": {},
     "comments": [],
     "origin": [
+      [
+        "src/views/board/members/components/RemoveBoardMemberConfirmation.tsx",
+        25
+      ],
       ["src/views/members/components/DeleteMemberConfirmation.tsx", 27]
     ],
     "translation": "Mitglied konnte nicht entfernt werden"
@@ -6580,7 +6940,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 92]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 95]
     ],
     "translation": "Berechtigungen konnten nicht zurückgesetzt werden"
   },
@@ -6588,7 +6948,7 @@
     "message": "Unable to send feedback",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/FeedbackModal.tsx", 40]],
+    "origin": [["src/components/FeedbackModal.tsx", 41]],
     "translation": "Feedback konnte nicht gesendet werden"
   },
   "Q60WUZ": {
@@ -6612,7 +6972,7 @@
     "message": "Unable to update board",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 71]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 79]],
     "translation": "Board konnte nicht aktualisiert werden"
   },
   "XpcjLO": {
@@ -6634,8 +6994,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 339],
-      ["src/views/card/index.tsx", 240]
+      ["src/views/board/index.tsx", 348],
+      ["src/views/card/index.tsx", 258]
     ],
     "translation": "Karte konnte nicht aktualisiert werden"
   },
@@ -6665,7 +7025,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 376],
+      ["src/views/board/index.tsx", 385],
       ["src/views/card/components/DueDateSelector.tsx", 63]
     ],
     "translation": "Fälligkeitsdatum konnte nicht aktualisiert werden"
@@ -6682,7 +7042,7 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/board/index.tsx", 283],
+      ["src/views/board/index.tsx", 291],
       ["src/views/card/components/ListSelector.tsx", 54]
     ],
     "translation": "Liste konnte nicht aktualisiert werden"
@@ -6699,8 +7059,8 @@
     "placeholders": {},
     "comments": [],
     "origin": [
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 41],
-      ["src/views/members/components/EditMemberPermissionsModal.tsx", 64]
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 44],
+      ["src/views/members/components/EditMemberPermissionsModal.tsx", 67]
     ],
     "translation": "Berechtigungen konnten nicht aktualisiert werden"
   },
@@ -6708,7 +7068,10 @@
     "message": "Unable to update role",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/members/index.tsx", 69]],
+    "origin": [
+      ["src/views/board/members/index.tsx", 70],
+      ["src/views/members/index.tsx", 69]
+    ],
     "translation": "Rolle konnte nicht aktualisiert werden"
   },
   "V1o9Jo": {
@@ -6722,7 +7085,7 @@
     "message": "Unarchive board",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/board/components/BoardDropdown.tsx", 118]],
+    "origin": [["src/views/board/components/BoardDropdown.tsx", 182]],
     "translation": "Board wiederherstellen"
   },
   "E8zYtd": {
@@ -6731,14 +7094,14 @@
       "0": ["truncate(displayName)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 183]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 184]],
     "translation": "hat <0>{0}</0> von der Karte entfernt"
   },
   "hAMddS": {
     "message": "unassigned themselves from the card",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 180]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 181]],
     "translation": "hat sich selbst von der Karte entfernt"
   },
   "9Xigls": {
@@ -6875,35 +7238,35 @@
     "message": "Update label",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/LabelForm.tsx", 231]],
+    "origin": [["src/components/LabelForm.tsx", 240]],
     "translation": "Label aktualisieren"
   },
   "L5ZPjz": {
     "message": "updated a checklist item",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 136]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 137]],
     "translation": "hat ein Checklisten-Element aktualisiert"
   },
   "tGwwnq": {
     "message": "updated the description",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 126]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 127]],
     "translation": "hat die Beschreibung aktualisiert"
   },
   "RfgJqw": {
     "message": "updated the due date",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 143]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 144]],
     "translation": "hat das Fälligkeitsdatum aktualisiert"
   },
   "V3MPSQ": {
     "message": "updated the title",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 125]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 126]],
     "translation": "hat den Titel aktualisiert"
   },
   "zERArS": {
@@ -6912,7 +7275,7 @@
       "0": ["truncate(toTitle)"]
     },
     "comments": [],
-    "origin": [["src/views/card/components/ActivityList.tsx", 152]],
+    "origin": [["src/views/card/components/ActivityList.tsx", 153]],
     "translation": "hat den Titel zu <0>{0}</0> aktualisiert"
   },
   "kwkhPe": {
@@ -7033,7 +7396,10 @@
     "message": "User",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/views/members/index.tsx", 347]],
+    "origin": [
+      ["src/views/board/members/index.tsx", 244],
+      ["src/views/members/index.tsx", 347]
+    ],
     "translation": "Benutzer"
   },
   "tYN21H": {
@@ -7129,6 +7495,15 @@
     "comments": [],
     "origin": [["src/views/home/components/Features.tsx", 152]],
     "translation": "Wir fangen gerade erst an. "
+  },
+  "nB44E/": {
+    "message": "We've sent a password reset link to {emailSentTo}.",
+    "placeholders": {
+      "emailSentTo": ["emailSentTo"]
+    },
+    "comments": [],
+    "origin": [["src/views/auth/forgot-password/index.tsx", 73]],
+    "translation": "Wir haben einen Link zum Zurücksetzen des Passworts an {emailSentTo} gesendet."
   },
   "an6ayw": {
     "message": "Webhook created",
@@ -7272,7 +7647,8 @@
     "comments": [],
     "origin": [
       ["src/components/SettingsLayout.tsx", 47],
-      ["src/views/board/index.tsx", 859],
+      ["src/utils/permission-category-label.ts", 10],
+      ["src/views/board/index.tsx", 861],
       ["src/views/boards/index.tsx", 58],
       ["src/views/members/index.tsx", 279],
       ["src/views/public/board/index.tsx", 125],
@@ -7333,6 +7709,15 @@
       ["src/views/settings/components/UpdateWorkspaceDescriptionForm.tsx", 50]
     ],
     "translation": "Workspace-Beschreibung aktualisiert"
+  },
+  "CbGxon": {
+    "message": "Workspace member",
+    "placeholders": {},
+    "comments": [],
+    "origin": [
+      ["src/views/board/members/components/AddBoardMemberForm.tsx", 69]
+    ],
+    "translation": "Workspace-Mitglied"
   },
   "wtxjAY": {
     "message": "Workspace members",
@@ -7515,8 +7900,8 @@
     "origin": [
       ["src/views/board/components/List.tsx", 133],
       ["src/views/board/components/VisibilityButton.tsx", 72],
-      ["src/views/board/index.tsx", 927],
-      ["src/views/board/index.tsx", 1001],
+      ["src/views/board/index.tsx", 929],
+      ["src/views/board/index.tsx", 1006],
       ["src/views/boards/components/BoardsList.tsx", 71],
       ["src/views/boards/index.tsx", 69],
       ["src/views/boards/index.tsx", 90]
@@ -7527,14 +7912,14 @@
     "message": "You have been logged in successfully.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 238]],
+    "origin": [["src/components/AuthForm.tsx", 242]],
     "translation": "Sie wurden erfolgreich angemeldet."
   },
   "mchgzf": {
     "message": "You have been signed up successfully.",
     "placeholders": {},
     "comments": [],
-    "origin": [["src/components/AuthForm.tsx", 221]],
+    "origin": [["src/components/AuthForm.tsx", 225]],
     "translation": "Sie haben sich erfolgreich registriert."
   },
   "raHesj": {
@@ -7568,6 +7953,13 @@
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 147]
     ],
     "translation": "Sie haben sich ohne Passwort angemeldet. Legen Sie ein Passwort fest, um die passwortbasierte Anmeldung zu aktivieren."
+  },
+  "R3sENX": {
+    "message": "You're not a member of this board yet. Ask a board admin to add you.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/board/members/index.tsx", 230]],
+    "translation": "Du bist noch kein Mitglied dieses Boards. Bitte einen Board-Admin, dich hinzuzufügen."
   },
   "2SePRT": {
     "message": "You've been invited to join a workspace on kan.bn.",
@@ -7679,6 +8071,13 @@
       ["src/views/settings/components/ChangePasswordConfirmation.tsx", 95]
     ],
     "translation": "Ihr Passwort wurde geändert."
+  },
+  "A7TuZy": {
+    "message": "Your password has been reset successfully.",
+    "placeholders": {},
+    "comments": [],
+    "origin": [["src/views/auth/reset-password/index.tsx", 71]],
+    "translation": "Dein Passwort wurde erfolgreich zurückgesetzt."
   },
   "EuK5ez": {
     "message": "Your password has been set.",

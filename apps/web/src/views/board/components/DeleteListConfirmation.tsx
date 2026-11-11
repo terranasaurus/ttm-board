@@ -1,3 +1,5 @@
+import { useDeleteList } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
@@ -13,6 +15,7 @@ interface QueryParams {
   members: string[];
   labels: string[];
   lists: string[];
+  cardView: "summary";
 }
 
 export function DeleteListConfirmation({
@@ -23,17 +26,19 @@ export function DeleteListConfirmation({
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
 
-  const deleteList = api.list.delete.useMutation({
-    onError: () => {
-      showPopup({
-        header: "Unable to delete list",
-        message: "Please try again later, or contact customer support.",
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      closeModal();
-      await utils.board.byId.invalidate(queryParams);
+  const deleteList = useDeleteList({
+    mutation: {
+      onError: () => {
+        showPopup({
+          header: "Unable to delete list",
+          message: "Please try again later, or contact customer support.",
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        closeModal();
+        await utils.board.byId.invalidate(queryParams);
+      },
     },
   });
 

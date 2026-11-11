@@ -1,12 +1,16 @@
 import "~/styles/globals.css";
 import "~/utils/i18n";
 
-import type { NextPage, Viewport } from "next";
+import type { NextPage } from "next";
 import type { AppProps, AppType } from "next/app";
 import type { ReactElement, ReactNode } from "react";
+<<<<<<< HEAD
 import { Montserrat } from "next/font/google";
 import Head from "next/head";
 import Script from "next/script";
+=======
+import { Plus_Jakarta_Sans } from "next/font/google";
+>>>>>>> upstream/main
 import { env } from "next-runtime-env";
 import { ThemeProvider } from "next-themes";
 import posthog from "posthog-js";
@@ -26,6 +30,7 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
+<<<<<<< HEAD
 export const metadata = {
   title: "TTM Portal",
   description: "Terran Through Milestones team portal",
@@ -39,6 +44,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+=======
+>>>>>>> upstream/main
 export type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
   getLayout?: (page: ReactElement) => ReactNode;
 };
@@ -75,6 +82,7 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
           position: relative;
         }
       `}</style>
+<<<<<<< HEAD
       {env("NEXT_PUBLIC_UMAMI_ID") && (
         <Script
           defer
@@ -91,12 +99,18 @@ const MyApp: AppType = ({ Component, pageProps }: AppPropsWithLayout) => {
           content="width=device-width, initial-scale=1, maximum-scale=1"
         />
       </Head>
+=======
+>>>>>>> upstream/main
       <script src="/__ENV.js" />
       <main className={`${montserrat.variable} font-sans`}>
         <KeyboardShortcutProvider>
           <LinguiProviderWrapper>
             <FontSizeProvider>
-              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+              >
                 <ModalProvider>
                   <PopupProvider>
                     {posthogKey ? (

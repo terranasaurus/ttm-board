@@ -42,7 +42,10 @@ export const initAuth = (db: dbClient) => {
       disableSignUp: false,
       sendResetPassword: async (data) => {
         await sendEmail(data.user.email, "Reset Password", "RESET_PASSWORD", {
-          resetPasswordUrl: data.url,
+          resetPasswordUrl: data.url.replace(
+            "/api/auth/reset-password/",
+            "/reset-password/",
+          ),
           resetPasswordToken: data.token,
         });
       },
@@ -66,6 +69,18 @@ export const initAuth = (db: dbClient) => {
     hooks: createMiddlewareHooks(db),
     advanced: {
       cookiePrefix: "kan",
+      ...(env("BETTER_AUTH_COOKIE_DOMAIN")
+        ? {
+            crossSubDomainCookies: {
+              enabled: true,
+              domain: env("BETTER_AUTH_COOKIE_DOMAIN"),
+            },
+            defaultCookieAttributes: {
+              sameSite: "lax" as const,
+              secure: true,
+            },
+          }
+        : {}),
       database: {
         generateId: false,
       },

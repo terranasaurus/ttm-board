@@ -33,6 +33,7 @@ import {
 } from "react-icons/hi2";
 
 import type { UpdateBoardInput } from "@kan/api/types";
+import { useUpdateList } from "@kan/api-client/hooks";
 
 import type { CardContextMenuAction } from "./components/CardContextMenu";
 import type { BoardView } from "./components/ViewToggle";
@@ -93,7 +94,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const utils = api.useUtils();
   const { showPopup } = usePopup();
-  const { workspace } = useWorkspace();
+  const { workspace, selectWorkspaceById } = useWorkspace();
   const { openModal, modalContentType, entityId, isOpen, setModalState } =
     useModal();
   const [selectedPublicListId, setSelectedPublicListId] =
@@ -201,6 +202,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       dueDateFilters: semanticFilters,
     }),
     type: boardType,
+    cardView: "summary" as const,
   };
 
   const {
@@ -225,8 +227,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     }
   }, [router, boardId, isQueryLoading, error, boardData]);
 
+  const boardWorkspacePublicId = boardData?.workspace.publicId;
+  useEffect(() => {
+    if (boardWorkspacePublicId) selectWorkspaceById(boardWorkspacePublicId);
+  }, [boardWorkspacePublicId, selectWorkspaceById]);
+
   const refetchBoard = async () => {
-    if (boardId) await utils.board.byId.refetch({ boardPublicId: boardId });
+    if (boardId) await utils.board.byId.refetch(queryParams);
   };
 
   useEffect(() => {
@@ -244,49 +251,51 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     !isLoading && (boardData?.lists.length ?? 0) > 0,
   );
 
-  const updateListMutation = api.list.update.useMutation({
-    onMutate: async (args) => {
-      await utils.board.byId.cancel();
+  const updateListMutation = useUpdateList({
+    mutation: {
+      onMutate: async (args) => {
+        await utils.board.byId.cancel();
 
-      const currentState = utils.board.byId.getData(queryParams);
+        const currentState = utils.board.byId.getData(queryParams);
 
-      utils.board.byId.setData(queryParams, (oldBoard) => {
-        if (!oldBoard) return oldBoard;
+        utils.board.byId.setData(queryParams, (oldBoard) => {
+          if (!oldBoard) return oldBoard;
 
-        const updatedLists = Array.from(oldBoard.lists);
+          const updatedLists = Array.from(oldBoard.lists);
 
-        const sourceList = updatedLists.find(
-          (list) => list.publicId === args.listPublicId,
-        );
+          const sourceList = updatedLists.find(
+            (list) => list.publicId === args.listPublicId,
+          );
 
-        const currentIndex = sourceList?.index;
+          const currentIndex = sourceList?.index;
 
-        if (currentIndex === undefined) return oldBoard;
+          if (currentIndex === undefined) return oldBoard;
 
-        const removedList = updatedLists.splice(currentIndex, 1)[0];
+          const removedList = updatedLists.splice(currentIndex, 1)[0];
 
-        if (removedList && args.index !== undefined) {
-          updatedLists.splice(args.index, 0, removedList);
+          if (removedList && args.data.index !== undefined) {
+            updatedLists.splice(args.data.index, 0, removedList);
 
-          return {
-            ...oldBoard,
-            lists: updatedLists,
-          };
-        }
-      });
+            return {
+              ...oldBoard,
+              lists: updatedLists,
+            };
+          }
+        });
 
-      return { previousState: currentState };
-    },
-    onError: (_error, _newList, context) => {
-      utils.board.byId.setData(queryParams, context?.previousState);
-      showPopup({
-        header: t`Unable to update list`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      await utils.board.byId.invalidate(queryParams);
+        return { previousState: currentState };
+      },
+      onError: (_error, _newList, context) => {
+        utils.board.byId.setData(queryParams, context?.previousState);
+        showPopup({
+          header: t`Unable to update list`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        await utils.board.byId.invalidate(queryParams);
+      },
     },
   });
 
@@ -443,10 +452,6 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       return;
     }
     if (action === "duplicate") {
-      setModalState("CARD_CONTEXT_DUPLICATE", {
-        boardPublicId: boardId ?? "",
-        isTemplate: !!isTemplate,
-      });
       openModal("CARD_CONTEXT_DUPLICATE", cardPublicId);
       return;
     }
@@ -619,7 +624,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       setDragListOrder(arrayMove(currentLists, oldIndex, newIndex));
 
       updateListMutation.mutate(
-        { listPublicId: activeIdStr, index: newIndex },
+        { listPublicId: activeIdStr, data: { index: newIndex } },
         { onSettled: () => setDragListOrder(null) },
       );
       return;
@@ -718,7 +723,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         >
           <NewCardForm
             isTemplate={!!isTemplate}
-            boardPublicId={boardId ?? ""}
+            boardData={boardData}
             listPublicId={selectedPublicListId}
             queryParams={queryParams}
             initialDueDate={newCardInitialDueDate}
@@ -835,10 +840,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           modalSize="md"
           isVisible={isOpen && modalContentType === "CARD_CONTEXT_DUPLICATE"}
         >
-          <CardContextDuplicateModal
-            boardPublicId={boardId ?? ""}
-            isTemplate={!!isTemplate}
-          />
+          <CardContextDuplicateModal lists={boardData?.lists ?? []} />
         </Modal>
         <Modal
           modalSize="sm"
@@ -947,6 +949,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
               isArchived={boardData?.isArchived ?? false}
               isFavorite={boardData?.favorite}
               boardName={boardData?.name}
+              workspaceSlug={workspace.slug ?? ""}
+              boardSlug={boardData?.slug ?? ""}
+              visibility={boardData?.visibility ?? "private"}
             />
           </div>
         </div>

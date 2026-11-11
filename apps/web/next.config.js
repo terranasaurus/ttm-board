@@ -31,11 +31,12 @@ const config = {
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
     "@kan/api",
+    "@kan/api-client",
     "@kan/db",
     "@kan/shared",
     "@kan/auth",
     "@kan/stripe",
-    "@kan/mcp",
+    "@kan.bn/mcp",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */

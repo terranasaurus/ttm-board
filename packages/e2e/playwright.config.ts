@@ -2,6 +2,8 @@ import { execFileSync } from "node:child_process";
 import { defineConfig, devices } from "@playwright/test";
 import { config as loadDotenv } from "dotenv";
 
+import { apiBaseURL, apiPort } from "./tests/support/api-base-url";
+
 loadDotenv({ path: "../../.env" });
 
 const stripeEnv = (key: string, placeholder: string) =>
@@ -158,6 +160,14 @@ export default defineConfig({
           },
         },
         {
+          command: "pnpm --filter @kan/api-server start",
+          cwd: "../..",
+          url: `${apiBaseURL}/health`,
+          reuseExistingServer: !process.env.CI,
+          timeout: 60_000,
+          env: { API_PORT: apiPort, CORS_ORIGIN: baseURL },
+        },
+        {
           command: `pnpm --filter @kan/web build && pnpm --filter @kan/web with-env next start -p ${port}`,
           cwd: "../..",
           url: baseURL,
@@ -165,6 +175,7 @@ export default defineConfig({
           timeout: 180_000,
           env: {
             NEXT_PUBLIC_BASE_URL: baseURL,
+            NEXT_PUBLIC_API_BASE_URL: apiBaseURL,
             NEXT_PUBLIC_USE_STANDALONE_OUTPUT: "",
             ...sharedEnv,
             ...modeEnv,

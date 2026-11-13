@@ -66,17 +66,15 @@ export class CardPage {
 
     const dialog = this.page.getByRole("dialog");
     await dialog.getByPlaceholder("Name").fill(name);
-    const created = waitForTrpcMutation(this.page, "label.create");
+    const created = waitForResponsePath(this.page, "/labels");
     const assigned = waitForTrpcMutation(this.page, "card.addOrRemoveLabel");
     await dialog.getByRole("button", { name: "Create label" }).click();
     const createdResponse = await created;
     await assigned;
 
-    const body = (await createdResponse.json()) as [
-      { result: { data: { json: { publicId: string } } } },
-    ];
+    const body = (await createdResponse.json()) as { publicId: string };
 
-    return body[0].result.data.json.publicId;
+    return body.publicId;
   }
 
   async openLabelEditor(name: string) {
@@ -105,11 +103,9 @@ export class CardPage {
 
   private activitySection() {
     return this.page
-      .locator("div")
-      .filter({
-        has: this.page.getByRole("heading", { name: "Activity", exact: true }),
-      })
-      .last();
+      .getByRole("heading", { name: "Activity", exact: true })
+      .locator("..")
+      .locator("..");
   }
 
   private editableCommentEditor() {
@@ -191,6 +187,43 @@ export class CardPage {
     const updated = waitForTrpcMutation(this.page, "checklist.updateItem");
     await row.getByRole("checkbox").click();
     await updated;
+  }
+
+  private checklistItemRow(title: string) {
+    return this.page
+      .locator("div.items-start")
+      .filter({ has: this.page.getByText(title, { exact: true }) });
+  }
+
+  async deleteChecklistItem(title: string) {
+    const row = this.checklistItemRow(title);
+    await row.hover();
+    const deleted = waitForTrpcMutation(this.page, "checklist.deleteItem");
+    await row.locator("button").click();
+    await deleted;
+  }
+
+  async getChecklistItemTitles() {
+    return this.page
+      .locator("div.items-start .plain-text-editor")
+      .allTextContents();
+  }
+
+  async dragChecklistItemDown(title: string, steps: number) {
+    const handle = this.checklistItemRow(title).locator(".cursor-grab");
+    await handle.focus();
+    await this.page.keyboard.press("Space");
+    // dnd-kit measures droppable rects asynchronously after pickup; without
+    // a pause here the following ArrowDown can fire before it's ready and
+    // silently fail to move the active item.
+    await this.page.waitForTimeout(100);
+    for (let i = 0; i < steps; i++) {
+      await this.page.keyboard.press("ArrowDown");
+      await this.page.waitForTimeout(100);
+    }
+    const reordered = waitForTrpcMutation(this.page, "checklist.updateItem");
+    await this.page.keyboard.press("Space");
+    await reordered;
   }
 
   async deleteChecklist() {

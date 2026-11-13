@@ -9,12 +9,15 @@ import {
   isNotNull,
   isNull,
   lt,
+  notInArray,
   or,
+  sql,
 } from "drizzle-orm";
 
 import type { dbClient } from "@kan/db/client";
 import type { BoardVisibilityStatus } from "@kan/db/schema";
 import {
+  boardMembers,
   boards,
   cardActivities,
   cardAttachments,
@@ -31,6 +34,8 @@ import {
 } from "@kan/db/schema";
 import { generateUID, normalizeDescription } from "@kan/shared/utils";
 
+import * as boardMemberRepo from "./boardMember.repo";
+
 export const getCount = async (db: dbClient) => {
   const result = await db
     .select({ count: count() })
@@ -44,8 +49,19 @@ export const getAllByWorkspaceId = async (
   db: dbClient,
   workspaceId: number,
   userId: string,
-  opts?: { type?: "regular" | "template"; archived?: boolean },
+  opts?: {
+    type?: "regular" | "template";
+    archived?: boolean;
+    isWorkspaceAdmin?: boolean;
+  },
 ) => {
+  // Templates stay visible to the whole workspace; regular boards (public
+  // or private) are scoped to explicit board membership unless the user is
+  // a workspace admin. Public only means "viewable via the share link".
+  const memberBoardIds = opts?.isWorkspaceAdmin
+    ? undefined
+    : await boardMemberRepo.getMemberBoardIds(db, { workspaceId, userId });
+
   const boardsData = await db.query.boards.findMany({
     columns: {
       publicId: true,
@@ -80,6 +96,12 @@ export const getAllByWorkspaceId = async (
       opts?.type ? eq(boards.type, opts.type) : undefined,
       opts?.archived !== undefined
         ? eq(boards.isArchived, opts.archived)
+        : undefined,
+      memberBoardIds
+        ? or(
+            eq(boards.type, "template"),
+            inArray(boards.id, memberBoardIds),
+          )
         : undefined,
     ),
   });
@@ -156,8 +178,10 @@ export const getByPublicId = async (
     lists: string[];
     dueDate: DueDateFilter[];
     type: "regular" | "template" | undefined;
+    cardView?: "full" | "summary";
   },
 ) => {
+  const includeCardDetails = filters.cardView !== "summary";
   let cardIds: string[] = [];
 
   if (filters.labels.length > 0 || filters.members.length > 0) {
@@ -216,9 +240,11 @@ export const getByPublicId = async (
         with: {
           members: {
             columns: {
+              id: true,
               publicId: true,
               email: true,
               status: true,
+              role: true,
             },
             with: {
               user: {
@@ -252,9 +278,10 @@ export const getByPublicId = async (
         with: {
           cards: {
             columns: {
+              id: true,
               publicId: true,
               title: true,
-              description: true,
+              description: includeCardDetails,
               listId: true,
               index: true,
               dueDate: true,
@@ -293,41 +320,47 @@ export const getByPublicId = async (
                   },
                 },
               },
-              attachments: {
-                columns: {
-                  publicId: true,
+              ...(includeCardDetails && {
+                attachments: {
+                  columns: {
+                    publicId: true,
+                  },
+                  where: isNull(cardAttachments.deletedAt),
+                  orderBy: asc(cardAttachments.createdAt),
                 },
-                where: isNull(cardAttachments.deletedAt),
-                orderBy: asc(cardAttachments.createdAt),
-              },
-              checklists: {
-                columns: {
-                  publicId: true,
-                  name: true,
-                  index: true,
-                },
-                where: isNull(checklists.deletedAt),
-                orderBy: asc(checklists.index),
-                with: {
-                  items: {
-                    columns: {
-                      publicId: true,
-                      title: true,
-                      completed: true,
-                      index: true,
+              }),
+              ...(includeCardDetails && {
+                checklists: {
+                  columns: {
+                    publicId: true,
+                    name: true,
+                    index: true,
+                  },
+                  where: isNull(checklists.deletedAt),
+                  orderBy: asc(checklists.index),
+                  with: {
+                    items: {
+                      columns: {
+                        publicId: true,
+                        title: true,
+                        completed: true,
+                        index: true,
+                      },
+                      where: isNull(checklistItems.deletedAt),
+                      orderBy: asc(checklistItems.index),
                     },
-                    where: isNull(checklistItems.deletedAt),
-                    orderBy: asc(checklistItems.index),
                   },
                 },
-              },
-              comments: {
-                columns: {
-                  publicId: true,
+              }),
+              ...(includeCardDetails && {
+                comments: {
+                  columns: {
+                    publicId: true,
+                  },
+                  where: isNull(comments.deletedAt),
+                  limit: 1,
                 },
-                where: isNull(comments.deletedAt),
-                limit: 1,
-              },
+              }),
             },
             where: and(
               cardIds.length > 0 ? inArray(cards.publicId, cardIds) : undefined,
@@ -363,19 +396,135 @@ export const getByPublicId = async (
 
   if (!board) return null;
 
+  const summaryByCardId = new Map<
+    number,
+    {
+      hasDescription: boolean;
+      attachmentCount: number;
+      hasComments: boolean;
+      checklistItemCount: number;
+      completedChecklistItemCount: number;
+    }
+  >();
+
+  if (!includeCardDetails) {
+    const ids = board.lists.flatMap((list) =>
+      list.cards.map((card) => card.id),
+    );
+
+    if (ids.length > 0) {
+      const [descriptions, attachments, cardComments, items, completedItems] =
+        await Promise.all([
+          db
+            .select({ id: cards.id })
+            .from(cards)
+            .where(and(inArray(cards.id, ids), isNotNull(cards.description))),
+          db
+            .select({ cardId: cardAttachments.cardId, count: count() })
+            .from(cardAttachments)
+            .where(
+              and(
+                inArray(cardAttachments.cardId, ids),
+                isNull(cardAttachments.deletedAt),
+              ),
+            )
+            .groupBy(cardAttachments.cardId),
+          db
+            .select({ cardId: comments.cardId, count: count() })
+            .from(comments)
+            .where(
+              and(inArray(comments.cardId, ids), isNull(comments.deletedAt)),
+            )
+            .groupBy(comments.cardId),
+          db
+            .select({ cardId: checklists.cardId, count: count() })
+            .from(checklistItems)
+            .innerJoin(
+              checklists,
+              eq(checklistItems.checklistId, checklists.id),
+            )
+            .where(
+              and(
+                inArray(checklists.cardId, ids),
+                isNull(checklists.deletedAt),
+                isNull(checklistItems.deletedAt),
+              ),
+            )
+            .groupBy(checklists.cardId),
+          db
+            .select({ cardId: checklists.cardId, count: count() })
+            .from(checklistItems)
+            .innerJoin(
+              checklists,
+              eq(checklistItems.checklistId, checklists.id),
+            )
+            .where(
+              and(
+                inArray(checklists.cardId, ids),
+                isNull(checklists.deletedAt),
+                isNull(checklistItems.deletedAt),
+                eq(checklistItems.completed, true),
+              ),
+            )
+            .groupBy(checklists.cardId),
+        ]);
+
+      const attachmentCounts = new Map(
+        attachments.map(({ cardId, count }) => [cardId, count]),
+      );
+      const commentCounts = new Map(
+        cardComments.map(({ cardId, count }) => [cardId, count]),
+      );
+      const itemCounts = new Map(
+        items.map(({ cardId, count }) => [cardId, count]),
+      );
+      const completedItemCounts = new Map(
+        completedItems.map(({ cardId, count }) => [cardId, count]),
+      );
+
+      const cardsWithDescription = new Set(descriptions.map(({ id }) => id));
+      for (const id of ids) {
+        summaryByCardId.set(id, {
+          hasDescription: cardsWithDescription.has(id),
+          attachmentCount: attachmentCounts.get(id) ?? 0,
+          hasComments: (commentCounts.get(id) ?? 0) > 0,
+          checklistItemCount: itemCounts.get(id) ?? 0,
+          completedChecklistItemCount: completedItemCounts.get(id) ?? 0,
+        });
+      }
+    }
+  }
+
   const formattedResult = {
     ...board,
     favorite: board.userFavorites.length > 0,
     userFavorites: undefined,
     lists: board.lists.map((list) => ({
       ...list,
-      cards: list.cards.map((card) => ({
-        ...card,
-        labels: card.labels.map((label) => label.label),
-        members: card.members
-          .map((member) => member.member)
-          .filter((member) => member.deletedAt === null),
-      })),
+      cards: list.cards.map((card) => {
+        const { id: _id, ...cardWithoutId } = card;
+        return {
+          ...cardWithoutId,
+          ...(filters.cardView === "summary" && {
+            summary: summaryByCardId.get(card.id),
+          }),
+          description: includeCardDetails
+            ? ((card as { description?: string | null }).description ?? null)
+            : null,
+          attachments: includeCardDetails ? card.attachments : [],
+          checklists: includeCardDetails
+            ? card.checklists.map((checklist) => ({
+                ...checklist,
+                items: "items" in checklist ? checklist.items : [],
+              }))
+            : [],
+          comments: includeCardDetails ? card.comments : [],
+          labels: card.labels.map((label) => label.label),
+          members: card.members
+            .map((member) => member.member)
+            .filter((member) => member.deletedAt === null),
+        };
+      }),
     })),
   };
 
@@ -563,6 +712,7 @@ export const getWithListIdsByPublicId = (
       id: true,
       workspaceId: true,
       createdBy: true,
+      type: true,
     },
     with: {
       lists: {
@@ -611,25 +761,37 @@ export const create = async (
     sourceBoardId?: number;
   },
 ) => {
-  const [result] = await db
-    .insert(boards)
-    .values({
-      publicId: boardInput.publicId ?? generateUID(),
-      name: boardInput.name,
-      createdBy: boardInput.createdBy,
-      workspaceId: boardInput.workspaceId,
-      importId: boardInput.importId,
-      slug: boardInput.slug,
-      type: boardInput.type ?? "regular",
-      sourceBoardId: boardInput.sourceBoardId,
-    })
-    .returning({
-      id: boards.id,
-      publicId: boards.publicId,
-      name: boards.name,
-    });
+  return db.transaction(async (tx) => {
+    const type = boardInput.type ?? "regular";
 
-  return result;
+    const [result] = await tx
+      .insert(boards)
+      .values({
+        publicId: boardInput.publicId ?? generateUID(),
+        name: boardInput.name,
+        createdBy: boardInput.createdBy,
+        workspaceId: boardInput.workspaceId,
+        importId: boardInput.importId,
+        slug: boardInput.slug,
+        type,
+        sourceBoardId: boardInput.sourceBoardId,
+      })
+      .returning({
+        id: boards.id,
+        publicId: boards.publicId,
+        name: boards.name,
+      });
+
+    if (result && type === "regular") {
+      await boardMemberRepo.addCreatorAsAdmin(tx, {
+        boardId: result.id,
+        workspaceId: boardInput.workspaceId,
+        userId: boardInput.createdBy,
+      });
+    }
+
+    return result;
+  });
 };
 
 export const update = async (
@@ -721,6 +883,9 @@ export const getWorkspaceAndBoardIdByBoardPublicId = async (
       id: true,
       workspaceId: true,
       createdBy: true,
+      type: true,
+      visibility: true,
+      deletedAt: true,
     },
     where: eq(boards.publicId, boardPublicId),
   });
@@ -828,6 +993,14 @@ export const createFromSnapshot = async (
       });
 
     if (!newBoard) throw new Error("Failed to create board");
+
+    if (args.type === "regular") {
+      await boardMemberRepo.addCreatorAsAdmin(tx, {
+        boardId: newBoard.id,
+        workspaceId: args.workspaceId,
+        userId: args.createdBy,
+      });
+    }
 
     // Labels
     const srcLabels = args.source.labels;
@@ -998,6 +1171,7 @@ export const moveToWorkspace = async (
   db: dbClient,
   boardId: number,
   targetWorkspaceId: number,
+  movedBy: string,
   newSlug?: string,
 ) => {
   return db.transaction(async (tx) => {
@@ -1044,6 +1218,44 @@ export const moveToWorkspace = async (
           .where(inArray(cardToWorkspaceMembers.cardId, cardIds));
       }
     }
+
+    // Board memberships reference members of the old workspace. Carry them
+    // over (same role) for people who are also in the target workspace; the
+    // mover is re-added as admin below. Everyone else loses access.
+    await tx.execute(sql`
+      INSERT INTO "board_members" ("boardId", "workspaceMemberId", "role", "createdBy", "createdAt")
+      SELECT bm."boardId", target."id", bm."role", bm."createdBy", now()
+      FROM "board_members" bm
+      INNER JOIN "workspace_members" source ON source."id" = bm."workspaceMemberId"
+      INNER JOIN "workspace_members" target ON target."userId" = source."userId"
+        AND target."workspaceId" = ${targetWorkspaceId}
+        AND target."deletedAt" IS NULL
+        AND target."status" <> 'removed'
+      WHERE bm."boardId" = ${boardId}
+        AND source."userId" <> ${movedBy}
+      ON CONFLICT DO NOTHING
+    `);
+
+    await tx
+      .delete(boardMembers)
+      .where(
+        and(
+          eq(boardMembers.boardId, boardId),
+          notInArray(
+            boardMembers.workspaceMemberId,
+            tx
+              .select({ id: workspaceMembers.id })
+              .from(workspaceMembers)
+              .where(eq(workspaceMembers.workspaceId, targetWorkspaceId)),
+          ),
+        ),
+      );
+
+    await boardMemberRepo.addCreatorAsAdmin(tx, {
+      boardId,
+      workspaceId: targetWorkspaceId,
+      userId: movedBy,
+    });
 
     return updatedBoard;
   });

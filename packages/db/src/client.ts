@@ -7,6 +7,7 @@ import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
 import { drizzle as drizzlePgLite } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { Pool } from "pg";
+import { parse as parseConnectionString, toClientConfig } from "pg-connection-string";
 
 import { createLogger } from "@kan/logger";
 
@@ -93,15 +94,30 @@ export const createDrizzleClient = (): dbClient => {
     );
   }
 
+  // pg treats sslmode=require as "verify the cert" unless parsed with
+  // useLibpqCompat; passing connectionString itself (not discrete fields)
+  // makes pg re-parse it without that flag, clobbering any fix.
+  const parsedConnection = parseConnectionString(
+    ca ? stripSslModeParam(connectionString) : connectionString,
+    { useLibpqCompat: true },
+  );
+  // no-verify is a pg-only extension, not a real libpq sslmode, so
+  // useLibpqCompat doesn't recognize it and would silently start verifying.
+  if (parsedConnection.sslmode === "no-verify" && typeof parsedConnection.ssl === "object") {
+    parsedConnection.ssl = { ...parsedConnection.ssl, rejectUnauthorized: false };
+  }
+  // TTM: small per-instance pool for serverless, and a pinned Supabase CA
+  // (when set) takes precedence over whatever TLS the URL asked for.
   const pool = new Pool({
-    connectionString: ca
-      ? stripSslModeParam(connectionString)
-      : connectionString,
+    ...toClientConfig(parsedConnection),
     max: POOL_MAX,
     idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
     connectionTimeoutMillis: POOL_CONNECTION_TIMEOUT_MS,
     ...(ca ? { ssl: { ca, rejectUnauthorized: true } } : {}),
   });
+  // Idle connections error when Postgres restarts; without a listener that crashes the process.
+  // The pool drops the dead client and reconnects on the next query.
+  pool.on("error", (err) => log.error({ err }, "Postgres pool error"));
 
   // Lets Vercel drain the pool before a function instance is suspended, so
   // idle connections are released instead of lingering on the database side.

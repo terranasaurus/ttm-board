@@ -86,7 +86,6 @@ export const createDrizzleClient = (): dbClient => {
     return db as unknown as dbClient;
   }
 
-<<<<<<< HEAD
   const ca = readCaCert();
 
   if (!ca) {
@@ -95,28 +94,27 @@ export const createDrizzleClient = (): dbClient => {
     );
   }
 
-  const pool = new Pool({
-    connectionString: ca
-      ? stripSslModeParam(connectionString)
-      : connectionString,
-    max: POOL_MAX,
-    idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
-    connectionTimeoutMillis: POOL_CONNECTION_TIMEOUT_MS,
-    ...(ca ? { ssl: { ca, rejectUnauthorized: true } } : {}),
-=======
   // pg treats sslmode=require as "verify the cert" unless parsed with
   // useLibpqCompat; passing connectionString itself (not discrete fields)
   // makes pg re-parse it without that flag, clobbering any fix.
-  const parsedConnection = parseConnectionString(connectionString, {
-    useLibpqCompat: true,
->>>>>>> upstream/main
-  });
+  const parsedConnection = parseConnectionString(
+    ca ? stripSslModeParam(connectionString) : connectionString,
+    { useLibpqCompat: true },
+  );
   // no-verify is a pg-only extension, not a real libpq sslmode, so
   // useLibpqCompat doesn't recognize it and would silently start verifying.
   if (parsedConnection.sslmode === "no-verify" && typeof parsedConnection.ssl === "object") {
     parsedConnection.ssl = { ...parsedConnection.ssl, rejectUnauthorized: false };
   }
-  const pool = new Pool(toClientConfig(parsedConnection));
+  // TTM: small per-instance pool for serverless, and a pinned Supabase CA
+  // (when set) takes precedence over whatever TLS the URL asked for.
+  const pool = new Pool({
+    ...toClientConfig(parsedConnection),
+    max: POOL_MAX,
+    idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
+    connectionTimeoutMillis: POOL_CONNECTION_TIMEOUT_MS,
+    ...(ca ? { ssl: { ca, rejectUnauthorized: true } } : {}),
+  });
   // Idle connections error when Postgres restarts; without a listener that crashes the process.
   // The pool drops the dead client and reconnects on the next query.
   pool.on("error", (err) => log.error({ err }, "Postgres pool error"));

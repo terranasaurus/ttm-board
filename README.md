@@ -107,55 +107,7 @@ pnpm dev
 
 ## Environment Variables
 
-<<<<<<< HEAD
-| Variable                                  | Description                                               | Required                                    | Example                                                     |
-| ----------------------------------------- | --------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------- |
-| `POSTGRES_URL`                            | PostgreSQL connection URL                                 | To use external database                    | `postgres://user:pass@localhost:5432/db`                    |
-| `POSTGRES_CA_CERT`                        | Database CA certificate (PEM, raw or base64) for verified TLS; see [Database TLS](#database-tls) | Recommended with Supabase                   | `-----BEGIN CERTIFICATE-----...`                            |
-| `REDIS_URL`                               | Redis connection URL                                      | For rate limiting (optional)                | `redis://localhost:6379` or `redis://redis:6379` (Docker)   |
-| `EMAIL_FROM`                              | Sender email address                                      | For Email                                   | `"Kan <hello@mail.kan.bn>"`                                 |
-| `SMTP_HOST`                               | SMTP server hostname                                      | For Email                                   | `smtp.resend.com`                                           |
-| `SMTP_PORT`                               | SMTP server port                                          | For Email                                   | `465`                                                       |
-| `SMTP_USER`                               | SMTP username/email                                       | No                                          | `resend`                                                    |
-| `SMTP_PASSWORD`                           | SMTP password/token                                       | No                                          | `re_xxxx`                                                   |
-| `SMTP_SECURE`                             | Use secure SMTP connection (defaults to true if not set)  | For Email                                   | `true`                                                      |
-| `SMTP_REJECT_UNAUTHORIZED`                | Reject invalid certificates (defaults to true if not set) | For Email                                   | `false`                                                     |
-| `NEXT_PUBLIC_DISABLE_EMAIL`               | To disable all email features                             | For Email                                   | `true`                                                      |
-| `NEXT_PUBLIC_BASE_URL`                    | Base URL of your installation                             | Yes                                         | `http://localhost:3000`                                     |
-| `NEXT_API_BODY_SIZE_LIMIT`                | Maximum API request body size (defaults to 1mb)           | No                                          | `50mb`                                                      |
-| `BETTER_AUTH_ALLOWED_DOMAINS`             | Comma-separated list of allowed domains for OIDC logins   | For OIDC/Social login                       | `example.com,subsidiary.com`                                |
-| `BETTER_AUTH_SECRET`                      | Auth encryption secret                                    | Yes                                         | Random 32+ char string                                      |
-| `BETTER_AUTH_TRUSTED_ORIGINS`             | Allowed callback origins                                  | No                                          | `http://localhost:3000,http://localhost:3001`               |
-| `GOOGLE_CLIENT_ID`                        | Google OAuth client ID                                    | For Google login                            | `xxx.apps.googleusercontent.com`                            |
-| `GOOGLE_CLIENT_SECRET`                    | Google OAuth client secret                                | For Google login                            | `xxx`                                                       |
-| `DISCORD_CLIENT_ID`                       | Discord OAuth client ID                                   | For Discord login                           | `xxx`                                                       |
-| `DISCORD_CLIENT_SECRET`                   | Discord OAuth client secret                               | For Discord login                           | `xxx`                                                       |
-| `GITHUB_CLIENT_ID`                        | GitHub OAuth client ID                                    | For GitHub login                            | `xxx`                                                       |
-| `GITHUB_CLIENT_SECRET`                    | GitHub OAuth client secret                                | For GitHub login                            | `xxx`                                                       |
-| `OIDC_CLIENT_ID`                          | Generic OIDC client ID                                    | For OIDC login                              | `xxx`                                                       |
-| `OIDC_CLIENT_SECRET`                      | Generic OIDC client secret                                | For OIDC login                              | `xxx`                                                       |
-| `OIDC_DISCOVERY_URL`                      | OIDC discovery URL                                        | For OIDC login                              | `https://auth.example.com/.well-known/openid-configuration` |
-| `TRELLO_APP_API_KEY`                      | Trello app API key                                        | For Trello import                           | `xxx`                                                       |
-| `TRELLO_APP_API_SECRET`                   | Trello app API secret                                     | For Trello import                           | `xxx`                                                       |
-| `S3_REGION`                               | S3 storage region                                         | For file uploads                            | `WEUR`                                                      |
-| `S3_ENDPOINT`                             | S3 endpoint URL                                           | For file uploads                            | `https://xxx.r2.cloudflarestorage.com`                      |
-| `S3_ACCESS_KEY_ID`                        | S3 access key                                             | For file uploads (optional with IRSA)       | `xxx`                                                       |
-| `S3_SECRET_ACCESS_KEY`                    | S3 secret key                                             | For file uploads (optional with IRSA)       | `xxx`                                                       |
-| `S3_FORCE_PATH_STYLE`                     | Use path-style URLs for S3                                | For file uploads                            | `true`                                                      |
-| `S3_AVATAR_UPLOAD_LIMIT`                  | Maximum avatar file size in bytes                         | For file uploads                            | `2097152` (2MB)                                             |
-| `NEXT_PUBLIC_STORAGE_URL`                 | Storage service URL                                       | For file uploads                            | `https://storage.kanbn.com`                                 |
-| `NEXT_PUBLIC_STORAGE_DOMAIN`              | Storage domain name                                       | For file uploads                            | `kanbn.com`                                                 |
-| `NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS`     | Use virtual-hosted style URLs (bucket.domain.com)         | For file uploads (optional)                 | `true`                                                      |
-| `NEXT_PUBLIC_AVATAR_BUCKET_NAME`          | S3 bucket name for avatars                                | For file uploads                            | `avatars`                                                   |
-| `NEXT_PUBLIC_ATTACHMENTS_BUCKET_NAME`     | S3 bucket name for attachments                            | For file uploads                            | `attachments`                                               |
-| `NEXT_PUBLIC_ALLOW_CREDENTIALS`           | Allow email & password login                              | For authentication                          | `true`                                                      |
-| `NEXT_PUBLIC_DISABLE_SIGN_UP`             | Disable sign up                                           | For authentication                          | `false`                                                     |
-| `NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY` | Hide “Powered by kan.bn” on public boards (self-host)     | For white labelling                         | `true`                                                      |
-| `KAN_ADMIN_API_KEY`                       | Admin API key for stats and admin endpoints               | For admin/monitoring                        | `your-secret-admin-key`                                     |
-| `LOG_LEVEL`                               | Log verbosity level (debug, info, warn, error)            | No (defaults to debug in dev, info in prod) | `info`                                                      |
-=======
 At minimum, you'll need:
->>>>>>> upstream/main
 
 | Variable               | Description                   | Example                                  |
 | ----------------------- | ------------------------------ | ----------------------------------------- |
@@ -163,7 +115,10 @@ At minimum, you'll need:
 | `NEXT_PUBLIC_BASE_URL`  | Base URL of your installation  | `http://localhost:3000`                   |
 | `BETTER_AUTH_SECRET`    | Auth encryption secret         | Random 32+ char string                    |
 
-<<<<<<< HEAD
+With Supabase (or any managed Postgres), also set `POSTGRES_CA_CERT` to pin the database CA; see [Database TLS](#database-tls).
+
+Optional integrations (email/SMTP, OAuth and OIDC login, S3-compatible file storage, Trello import, rate limiting, white labelling, and more) are configured through additional variables. See [.env.example](./.env.example) for the complete list.
+
 ## Database TLS 🔒
 
 When `POSTGRES_URL` points at Supabase (or any managed Postgres), pin its CA so the
@@ -183,12 +138,7 @@ registers the pool with `@vercel/functions`' `attachDatabasePool` so idle connec
 are released before the instance is suspended. Without `POSTGRES_CA_CERT` it logs a
 warning and falls back to whatever `sslmode` the URL carries.
 
-## MCP Server (AI Control) 🤖
-=======
-Optional integrations (email/SMTP, OAuth and OIDC login, S3-compatible file storage, Trello import, rate limiting, white labelling, and more) are configured through additional variables. See [.env.example](./.env.example) for the complete list.
-
 ## MCP Server
->>>>>>> upstream/main
 
 Kan ships with a [Model Context Protocol](https://modelcontextprotocol.io) (MCP) server that lets any MCP-compatible AI client (Claude Desktop, Codex, Cursor, GitHub Copilot, and others) read and control your Kan instance using natural language.
 

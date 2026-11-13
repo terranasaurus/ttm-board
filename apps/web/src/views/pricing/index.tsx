@@ -31,14 +31,7 @@ export default function PricingView() {
 
   return (
     <Layout>
-<<<<<<< HEAD
       <PageHead title={`${t`Pricing`} | TTM Portal`} />
-=======
-      <PageHead
-        title={`${t`Pricing`} | kan.bn`}
-        description={t`Simple, transparent pricing. Start free with unlimited boards and cards, upgrade as your team grows. No hidden fees, no contracts.`}
-      />
->>>>>>> upstream/main
 
       <div className="flex h-full w-full flex-col lg:pt-[5rem]">
         <div className="w-full pb-10 pt-32">

@@ -1,7 +1,12 @@
 import { t } from "@lingui/core/macro";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 
-import { api } from "~/utils/api";
+import {
+  getGetWorkspaceQueryKey,
+  getGetWorkspacesQueryKey,
+  useUpdateWorkspace,
+} from "@kan/api-client/hooks";
 
 export default function UpdateWeekStartDayForm({
   workspacePublicId,
@@ -12,21 +17,25 @@ export default function UpdateWeekStartDayForm({
   weekStartDay: number;
   disabled?: boolean;
 }) {
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
   const [value, setValue] = useState(weekStartDay);
 
   useEffect(() => {
     setValue(weekStartDay);
   }, [weekStartDay]);
 
-  const updateWorkspace = api.workspace.update.useMutation({
-    onSuccess: () => {
-      if (workspacePublicId && workspacePublicId.length >= 12) {
-        void utils.workspace.byId.invalidate({
-          workspacePublicId,
-        });
-        void utils.workspace.all.invalidate();
-      }
+  const updateWorkspace = useUpdateWorkspace({
+    mutation: {
+      onSuccess: () => {
+        if (workspacePublicId && workspacePublicId.length >= 12) {
+          void queryClient.invalidateQueries({
+            queryKey: getGetWorkspaceQueryKey(workspacePublicId),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: getGetWorkspacesQueryKey(),
+          });
+        }
+      },
     },
   });
 
@@ -36,7 +45,7 @@ export default function UpdateWeekStartDayForm({
     setValue(newValue);
     updateWorkspace.mutate({
       workspacePublicId,
-      weekStartDay: newValue as 0 | 1 | 6,
+      data: { weekStartDay: newValue as 0 | 1 | 6 },
     });
   };
 
@@ -47,7 +56,7 @@ export default function UpdateWeekStartDayForm({
           value={value}
           onChange={handleChange}
           disabled={disabled || updateWorkspace.isPending}
-          className="block w-full rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-sm ring-1 ring-inset ring-light-600 placeholder:text-dark-800 focus:ring-2 focus:ring-inset focus:ring-light-700 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700 sm:leading-6"
+          className="block w-full rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-xs ring-1 ring-light-600 ring-inset placeholder:text-dark-800 focus:ring-2 focus:ring-light-700 focus:ring-inset sm:leading-6 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700"
         >
           <option value={0}>{t`Sunday`}</option>
           <option value={1}>{t`Monday`}</option>

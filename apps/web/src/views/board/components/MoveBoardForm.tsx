@@ -2,17 +2,14 @@ import { useRouter } from "next/navigation";
 import { t } from "@lingui/core/macro";
 import { useState } from "react";
 
+import { useMoveBoard } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 
-export function MoveBoardForm({
-  boardPublicId,
-}: {
-  boardPublicId: string;
-}) {
+export function MoveBoardForm({ boardPublicId }: { boardPublicId: string }) {
   const router = useRouter();
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
@@ -23,38 +20,37 @@ export function MoveBoardForm({
     (ws) => ws.publicId !== workspace.publicId && ws.role !== "guest",
   );
 
-  const moveBoard = api.board.move.useMutation({
-    onSuccess: () => {
-      const targetWorkspace = availableWorkspaces.find(
-        (ws) => ws.publicId === targetWorkspacePublicId,
-      );
-      closeModal();
-      showPopup({
-        header: t`Board moved`,
-        message: t`The board has been moved to ${targetWorkspace?.name ?? "the workspace"}.`,
-        icon: "success",
-      });
-      if (targetWorkspace) {
-        switchWorkspace(targetWorkspace);
-      } else {
-        router.push("/boards");
-      }
-    },
-    onError: (error) => {
-      showPopup({
-        header: t`Unable to move board`,
-        message: error.message,
-        icon: "error",
-      });
+  const moveBoard = useMoveBoard({
+    mutation: {
+      onSuccess: () => {
+        const targetWorkspace = availableWorkspaces.find(
+          (ws) => ws.publicId === targetWorkspacePublicId,
+        );
+        closeModal();
+        showPopup({
+          header: t`Board moved`,
+          message: t`The board has been moved to ${targetWorkspace?.name ?? "the workspace"}.`,
+          icon: "success",
+        });
+        if (targetWorkspace) {
+          switchWorkspace(targetWorkspace);
+        } else {
+          router.push("/boards");
+        }
+      },
+      onError: (error) => {
+        showPopup({
+          header: t`Unable to move board`,
+          message: error instanceof Error ? error.message : "",
+          icon: "error",
+        });
+      },
     },
   });
 
   const handleMoveBoard = () => {
     if (!targetWorkspacePublicId) return;
-    moveBoard.mutate({
-      boardPublicId,
-      targetWorkspacePublicId,
-    });
+    moveBoard.mutate({ boardPublicId, data: { targetWorkspacePublicId } });
   };
 
   return (
@@ -79,7 +75,7 @@ export function MoveBoardForm({
               id="target-workspace"
               value={targetWorkspacePublicId}
               onChange={(e) => setTargetWorkspacePublicId(e.target.value)}
-              className="block w-full rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-sm ring-1 ring-inset ring-light-600 placeholder:text-dark-800 focus:ring-2 focus:ring-inset focus:ring-light-700 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700 sm:leading-6"
+              className="block w-full rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-xs ring-1 ring-light-600 ring-inset placeholder:text-dark-800 focus:ring-2 focus:ring-light-700 focus:ring-inset sm:leading-6 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700"
             >
               <option value="">{t`Select a workspace`}</option>
               {otherWorkspaces.map((ws) => (

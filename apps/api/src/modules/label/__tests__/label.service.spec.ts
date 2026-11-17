@@ -1,10 +1,10 @@
 import { InternalServerErrorException } from "@nestjs/common";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as permissions from "@kan/api/utils/permissions";
 import * as boardRepo from "@kan/db/repository/board.repo";
 import * as cardRepo from "@kan/db/repository/card.repo";
 import * as labelRepo from "@kan/db/repository/label.repo";
+import * as permissions from "@kan/server/utils/permissions";
 
 import { LabelService } from "../label.service.js";
 
@@ -57,7 +57,7 @@ describe("LabelService.byPublicId", () => {
 
     await expect(
       service.byPublicId({ labelPublicId: "label_missing", userId: "user_1" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 
@@ -140,10 +140,10 @@ describe("LabelService.delete", () => {
     ).mockResolvedValue(label as never);
     const hardDelete = vi
       .spyOn(cardRepo, "hardDeleteAllCardLabelRelationships")
-      .mockResolvedValue(undefined as never);
+      .mockResolvedValue(undefined);
     const softDelete = vi
       .spyOn(labelRepo, "softDelete")
-      .mockResolvedValue({ id: 1 } as never);
+      .mockResolvedValue({ id: 1 });
 
     const result = await service.delete({
       labelPublicId: "label_12345",

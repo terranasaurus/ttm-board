@@ -1,13 +1,18 @@
 import { useRouter } from "next/navigation";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+
+import {
+  getGetWorkspacesQueryKey,
+  useDeleteWorkspace,
+} from "@kan/api-client/hooks";
 
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 
 export function DeleteWorkspaceConfirmation() {
   const { closeModal } = useModal();
@@ -17,35 +22,39 @@ export function DeleteWorkspaceConfirmation() {
 
   const [isAcknowledgmentChecked, setIsAcknowledgmentChecked] = useState(false);
 
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
-  const deleteWorkspaceMutation = api.workspace.delete.useMutation({
-    onSuccess: async () => {
-      closeModal();
-      showPopup({
-        header: t`Workspace deleted`,
-        message: t`Your workspace has been deleted.`,
-        icon: "success",
-      });
+  const deleteWorkspaceMutation = useDeleteWorkspace({
+    mutation: {
+      onSuccess: async () => {
+        closeModal();
+        showPopup({
+          header: t`Workspace deleted`,
+          message: t`Your workspace has been deleted.`,
+          icon: "success",
+        });
 
-      await utils.workspace.all.refetch();
+        await queryClient.refetchQueries({
+          queryKey: getGetWorkspacesQueryKey(),
+        });
 
-      const filteredWorkspaces = availableWorkspaces.filter(
-        (ws) => ws.publicId !== workspace.publicId,
-      );
-      if (filteredWorkspaces.length > 0 && filteredWorkspaces[0]) {
-        switchWorkspace(filteredWorkspaces[0]);
-      } else {
-        router.push("/");
-      }
-    },
-    onError: () => {
-      closeModal();
-      showPopup({
-        header: t`Error deleting workspace`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+        const filteredWorkspaces = availableWorkspaces.filter(
+          (ws) => ws.publicId !== workspace.publicId,
+        );
+        if (filteredWorkspaces.length > 0 && filteredWorkspaces[0]) {
+          switchWorkspace(filteredWorkspaces[0]);
+        } else {
+          router.push("/");
+        }
+      },
+      onError: () => {
+        closeModal();
+        showPopup({
+          header: t`Error deleting workspace`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -77,7 +86,7 @@ export function DeleteWorkspaceConfirmation() {
             name="acknowledgment"
             type="checkbox"
             aria-describedby="acknowledgment-description"
-            className="mt-2 h-[14px] w-[14px] rounded border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
+            className="mt-2 h-[14px] w-[14px] rounded-sm border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
             checked={isAcknowledgmentChecked}
             onChange={() =>
               setIsAcknowledgmentChecked(!isAcknowledgmentChecked)

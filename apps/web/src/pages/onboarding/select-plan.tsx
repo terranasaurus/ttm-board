@@ -1,8 +1,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { env } from "next-runtime-env";
 
 import { authClient } from "@kan/auth/client";
+import { env } from "@kan/shared/env";
 
 import { PageHead } from "~/components/PageHead";
 import SelectPlanView from "~/views/onboarding/select-plan";

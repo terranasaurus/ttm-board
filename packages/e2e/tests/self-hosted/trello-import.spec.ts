@@ -1,12 +1,13 @@
 import { expect, test } from "@playwright/test";
 
+import { apiBaseURL } from "../support/api-base-url";
 import { AuthPage } from "../support/pages/auth-page";
 import { BoardPage } from "../support/pages/board-page";
 import { CardPage } from "../support/pages/card-page";
 import { DashboardPage } from "../support/pages/dashboard-page";
 import { SelfHostedOnboardingPage } from "../support/pages/self-hosted-onboarding-page";
 import { createTestUser } from "../support/test-user";
-import { waitForTrpcMutation } from "../support/wait-for-trpc";
+import { waitForResponsePath } from "../support/wait-for-api";
 
 test(
   "a Trello board can be imported with its lists, cards, labels, and checklists",
@@ -23,16 +24,23 @@ test(
     await onboarding.createFirstWorkspace("E2E Test Workspace");
     await dashboard.expectSignedInAs(user);
 
-    const authResponse = await page.request.post("/api/trello/authenticate", {
-      data: { token: "mock-trello-token" },
-    });
+    const authResponse = await page.request.post(
+      "/api/v1/integration/trello/token",
+      {
+        data: { token: "mock-trello-token" },
+      },
+    );
     expect(authResponse.ok()).toBe(true);
 
     await page.getByRole("button", { name: "Import" }).click();
     await page.getByRole("button", { name: "Select source" }).click();
 
     await page.getByText("Mock Trello Board", { exact: true }).click();
-    const imported = waitForTrpcMutation(page, "import.trello.importBoards");
+    const imported = waitForResponsePath(
+      page,
+      "/imports/trello/boards",
+      "POST",
+    );
     await page.getByRole("button", { name: /^Import board/ }).click();
     await imported;
 
@@ -76,9 +84,12 @@ test(
     await onboarding.createFirstWorkspace("E2E Test Workspace");
     await dashboard.expectSignedInAs(user);
 
-    const authResponse = await page.request.post("/api/trello/authenticate", {
-      data: { token: "mock-trello-token" },
-    });
+    const authResponse = await page.request.post(
+      "/api/v1/integration/trello/token",
+      {
+        data: { token: "mock-trello-token" },
+      },
+    );
     expect(authResponse.ok()).toBe(true);
 
     const workspacePublicId = await page.evaluate(() =>
@@ -89,24 +100,18 @@ test(
     }
 
     const response = await page.request.post(
-      "/api/trpc/import.trello.importBoards?batch=1",
+      `${apiBaseURL}/imports/trello/boards`,
       {
         data: {
-          "0": {
-            json: {
-              boardIds: ["mock-board-1", "does-not-exist"],
-              workspacePublicId,
-            },
-          },
+          boardIds: ["mock-board-1", "does-not-exist"],
+          workspacePublicId,
         },
       },
     );
     expect(response.ok()).toBe(true);
 
-    const body = (await response.json()) as [
-      { result: { data: { json: { boardsCreated: number } } } },
-    ];
-    expect(body[0].result.data.json.boardsCreated).toBe(1);
+    const body = (await response.json()) as { boardsCreated: number };
+    expect(body.boardsCreated).toBe(1);
 
     await page.goto("/boards");
     await expect(

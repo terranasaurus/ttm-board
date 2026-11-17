@@ -1,10 +1,54 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
 import { t } from "@lingui/core/macro";
+import { useEffect } from "react";
+
+import { useGetWorkspaceBySlug } from "@kan/api-client/hooks";
+
 import { PageHead } from "~/components/PageHead";
 import PatternedBackground from "~/components/PatternedBackground";
-import { api } from "~/utils/api";
+import { getApiErrorStatus } from "~/utils/apiError";
+
+const BoardsList = ({
+  isLoading,
+  boards,
+  workspaceSlug,
+}: {
+  isLoading: boolean;
+  boards: { publicId: string; name: string; slug: string }[];
+  workspaceSlug: string;
+}) => {
+  if (isLoading)
+    return (
+      <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
+        <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
+        <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
+        <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
+        <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
+      </div>
+    );
+
+  if (boards.length === 0) return <></>;
+
+  return (
+    <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
+      {boards.map((board) => (
+        <Link
+          key={board.publicId}
+          href={`/${workspaceSlug}/${board.slug}`}
+          className="h-full"
+        >
+          <div className="relative flex h-full w-full items-center justify-center rounded-md border border-dashed border-light-400 bg-light-50 shadow-xs hover:bg-light-200 dark:border-dark-600 dark:bg-dark-50 dark:hover:bg-dark-100">
+            <PatternedBackground />
+            <p className="text-md px-4 font-medium text-neutral-900 dark:text-dark-1000">
+              {board.name}
+            </p>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+};
 
 export default function PublicBoardsView() {
   const router = useRouter();
@@ -13,62 +57,21 @@ export default function PublicBoardsView() {
     ? router.query.workspaceSlug[0]
     : router.query.workspaceSlug;
 
-  const { data, isLoading, error } = api.workspace.bySlug.useQuery(
+  const { data, isLoading, error } = useGetWorkspaceBySlug(
+    workspaceSlug ?? "",
     {
-      workspaceSlug: workspaceSlug ?? "",
+      query: { enabled: !!workspaceSlug, select: (res) => res.data },
     },
-    { enabled: !!workspaceSlug },
   );
 
   // Redirect to 404 if workspace doesn't exist
   useEffect(() => {
     if (router.isReady && workspaceSlug && !isLoading) {
-      if (error?.data?.code === "NOT_FOUND" || (!data && !isLoading)) {
-        router.replace("/404");
+      if (getApiErrorStatus(error) === 404 || !data) {
+        void router.replace("/404");
       }
     }
   }, [router, workspaceSlug, isLoading, error, data]);
-
-  const BoardsList = ({
-    isLoading,
-    boards,
-    workspaceSlug,
-  }: {
-    isLoading: boolean;
-    boards: { publicId: string; name: string; slug: string }[];
-    workspaceSlug: string;
-  }) => {
-    if (isLoading)
-      return (
-        <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
-          <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
-          <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
-          <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
-          <div className="flex h-full w-full animate-pulse rounded-md bg-light-200 dark:bg-dark-200" />
-        </div>
-      );
-
-    if (boards.length === 0) return <></>;
-
-    return (
-      <div className="grid h-full w-full grid-cols-2 grid-rows-2 gap-4">
-        {boards.map((board) => (
-          <Link
-            key={board.publicId}
-            href={`/${workspaceSlug}/${board.slug}`}
-            className="h-full"
-          >
-            <div className="relative flex h-full w-full items-center justify-center rounded-md border border-dashed border-light-400 bg-light-50 shadow-sm hover:bg-light-200 dark:border-dark-600 dark:bg-dark-50 dark:hover:bg-dark-100">
-              <PatternedBackground />
-              <p className="text-md px-4 font-medium text-neutral-900 dark:text-dark-1000">
-                {board.name}
-              </p>
-            </div>
-          </Link>
-        ))}
-      </div>
-    );
-  };
 
   return (
     <>

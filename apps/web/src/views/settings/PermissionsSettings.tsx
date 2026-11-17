@@ -1,12 +1,17 @@
 import { t } from "@lingui/core/macro";
+import { useQueryClient } from "@tanstack/react-query";
 
-import { PageHead } from "~/components/PageHead";
+import {
+  getGetWorkspaceQueryKey,
+  useResetWorkspaceMemberPermissions,
+} from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import Modal from "~/components/modal";
+import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 import { ClearCustomPermissionsConfirmation } from "./components/ClearCustomPermissionsConfirmation";
 import { RolePermissions } from "./components/RolePermissions";
 
@@ -14,12 +19,12 @@ export default function PermissionsSettings() {
   const { workspace } = useWorkspace();
   const { openModal, isOpen, modalContentType } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const isAdmin = workspace.role === "admin";
 
-  const resetAllOverrides = api.permission.resetWorkspaceMemberPermissions.useMutation(
-    {
+  const resetAllOverrides = useResetWorkspaceMemberPermissions({
+    mutation: {
       onSuccess: async () => {
         showPopup({
           header: t`Overrides cleared`,
@@ -29,8 +34,8 @@ export default function PermissionsSettings() {
 
         // Refresh any relevant workspace data
         if (workspace.publicId && workspace.publicId.length >= 12) {
-          await utils.workspace.byId.invalidate({
-            workspacePublicId: workspace.publicId,
+          await queryClient.invalidateQueries({
+            queryKey: getGetWorkspaceQueryKey(workspace.publicId),
           });
         }
       },
@@ -42,14 +47,14 @@ export default function PermissionsSettings() {
         });
       },
     },
-  );
+  });
 
   return (
     <>
       <PageHead title={t`Settings | Permissions`} />
 
       <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Workspace permissions`}
         </h2>
         <p className="mb-6 text-sm text-neutral-500 dark:text-dark-900">
@@ -99,5 +104,3 @@ export default function PermissionsSettings() {
     </>
   );
 }
-
-

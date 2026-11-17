@@ -1,15 +1,16 @@
 import { useRouter } from "next/navigation";
 import { Button, Menu, Transition } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
 import { Fragment, useMemo, useState } from "react";
 import { HiCheck, HiMagnifyingGlass } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 
+import { useHasAvailablePartnerSlot } from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
+
 import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 import CommandPallette from "./CommandPallette";
 import { Tooltip } from "./Tooltip";
 
@@ -21,8 +22,9 @@ export default function WorkspaceMenu({
   const { workspace, isLoading, availableWorkspaces, switchWorkspace } =
     useWorkspace();
   const { openModal } = useModal();
-  const { data: hasPartnerSlot } =
-    api.workspace.hasAvailablePartnerSlot.useQuery();
+  const { data: hasPartnerSlot } = useHasAvailablePartnerSlot({
+    query: { select: (res) => res.data },
+  });
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -73,8 +75,13 @@ export default function WorkspaceMenu({
                 )}
                 title={isCollapsed ? workspace.name : undefined}
               >
+<<<<<<< HEAD
                 <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-ttm-green">
                   <span className="text-xs font-bold leading-none text-white">
+=======
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-indigo-700">
+                  <span className="text-xs leading-none font-bold text-white">
+>>>>>>> upstream/main
                     {workspace.name.charAt(0).toUpperCase()}
                   </span>
                 </span>
@@ -101,7 +108,7 @@ export default function WorkspaceMenu({
                 <Button
                   aria-label={t`Search`}
                   className={twMerge(
-                    "mb-1 h-[34px] w-[34px] flex-shrink-0 rounded-lg bg-light-200 p-2 hover:bg-light-300 focus:outline-none dark:bg-dark-200 dark:hover:bg-dark-300",
+                    "mb-1 h-[34px] w-[34px] shrink-0 rounded-lg bg-light-200 p-2 hover:bg-light-300 focus:outline-hidden dark:bg-dark-200 dark:hover:bg-dark-300",
                     isCollapsed && "md:mb-2 md:h-9 md:w-9",
                   )}
                   onClick={() => setIsOpen(true)}
@@ -124,7 +131,7 @@ export default function WorkspaceMenu({
         >
           <Menu.Items
             className={twMerge(
-              "absolute left-0 z-10 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-600 dark:bg-dark-300",
+              "absolute left-0 z-10 origin-top-left rounded-md border border-light-600 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-hidden dark:border-dark-600 dark:bg-dark-300",
               isCollapsed ? "w-48" : "w-full",
             )}
           >
@@ -137,8 +144,13 @@ export default function WorkspaceMenu({
                       className="flex w-full items-center justify-between rounded-[5px] px-3 py-2 text-left text-sm text-neutral-900 hover:bg-light-200 dark:text-dark-1000 dark:hover:bg-dark-400"
                     >
                       <div className="flex min-w-0 flex-1 items-center">
+<<<<<<< HEAD
                         <span className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-[5px] bg-ttm-green">
                           <span className="text-xs font-medium leading-none text-white">
+=======
+                        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-[5px] bg-indigo-700">
+                          <span className="text-xs leading-none font-medium text-white">
+>>>>>>> upstream/main
                             {availableWorkspace.name.charAt(0).toUpperCase()}
                           </span>
                         </span>
@@ -156,7 +168,7 @@ export default function WorkspaceMenu({
                 </div>
               ))}
             </div>
-            <div className="border-t-[1px] border-light-600 p-1 dark:border-dark-500">
+            <div className="border-t border-light-600 p-1 dark:border-dark-500">
               <Menu.Item>
                 <button
                   onClick={() => {

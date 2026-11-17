@@ -1,22 +1,26 @@
 import { useRouter } from "next/navigation";
 import { t } from "@lingui/core/macro";
 
+import { useDeleteCard } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 
 interface DeleteCardConfirmationProps {
   cardPublicId: string;
   boardPublicId: string;
+  returnUrl: string;
 }
 
 export function DeleteCardConfirmation({
   cardPublicId,
   boardPublicId,
+  returnUrl,
 }: DeleteCardConfirmationProps) {
   const { closeModal } = useModal();
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
   const router = useRouter();
   const { showPopup } = usePopup();
 
@@ -24,41 +28,43 @@ export function DeleteCardConfirmation({
     boardPublicId,
   };
 
-  const deleteCardMutation = api.card.delete.useMutation({
-    onMutate: async (args) => {
-      await utils.board.byId.cancel();
+  const deleteCardMutation = useDeleteCard({
+    mutation: {
+      onMutate: async (args) => {
+        await boardCache.cancel();
 
-      const currentState = utils.board.byId.getData(queryParams);
+        const currentState = boardCache.getData(queryParams);
 
-      utils.board.byId.setData(queryParams, (oldBoard) => {
-        if (!oldBoard) return oldBoard;
+        boardCache.setData(queryParams, (oldBoard) => {
+          if (!oldBoard) return oldBoard;
 
-        const updatedLists = oldBoard.lists.map((list) => {
-          const updatedCards = list.cards.filter(
-            (card) => card.publicId !== args.cardPublicId,
-          );
-          return { ...list, cards: updatedCards };
+          const updatedLists = oldBoard.lists.map((list) => {
+            const updatedCards = list.cards.filter(
+              (card) => card.publicId !== args.cardPublicId,
+            );
+            return { ...list, cards: updatedCards };
+          });
+
+          return { ...oldBoard, lists: updatedLists };
         });
 
-        return { ...oldBoard, lists: updatedLists };
-      });
-
-      return { previousState: currentState };
-    },
-    onError: (_error, _newList, context) => {
-      utils.board.byId.setData(queryParams, context?.previousState);
-      showPopup({
-        header: t`Unable to delete card`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSuccess: () => {
-      router.push(`/boards/${boardPublicId}`);
-    },
-    onSettled: async () => {
-      closeModal();
-      await utils.board.byId.invalidate(queryParams);
+        return { previousState: currentState };
+      },
+      onError: (_error, _newList, context) => {
+        boardCache.setData(queryParams, context?.previousState);
+        showPopup({
+          header: t`Unable to delete card`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSuccess: () => {
+        router.push(returnUrl);
+      },
+      onSettled: async () => {
+        closeModal();
+        await boardCache.invalidate(queryParams.boardPublicId);
+      },
     },
   });
 
@@ -80,7 +86,7 @@ export function DeleteCardConfirmation({
       </div>
       <div className="mt-5 flex justify-end sm:mt-6">
         <button
-          className="mr-4 inline-flex justify-center rounded-md border-[1px] border-light-600 bg-light-50 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-sm focus-visible:outline-none dark:border-dark-600 dark:bg-dark-300 dark:text-dark-1000"
+          className="mr-4 inline-flex justify-center rounded-md border border-light-600 bg-light-50 px-3 py-2 text-sm font-semibold text-neutral-900 shadow-xs focus-visible:outline-hidden dark:border-dark-600 dark:bg-dark-300 dark:text-dark-1000"
           onClick={() => closeModal()}
         >
           {t`Cancel`}

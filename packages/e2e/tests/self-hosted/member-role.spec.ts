@@ -1,6 +1,7 @@
 import type { Browser, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
+import { apiBaseURL } from "../support/api-base-url";
 import { AuthPage } from "../support/pages/auth-page";
 import { DashboardPage } from "../support/pages/dashboard-page";
 import { MembersPage } from "../support/pages/members-page";
@@ -83,39 +84,21 @@ test(
     );
 
     const membersResponse = await memberPage.request.get(
-      `/api/trpc/workspace.byId?batch=1&input=${encodeURIComponent(
-        JSON.stringify({ "0": { json: { workspacePublicId } } }),
-      )}`,
+      `${apiBaseURL}/workspaces/${workspacePublicId}`,
     );
-    const membersBody = (await membersResponse.json()) as [
-      {
-        result: {
-          data: {
-            json: { members: { publicId: string; email: string }[] };
-          };
-        };
-      },
-    ];
-    const ownMember = membersBody[0].result.data.json.members.find(
+    const membersBody = (await membersResponse.json()) as {
+      members: { publicId: string; email: string }[];
+    };
+    const ownMember = membersBody.members.find(
       (m) => m.email === memberUser.email,
     );
     if (!ownMember) {
       throw new Error("Could not resolve invited member's own record");
     }
 
-    const response = await memberPage.request.post(
-      "/api/trpc/member.updateRole?batch=1",
-      {
-        data: {
-          "0": {
-            json: {
-              workspacePublicId,
-              memberPublicId: ownMember.publicId,
-              role: "admin",
-            },
-          },
-        },
-      },
+    const response = await memberPage.request.put(
+      `${apiBaseURL}/workspaces/${workspacePublicId}/members/${ownMember.publicId}/role`,
+      { data: { role: "admin" } },
     );
     expect(response.status()).toBe(403);
 

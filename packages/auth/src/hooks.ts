@@ -1,6 +1,5 @@
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { createAuthMiddleware } from "better-auth/api";
-import { env } from "next-runtime-env";
 
 import type { dbClient } from "@kan/db/client";
 import * as memberRepo from "@kan/db/repository/member.repo";
@@ -9,7 +8,11 @@ import * as userRepo from "@kan/db/repository/user.repo";
 import { subscriber } from "@kan/email";
 import { createLogger } from "@kan/logger";
 import { createS3Client } from "@kan/shared";
+<<<<<<< HEAD
 import { allowedDomainsFromEnv, isEmailAllowed } from "@kan/shared/ttm-access";
+=======
+import { env } from "@kan/shared/env";
+>>>>>>> upstream/main
 
 import { downloadImage } from "./utils";
 

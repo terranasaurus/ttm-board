@@ -1,38 +1,22 @@
 import Link from "next/link";
 
+import {
+  ListItem,
+  SubHeading,
+  Text,
+  UnorderedList,
+} from "~/components/LegalText";
 import { PageHead } from "~/components/PageHead";
 import Layout from "../home/components/Layout";
 
 export default function PrivacyView() {
-  const SubHeading = ({ children }: { children: React.ReactNode }) => (
-    <h3 className="mb-4 text-2xl font-bold text-light-1000 dark:text-dark-950">
-      {children}
-    </h3>
-  );
-
-  const Text = ({ children }: { children: React.ReactNode }) => (
-    <p className="line-height text-md mb-4 text-light-1000 dark:text-dark-900">
-      {children}
-    </p>
-  );
-
-  const UnorderedList = ({ children }: { children: React.ReactNode }) => (
-    <ul className="list-disc pl-6">{children}</ul>
-  );
-
-  const ListItem = ({ children }: { children: React.ReactNode }) => (
-    <li className="line-height text-md mb-4 text-light-1000 dark:text-dark-900">
-      {children}
-    </li>
-  );
-
   const NAME = "Open Engineering";
 
   return (
     <Layout>
       <PageHead title="Privacy Policy | TTM Portal" />
       <div className="flex flex-col items-center">
-        <div className="mb-20 flex h-full w-full max-w-[800px] flex-col lg:pt-[5rem]">
+        <div className="mb-20 flex h-full w-full max-w-[800px] flex-col lg:pt-20">
           <div className="flex items-center justify-center py-36 text-4xl font-bold tracking-tight text-light-1000 dark:text-dark-1000">
             <h2>Privacy Policy</h2>
           </div>

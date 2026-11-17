@@ -1,0 +1,423 @@
+import { ForbiddenException, NotFoundException } from "@nestjs/common";
+
+import type { dbClient } from "@kan/db/client";
+import type { Permission, Role } from "@kan/shared";
+import * as boardMemberRepo from "@kan/db/repository/boardMember.repo";
+import * as memberRepo from "@kan/db/repository/member.repo";
+import * as permissionRepo from "@kan/db/repository/permission.repo";
+import { canManageRole, getDefaultPermissions } from "@kan/shared";
+
+/**
+ * Get effective permissions for a member by combining role permissions with overrides
+ */
+export async function getMemberEffectivePermissions(
+  db: dbClient,
+  workspaceMemberId: number,
+  roleId: number | null,
+  roleName: string,
+): Promise<Permission[]> {
+  let roleDefaults: Set<Permission>;
+
+  // Get role permissions from database or fallback to code defaults
+  if (roleId) {
+    const dbPermissions = await permissionRepo.getPermissionsByRoleId(
+      db,
+      roleId,
+    );
+    roleDefaults = new Set<Permission>(dbPermissions);
+  } else {
+    const codeDefaults = getDefaultPermissions(roleName as Role);
+    roleDefaults = new Set<Permission>([...codeDefaults]);
+  }
+
+  // Get and apply custom overrides
+  const overrides = await permissionRepo.getMemberPermissionOverrides(
+    db,
+    workspaceMemberId,
+  );
+
+  for (const override of overrides) {
+    if (override.granted) {
+      roleDefaults.add(override.permission as Permission);
+    } else {
+      roleDefaults.delete(override.permission as Permission);
+    }
+  }
+
+  return Array.from(roleDefaults);
+}
+
+/**
+ * Check if a member has a specific permission
+ */
+export async function memberHasPermission(
+  db: dbClient,
+  workspaceMemberId: number,
+  roleId: number | null,
+  roleName: string,
+  permission: Permission,
+): Promise<boolean> {
+  let hasRoleDefault: boolean;
+
+  // Check role permission from database or fallback to code defaults
+  if (roleId) {
+    const dbPermissions = await permissionRepo.getPermissionsByRoleId(
+      db,
+      roleId,
+    );
+    hasRoleDefault = dbPermissions.includes(permission);
+  } else {
+    const codeDefaults = getDefaultPermissions(roleName as Role);
+    hasRoleDefault = codeDefaults.includes(permission);
+  }
+
+  // Check for override
+  const override = await permissionRepo.getMemberPermissionOverride(
+    db,
+    workspaceMemberId,
+    permission,
+  );
+
+  // Override takes precedence
+  if (override) {
+    return override.granted;
+  }
+
+  return hasRoleDefault;
+}
+
+/**
+ * Check if user has a specific permission in a workspace
+ */
+export async function hasPermission(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  permission: Permission,
+): Promise<boolean> {
+  const member = await permissionRepo.getMemberWithRole(
+    db,
+    userId,
+    workspaceId,
+  );
+
+  if (!member) {
+    return false;
+  }
+
+  return memberHasPermission(
+    db,
+    member.id,
+    member.roleId,
+    member.role,
+    permission,
+  );
+}
+
+/**
+ * Get all permissions for a user in a workspace
+ */
+export async function getUserPermissions(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+): Promise<{
+  permissions: Permission[];
+  role: string;
+  roleId: number | null;
+} | null> {
+  const member = await permissionRepo.getMemberWithRole(
+    db,
+    userId,
+    workspaceId,
+  );
+
+  if (!member) {
+    return null;
+  }
+
+  const permissions = await getMemberEffectivePermissions(
+    db,
+    member.id,
+    member.roleId,
+    member.role,
+  );
+
+  return {
+    permissions,
+    role: member.role,
+    roleId: member.roleId,
+  };
+}
+
+/**
+ * Assert user has permission - throws FORBIDDEN if not
+ */
+export async function assertPermission(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  permission: Permission,
+): Promise<void> {
+  const hasIt = await hasPermission(db, userId, workspaceId, permission);
+
+  if (!hasIt) {
+    throw new ForbiddenException(
+      `You do not have permission to perform this action (${permission})`,
+    );
+  }
+}
+
+/**
+ * Assert user can assign a specific role (based on hierarchy)
+ */
+export async function assertCanManageRole(
+  db: dbClient,
+  managerUserId: string,
+  workspaceId: number,
+  targetRoleName: string,
+): Promise<void> {
+  const managerMember = await permissionRepo.getMemberWithRole(
+    db,
+    managerUserId,
+    workspaceId,
+  );
+
+  if (!managerMember) {
+    throw new ForbiddenException("You are not a member of this workspace");
+  }
+
+  const managerRole = managerMember.role;
+
+  if (!canManageRole(managerRole, targetRoleName as Role)) {
+    throw new ForbiddenException(
+      `You cannot assign the "${targetRoleName}" role`,
+    );
+  }
+}
+
+/**
+ * Assert user can manage another member based on role hierarchy
+ */
+export async function assertCanManageMember(
+  db: dbClient,
+  managerUserId: string,
+  workspaceId: number,
+  targetMemberId: number,
+): Promise<void> {
+  const managerMember = await permissionRepo.getMemberWithRole(
+    db,
+    managerUserId,
+    workspaceId,
+  );
+
+  if (!managerMember) {
+    throw new ForbiddenException("You are not a member of this workspace");
+  }
+
+  const targetMember = await memberRepo.getById(db, targetMemberId);
+
+  if (!targetMember) {
+    throw new NotFoundException("Target member not found");
+  }
+
+  const managerRole = managerMember.role;
+  const targetRole = targetMember.role;
+
+  if (!canManageRole(managerRole, targetRole)) {
+    throw new ForbiddenException(
+      "You cannot manage this member due to role hierarchy",
+    );
+  }
+}
+
+/**
+ * Assert user can delete an entity - either has the delete permission OR is the creator
+ */
+export async function assertCanDelete(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  permission: Permission,
+  createdBy: string | null,
+): Promise<void> {
+  // Check if user has the general delete permission
+  const hasDeletePermission = await hasPermission(
+    db,
+    userId,
+    workspaceId,
+    permission,
+  );
+
+  // If user has permission, allow deletion
+  if (hasDeletePermission) {
+    return;
+  }
+
+  // If user doesn't have permission, check if they are the creator
+  if (createdBy && createdBy === userId) {
+    return;
+  }
+
+  // Neither condition met - deny deletion
+  throw new ForbiddenException(
+    `You do not have permission to delete this entity (${permission})`,
+  );
+}
+
+/**
+ * Assert user can edit an entity - either has the edit permission OR is the creator
+ */
+export async function assertCanEdit(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+  permission: Permission,
+  createdBy: string | null,
+): Promise<void> {
+  // Check if user has the general edit permission
+  const hasEditPermission = await hasPermission(
+    db,
+    userId,
+    workspaceId,
+    permission,
+  );
+
+  // If user has permission, allow editing
+  if (hasEditPermission) {
+    return;
+  }
+
+  // If user doesn't have permission, check if they are the creator
+  if (createdBy && createdBy === userId) {
+    return;
+  }
+
+  // Neither condition met - deny editing
+  throw new ForbiddenException(
+    `You do not have permission to edit this entity (${permission})`,
+  );
+}
+
+/**
+ * Check if a user holds the workspace-level "admin" role (distinct from
+ * board-level admin, and from any custom role/permission overrides).
+ */
+export async function isWorkspaceAdmin(
+  db: dbClient,
+  userId: string,
+  workspaceId: number,
+): Promise<boolean> {
+  const member = await permissionRepo.getMemberWithRole(
+    db,
+    userId,
+    workspaceId,
+  );
+
+  return member?.role === "admin";
+}
+
+/**
+ * Check if a user can see a specific board: templates stay open to the
+ * whole workspace, workspace admins see every board, everyone else must
+ * hold an explicit board membership.
+ */
+export async function hasBoardAccess(
+  db: dbClient,
+  userId: string,
+  board: { id: number; workspaceId: number; type: string },
+): Promise<boolean> {
+  if (board.type !== "regular") return true;
+
+  const member = await permissionRepo.getMemberWithRole(
+    db,
+    userId,
+    board.workspaceId,
+  );
+
+  if (!member) return false;
+  if (member.role === "admin") return true;
+
+  const membership = await boardMemberRepo.getMembership(db, {
+    boardId: board.id,
+    userId,
+  });
+
+  return !!membership;
+}
+
+/**
+ * Narrow workspace members to the ones who belong on a board's cards
+ * (assignees, mentions): workspace admins and board members. Templates stay
+ * open to the whole workspace.
+ */
+export async function filterBoardAssignable<
+  T extends { id: number; role: string },
+>(
+  db: dbClient,
+  board: { id: number; type: string },
+  members: T[],
+): Promise<T[]> {
+  if (board.type !== "regular" || !members.length) return members;
+
+  const onBoard = new Set(
+    await boardMemberRepo.getWorkspaceMemberIds(db, board.id),
+  );
+
+  return members.filter(
+    (member) => member.role === "admin" || onBoard.has(member.id),
+  );
+}
+
+/**
+ * Assert a user can see a board - throws NOT_FOUND (rather than FORBIDDEN)
+ * since uninvited boards should be invisible, not merely inaccessible.
+ *
+ * "Public" boards are not open to the whole workspace: public only means
+ * "viewable via the public share link" (board.bySlug), so non-members can't
+ * see or edit them inside the app either.
+ */
+export async function assertBoardAccess(
+  db: dbClient,
+  userId: string,
+  board: { id: number; workspaceId: number; type: string },
+): Promise<void> {
+  const allowed = await hasBoardAccess(db, userId, board);
+
+  if (!allowed) {
+    throw new NotFoundException(`Board not found`);
+  }
+}
+
+/**
+ * Assert a user can manage a board's membership: workspace admins always
+ * can, otherwise the user must be a board admin themselves.
+ */
+export async function assertCanManageBoardMembers(
+  db: dbClient,
+  userId: string,
+  board: { id: number; workspaceId: number },
+): Promise<void> {
+  const member = await permissionRepo.getMemberWithRole(
+    db,
+    userId,
+    board.workspaceId,
+  );
+
+  if (!member) {
+    throw new ForbiddenException("You are not a member of this workspace");
+  }
+
+  if (member.role === "admin") return;
+
+  const membership = await boardMemberRepo.getMembership(db, {
+    boardId: board.id,
+    userId,
+  });
+
+  if (membership?.role === "admin") return;
+
+  throw new ForbiddenException(
+    "You do not have permission to manage members of this board",
+  );
+}

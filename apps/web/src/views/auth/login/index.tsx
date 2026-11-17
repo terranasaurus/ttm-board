@@ -2,10 +2,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
-import { env } from "next-runtime-env";
 import { useState } from "react";
 
 import { authClient } from "@kan/auth/client";
+import { env } from "@kan/shared/env";
 
 import { Auth } from "~/components/AuthForm";
 import { PageHead } from "~/components/PageHead";
@@ -31,8 +31,13 @@ export default function LoginPage() {
 
   return (
     <>
+<<<<<<< HEAD
       <PageHead title={t`Login | TTM Portal`} />
       <main className="h-screen bg-light-100 pt-20 dark:bg-dark-50 sm:pt-0">
+=======
+      <PageHead title={t`Login | kan.bn`} />
+      <main className="h-screen bg-light-100 pt-20 sm:pt-0 dark:bg-dark-50">
+>>>>>>> upstream/main
         <div className="justify-top flex h-full flex-col items-center px-4 sm:justify-center">
           <div className="z-10 flex w-full flex-col items-center">
             <Link href="/">
@@ -51,7 +56,7 @@ export default function LoginPage() {
                 </p>
               </div>
             ) : (
-              <div className="w-full rounded-lg border border-light-500 bg-light-300 px-4 py-10 dark:border-dark-400 dark:bg-dark-200 sm:max-w-md lg:px-10">
+              <div className="w-full rounded-lg border border-light-500 bg-light-300 px-4 py-10 sm:max-w-md lg:px-10 dark:border-dark-400 dark:bg-dark-200">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                   <Auth setIsMagicLinkSent={handleMagicLinkSent} />
                 </div>

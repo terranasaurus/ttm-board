@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { Button } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
 import { useLingui } from "@lingui/react";
-import { env } from "next-runtime-env";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useState } from "react";
 import { HiBolt } from "react-icons/hi2";
@@ -14,6 +13,8 @@ import {
 import { twMerge } from "tailwind-merge";
 
 import type { Subscription } from "@kan/shared/utils";
+import { useGetWorkspace } from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 import { hasActiveSubscription } from "@kan/shared/utils";
 
 import type { KeyboardShortcut } from "~/providers/keyboard-shortcuts";
@@ -30,9 +31,12 @@ import ReactiveButton from "~/components/ReactiveButton";
 import UserMenu from "~/components/UserMenu";
 import WorkspaceMenu from "~/components/WorkspaceMenu";
 import { useWorkspace } from "~/providers/workspace";
+<<<<<<< HEAD
 import { api } from "~/utils/api";
 import BrandMark from "~/components/BrandMark";
 import TtmNav from "~/views/ttm/TtmNav";
+=======
+>>>>>>> upstream/main
 
 interface SideNavigationProps {
   user: UserType;
@@ -56,14 +60,15 @@ export default function SideNavigation({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isInitialised, setIsInitialised] = useState(false);
 
-  const { data: workspaceData } = api.workspace.byId.useQuery(
-    { workspacePublicId: workspace.publicId },
-    { enabled: !!workspace.publicId && workspace.publicId.length >= 12 },
-  );
+  const { data: workspaceData } = useGetWorkspace(workspace.publicId, {
+    query: {
+      enabled: !!workspace.publicId && workspace.publicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   const subscriptions = workspaceData?.subscriptions as
-    | Subscription[]
-    | undefined;
+    Subscription[] | undefined;
 
   useEffect(() => {
     const savedState = localStorage.getItem("kan_sidebar-collapsed");
@@ -160,7 +165,7 @@ export default function SideNavigation({
     <>
       <nav
         className={twMerge(
-          "flex h-full w-64 flex-col justify-between border-r border-light-300 bg-light-100 p-3 dark:border-dark-300 dark:bg-dark-100 md:border-r-0 md:py-0 md:pl-0",
+          "flex h-full w-64 flex-col justify-between border-r border-light-300 bg-light-100 p-3 md:border-r-0 md:py-0 md:pl-0 dark:border-dark-300 dark:bg-dark-100",
           isCollapsed && "md:w-auto",
         )}
       >
@@ -191,7 +196,7 @@ export default function SideNavigation({
               )}
             </Button>
           </div>
-          <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 dark:border-dark-400 md:block" />
+          <div className="mx-1 mb-4 hidden w-auto border-b border-light-300 md:block dark:border-dark-400" />
 
           <WorkspaceMenu isCollapsed={isCollapsed} />
           <ul role="list" className="space-y-1">

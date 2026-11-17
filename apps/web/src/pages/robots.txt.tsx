@@ -1,7 +1,8 @@
 import type { GetServerSideProps } from "next";
-import { env } from "next-runtime-env";
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
+import { env } from "@kan/shared/env";
+
+export const getServerSideProps: GetServerSideProps = ({ req, res }) => {
   const baseUrl = env("NEXT_PUBLIC_BASE_URL") || `https://${req.headers.host}`;
 
   const body = [
@@ -25,7 +26,7 @@ export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
   res.write(body);
   res.end();
 
-  return { props: {} };
+  return Promise.resolve({ props: {} });
 };
 
 export default function RobotsTxt() {

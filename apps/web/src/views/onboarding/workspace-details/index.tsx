@@ -1,5 +1,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { t } from "@lingui/core/macro";
+import { useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +13,13 @@ import {
   HiLockClosed,
 } from "react-icons/hi2";
 
+import {
+  getGetWorkspacesQueryKey,
+  getHasAvailablePartnerSlotQueryKey,
+  useCheckSlugAvailability,
+  useCreateWorkspace,
+  useGetWorkspaces,
+} from "@kan/api-client/hooks";
 import { authClient } from "@kan/auth/client";
 
 import Button from "~/components/Button";
@@ -20,7 +28,6 @@ import LoadingSpinner from "~/components/LoadingSpinner";
 import { Tooltip } from "~/components/Tooltip";
 import { useDebounce } from "~/hooks/useDebounce";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 
 function slugify(value: string) {
   return value
@@ -38,16 +45,8 @@ export default function WorkspaceNameView() {
   const plan = searchParams.get("plan") ?? "solo";
   const billing = searchParams.get("billing") ?? "annual";
   const returnUrl = searchParams.get("returnUrl") ?? "/boards";
-  const licenseKeyParam = searchParams.get("license_key");
-  const isLicenseFlow =
-    !!licenseKeyParam || searchParams.get("partner") === "1";
+  const isLicenseFlow = searchParams.get("partner") === "1";
   const { showPopup } = usePopup();
-
-  useEffect(() => {
-    if (licenseKeyParam) {
-      localStorage.setItem("partnerLicenseKey", licenseKeyParam);
-    }
-  }, [licenseKeyParam]);
 
   const isTeamPlan = plan === "team";
 
@@ -66,16 +65,21 @@ export default function WorkspaceNameView() {
   const [debouncedSlug] = useDebounce(slug, 500);
   const isTyping = slug !== debouncedSlug;
 
-  const slugAvailability = api.workspace.checkSlugAvailability.useQuery(
+  const slugAvailability = useCheckSlugAvailability(
     { workspaceSlug: debouncedSlug },
-    { enabled: isTeamPlan && debouncedSlug.length >= 3 && !isTyping },
+    {
+      query: {
+        enabled: isTeamPlan && debouncedSlug.length >= 3 && !isTyping,
+        select: (res) => res.data,
+      },
+    },
   );
 
   const isSlugAvailable =
-    slugAvailability.data?.isAvailable && !slugAvailability.data?.isReserved;
+    slugAvailability.data?.isAvailable && !slugAvailability.data.isReserved;
   const isSlugTaken =
     slugAvailability.data?.isAvailable === false &&
-    !slugAvailability.data?.isReserved;
+    !slugAvailability.data.isReserved;
   const isSlugReserved = slugAvailability.data?.isReserved === true;
 
   const slugError = isSlugTaken
@@ -84,41 +88,37 @@ export default function WorkspaceNameView() {
       ? t`This URL is reserved`
       : undefined;
 
-  const { data: session } = authClient.useSession();
-  const { data: user } = api.user.getUser.useQuery(undefined, {
-    enabled: !!session?.user,
+  const { data: workspaces } = useGetWorkspaces({
+    query: { select: (res) => res.data },
   });
-  const { data: workspaces } = api.workspace.all.useQuery();
   const hasExistingWorkspace = !!workspaces?.length;
 
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const previewSlug = isTeamPlan
     ? slugify(slug) || slugify(name) || "your-workspace"
     : "your-workspace";
 
-  const createWorkspace = api.workspace.create.useMutation({
-    onSuccess: async (workspace) => {
-      if (!workspace.publicId) return;
-      localStorage.setItem("workspacePublicId", workspace.publicId);
-      void utils.workspace.all.invalidate();
-      void utils.workspace.hasAvailablePartnerSlot.invalidate();
-      const storedLicenseKey = localStorage.getItem("partnerLicenseKey");
-      if (storedLicenseKey) {
-        localStorage.removeItem("partnerLicenseKey");
-        router.push(
-          `/api/partner/link?license_key=${encodeURIComponent(storedLicenseKey)}`,
-        );
-      } else {
+  const createWorkspace = useCreateWorkspace({
+    mutation: {
+      onSuccess: ({ data: workspace }) => {
+        if (!workspace.publicId) return;
+        localStorage.setItem("workspacePublicId", workspace.publicId);
+        void queryClient.invalidateQueries({
+          queryKey: getGetWorkspacesQueryKey(),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: getHasAvailablePartnerSlotQueryKey(),
+        });
         router.push(`/boards?workspacePublicId=${workspace.publicId}`);
-      }
-    },
-    onError: () => {
-      showPopup({
-        header: t`Unable to create workspace`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+      },
+      onError: () => {
+        showPopup({
+          header: t`Unable to create workspace`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -129,15 +129,17 @@ export default function WorkspaceNameView() {
 
     if (plan === "solo" || isLicenseFlow) {
       createWorkspace.mutate({
-        name: name.trim(),
-        ...(description.trim() && { description: description.trim() }),
+        data: {
+          name: name.trim(),
+          ...(description.trim() && { description: description.trim() }),
+        },
       });
       return;
     }
 
     setIsRedirectingToCheckout(true);
     try {
-      const response = await fetch("/api/stripe/create_checkout_session", {
+      const response = await fetch("/api/v1/billing/checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -152,8 +154,7 @@ export default function WorkspaceNameView() {
           plan,
         }),
       });
-      const data = await response.json();
-      const url = (data as { url: string }).url;
+      const { url } = (await response.json()) as { url?: string };
       if (url) {
         window.location.href = url;
         return;
@@ -173,20 +174,20 @@ export default function WorkspaceNameView() {
     document.getElementById("workspace-name-input")?.focus();
   }, []);
 
-  const displayName = user?.name ?? session?.user.name ?? "";
-
   const BOARDS = [t`Roadmap`, t`Engineering`, t`Marketing`];
   const [visibleCount, setVisibleCount] = useState(1);
 
+  const boardCount = BOARDS.length;
+
   useEffect(() => {
-    const timers = BOARDS.slice(1).map((_, i) =>
+    const timers = Array.from({ length: boardCount - 1 }, (_, i) =>
       setTimeout(() => setVisibleCount(i + 2), (i + 1) * 2000),
     );
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [boardCount]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-light-100 px-4 py-8 dark:bg-dark-50 md:px-6">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-light-100 px-4 py-8 md:px-6 dark:bg-dark-50">
       <div className="w-full max-w-3xl overflow-hidden rounded-xl border border-light-400 bg-light-200 shadow-xl dark:border-dark-400 dark:bg-dark-100">
         <div className="flex flex-col md:h-[520px] md:flex-row">
           {/* Left panel */}
@@ -240,9 +241,9 @@ export default function WorkspaceNameView() {
                             placement="top"
                             delay={0}
                           >
-                            <HiInformationCircle className="h-4 w-4 leading-[0] text-dark-700 dark:text-dark-700" />
+                            <HiInformationCircle className="h-4 w-4 leading-0 text-dark-700 dark:text-dark-700" />
                           </Tooltip>
-                        ) : isTeamPlan && slug.length >= 3 ? (
+                        ) : slug.length >= 3 ? (
                           isTyping || slugAvailability.isPending ? (
                             <LoadingSpinner />
                           ) : isSlugAvailable ? (
@@ -261,7 +262,7 @@ export default function WorkspaceNameView() {
                     placeholder={t`Workspace description`}
                     maxLength={280}
                     rows={3}
-                    className="block w-full resize-none rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-sm ring-1 ring-inset ring-light-600 placeholder:text-dark-800 focus:ring-2 focus:ring-inset focus:ring-light-700 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700 sm:leading-6"
+                    className="block w-full resize-none rounded-md border-0 bg-dark-300 bg-white/5 py-1.5 text-sm shadow-xs ring-1 ring-light-600 ring-inset placeholder:text-dark-800 focus:ring-2 focus:ring-light-700 focus:ring-inset sm:leading-6 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700"
                   />
                   <p className="mt-1 text-right text-[10px] text-light-700 dark:text-dark-700">
                     {description.length}/280
@@ -305,7 +306,7 @@ export default function WorkspaceNameView() {
           </div>
 
           {/* Right panel — browser mockup */}
-          <div className="hidden flex-col bg-light-300 dark:bg-dark-200 md:flex md:w-[45%]">
+          <div className="hidden flex-col bg-light-300 md:flex md:w-[45%] dark:bg-dark-200">
             {/* Browser chrome */}
             <div className="flex items-center gap-2 border-b border-light-400 px-3 py-2.5 dark:border-dark-400">
               <div className="flex items-center gap-1.5 text-light-700 dark:text-dark-700">
@@ -314,7 +315,7 @@ export default function WorkspaceNameView() {
                 <HiArrowPath className="h-3.5 w-3.5" />
               </div>
               <div className="flex flex-1 items-center gap-1.5 rounded-md bg-light-200 px-2.5 py-1 dark:bg-dark-300">
-                <HiLockClosed className="h-3 w-3 flex-shrink-0 text-light-700 dark:text-dark-700" />
+                <HiLockClosed className="h-3 w-3 shrink-0 text-light-700 dark:text-dark-700" />
                 <span className="truncate text-xs text-light-900 dark:text-dark-900">
                   kan.bn/
                   <span className="text-light-1000 dark:text-dark-1000">
@@ -322,7 +323,7 @@ export default function WorkspaceNameView() {
                   </span>
                 </span>
               </div>
-              <HiEllipsisVertical className="h-4 w-4 flex-shrink-0 text-light-700 dark:text-dark-700" />
+              <HiEllipsisVertical className="h-4 w-4 shrink-0 text-light-700 dark:text-dark-700" />
             </div>
 
             {/* Browser content */}
@@ -331,7 +332,7 @@ export default function WorkspaceNameView() {
               <p className="text-center text-xs font-bold text-light-1000 dark:text-dark-1000">
                 {name || t`Your workspace`}
               </p>
-              <p className="mt-0.5 line-clamp-2 break-all text-center text-[10px] text-light-800 dark:text-dark-800">
+              <p className="mt-0.5 line-clamp-2 text-center text-[10px] break-all text-light-800 dark:text-dark-800">
                 {description || t`Your workspace description`}
               </p>
 
@@ -351,7 +352,7 @@ export default function WorkspaceNameView() {
                         opacity: { duration: 0.2 },
                         y: { duration: 0.25, ease: "easeOut" },
                       }}
-                      className="flex w-full flex-1 items-center justify-center rounded border border-dashed border-light-400 bg-light-50 px-3 text-[10px] font-medium text-light-900 dark:border-dark-400 dark:bg-dark-100 dark:text-dark-900"
+                      className="flex w-full flex-1 items-center justify-center rounded-sm border border-dashed border-light-400 bg-light-50 px-3 text-[10px] font-medium text-light-900 dark:border-dark-400 dark:bg-dark-100 dark:text-dark-900"
                     >
                       {board}
                     </motion.div>

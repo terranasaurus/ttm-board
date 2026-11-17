@@ -414,6 +414,7 @@ export const bulkCreate = async (
     workspaceId: number;
     index: number;
     importId?: number;
+    dueDate?: Date | null;
   }[],
 ) => {
   if (cardInput.length === 0) return [];
@@ -463,6 +464,7 @@ export const bulkCreate = async (
       index: number;
       cardNumber: number;
       importId?: number;
+      dueDate: Date | null;
     }[] = [];
 
     // For each list, append incoming cards after current max index, preserving incoming order
@@ -491,6 +493,7 @@ export const bulkCreate = async (
           index: nextIndex++,
           cardNumber,
           importId: it.importId,
+          dueDate: it.dueDate ?? null,
         });
       }
     }
@@ -498,7 +501,7 @@ export const bulkCreate = async (
     const inserted = await tx
       .insert(cards)
       .values(allValuesToInsert)
-      .returning({ id: cards.id });
+      .returning({ id: cards.id, publicId: cards.publicId });
 
     // Post-insert: compact per list if duplicates exist; then verify
     const countExpr = sql<number>`COUNT(*)`.mapWith(Number);
@@ -721,6 +724,7 @@ export const getWithListAndMembersByPublicId = async (
             columns: {
               publicId: true,
               email: true,
+              status: true,
             },
             with: {
               user: {
@@ -889,7 +893,7 @@ export const reorder = async (
       newIndex = lastCardIndex !== undefined ? lastCardIndex + 1 : 0;
     }
 
-    if (currentList.id === newList?.id) {
+    if (!newList || currentList.id === newList.id) {
       await tx.execute(sql`
         UPDATE card
         SET index =
@@ -905,7 +909,7 @@ export const reorder = async (
       await tx.execute(sql`
         UPDATE card
         SET index = index + 1
-        WHERE "listId" = ${newList?.id} AND index >= ${newIndex} AND "deletedAt" IS NULL;
+        WHERE "listId" = ${newList.id} AND index >= ${newIndex} AND "deletedAt" IS NULL;
       `);
 
       await tx.execute(sql`
@@ -916,7 +920,7 @@ export const reorder = async (
 
       await tx.execute(sql`
         UPDATE card
-        SET "listId" = ${newList?.id}, index = ${newIndex}
+        SET "listId" = ${newList.id}, index = ${newIndex}
         WHERE id = ${card.id} AND "deletedAt" IS NULL;
       `);
     }

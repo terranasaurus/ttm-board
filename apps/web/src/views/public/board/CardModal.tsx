@@ -3,13 +3,15 @@ import { t } from "@lingui/core/macro";
 import { useEffect, useRef, useState } from "react";
 import { HiLink, HiXMark } from "react-icons/hi2";
 
+import { useGetCard } from "@kan/api-client/hooks";
+
 import Badge from "~/components/Badge";
 import Editor from "~/components/Editor";
 import LabelIcon from "~/components/LabelIcon";
 import { useActivitySortOrder } from "~/hooks/useActivitySortOrder";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { getApiErrorStatus } from "~/utils/apiError";
 import ActivityList from "~/views/card/components/ActivityList";
 import { AttachmentThumbnails } from "~/views/card/components/AttachmentThumbnails";
 import Checklists from "~/views/card/components/Checklists";
@@ -49,22 +51,20 @@ export function CardModal({
     }
   };
 
-  const { data, isLoading, error } = api.card.byId.useQuery(
-    {
-      cardPublicId: cardPublicId ?? "",
-    },
-    {
+  const { data, isLoading, error } = useGetCard(cardPublicId ?? "", {
+    query: {
       enabled: isOpen && !!cardPublicId && cardPublicId.length >= 12,
+      select: (res) => res.data,
     },
-  );
+  });
 
   // Redirect to 404 if card doesn't exist
   useEffect(() => {
     if (isOpen && cardPublicId && !isLoading) {
-      if (error?.data?.code === "NOT_FOUND" || (!data && !isLoading && error)) {
+      if (getApiErrorStatus(error) === 404 || (!data && error)) {
         // Close modal first, then redirect
         closeModal();
-        router.replace("/404");
+        void router.replace("/404");
       }
     }
   }, [isOpen, cardPublicId, isLoading, error, data, closeModal, router]);
@@ -112,24 +112,24 @@ export function CardModal({
                           {data.cardNumber}
                         </span>
                       )}
-                    <h1 className="font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
+                    <h1 className="leading-[2.3rem] font-bold tracking-tight text-neutral-900 sm:text-[1.2rem] dark:text-dark-1000">
                       {data?.title}
                     </h1>
                   </>
                 )}
               </div>
-              <div className="flex flex-shrink-0 items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
                   onClick={handleCopyCardLink}
-                  className="rounded p-1.5 transition-all hover:bg-light-200 focus:outline-none dark:hover:bg-dark-100"
+                  className="rounded-sm p-1.5 transition-all hover:bg-light-200 focus:outline-hidden dark:hover:bg-dark-100"
                   aria-label="Copy card link"
                 >
                   <HiLink className="h-4 w-4 text-light-900 dark:text-dark-900" />
                 </button>
                 <button
                   type="button"
-                  className="rounded p-1.5 transition-all hover:bg-light-200 focus:outline-none dark:hover:bg-dark-100"
+                  className="rounded-sm p-1.5 transition-all hover:bg-light-200 focus:outline-hidden dark:hover:bg-dark-100"
                   onClick={(e) => {
                     e.preventDefault();
                     closeModal();
@@ -181,9 +181,7 @@ export function CardModal({
                     <Editor
                       content={data.description}
                       readOnly
-                      workspaceMembers={
-                        data?.list.board.workspace.members ?? []
-                      }
+                      workspaceMembers={data.list.board.workspace.members}
                     />
                   </div>
                 </div>
@@ -206,7 +204,7 @@ export function CardModal({
                   viewOnly
                 />
               )}
-              <div className="border-t-[1px] border-light-600 pb-4 pt-12 dark:border-dark-400">
+              <div className="border-t border-light-600 pt-12 pb-4 dark:border-dark-400">
                 <h2 className="text-md pb-4 font-medium text-light-900 dark:text-dark-1000">
                   {t`Activity`}
                 </h2>
@@ -223,10 +221,10 @@ export function CardModal({
               </div>
             </div>
             {showTopFade && (
-              <div className="pointer-events-none absolute left-0 right-0 top-0 h-6 bg-gradient-to-b from-white/80 to-transparent dark:from-dark-100/80" />
+              <div className="pointer-events-none absolute top-0 right-0 left-0 h-6 bg-linear-to-b from-white/80 to-transparent dark:from-dark-100/80" />
             )}
             {showFade && (
-              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-white/80 to-transparent dark:from-dark-100/80" />
+              <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-6 bg-linear-to-t from-white/80 to-transparent dark:from-dark-100/80" />
             )}
           </div>
         </div>

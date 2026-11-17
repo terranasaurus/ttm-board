@@ -1,5 +1,5 @@
 import { createEnv } from "@t3-oss/env-nextjs";
-import { vercel } from "@t3-oss/env-nextjs/presets";
+import { vercel } from "@t3-oss/env-nextjs/presets-zod";
 import { z } from "zod";
 
 export const env = createEnv({
@@ -79,6 +79,11 @@ export const env = createEnv({
     S3_FORCE_PATH_STYLE: z.string().optional(),
     EMAIL_FROM: z.string().optional(),
     REDIS_URL: z.string().url().optional().or(z.literal("")),
+    STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID: z.string().optional(),
+    STRIPE_TEAM_PLAN_YEARLY_PRICE_ID: z.string().optional(),
+    STRIPE_PRO_PLAN_MONTHLY_PRICE_ID: z.string().optional(),
+    STRIPE_PRO_PLAN_YEARLY_PRICE_ID: z.string().optional(),
+    S3_AVATAR_UPLOAD_LIMIT: z.string().optional(),
   },
 
   /**

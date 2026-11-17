@@ -1,11 +1,18 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiCheck, HiXMark } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 import { z } from "zod";
+
+import {
+  getGetWorkspacesQueryKey,
+  useCheckSlugAvailability,
+  useCreateWorkspace,
+} from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -13,7 +20,6 @@ import { useDebounce } from "~/hooks/useDebounce";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 import LoadingSpinner from "./LoadingSpinner";
 
 const schema = z.object({
@@ -55,7 +61,7 @@ export function NewWorkspaceForm() {
     },
     mode: "onSubmit",
   });
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const hasAvailableWorkspaces = availableWorkspaces.length > 0;
 
@@ -74,42 +80,46 @@ export function NewWorkspaceForm() {
     }
   }, [isTyping, debouncedSlug, trigger, clearErrors]);
 
-  const checkWorkspaceSlugAvailability =
-    api.workspace.checkSlugAvailability.useQuery(
-      {
-        workspaceSlug: debouncedSlug ?? "",
-      },
-      {
+  const checkWorkspaceSlugAvailability = useCheckSlugAvailability(
+    { workspaceSlug: debouncedSlug ?? "" },
+    {
+      query: {
         enabled: !!debouncedSlug && debouncedSlug.length >= 3 && !errors.slug,
+        select: (res) => res.data,
       },
-    );
+    },
+  );
 
   const isWorkspaceSlugAvailable = checkWorkspaceSlugAvailability.data;
 
-  const createWorkspace = api.workspace.create.useMutation({
-    onSuccess: (values) => {
-      if (values.publicId && values.name) {
-        void utils.workspace.all.invalidate();
-        switchWorkspace({
-          publicId: values.publicId,
-          name: values.name,
-          description: values.description,
-          slug: values.slug,
-          plan: values.plan,
-          cardPrefix: values.cardPrefix,
-          role: "admin",
-          weekStartDay: 1,
-        });
+  const createWorkspace = useCreateWorkspace({
+    mutation: {
+      onSuccess: ({ data: values }) => {
+        if (values.publicId && values.name) {
+          void queryClient.invalidateQueries({
+            queryKey: getGetWorkspacesQueryKey(),
+          });
+          switchWorkspace({
+            publicId: values.publicId,
+            name: values.name,
+            description: values.description,
+            slug: values.slug,
+            plan: values.plan,
+            cardPrefix: values.cardPrefix,
+            role: "admin",
+            weekStartDay: 1,
+          });
 
-        closeModal();
-      }
-    },
-    onError: () => {
-      showPopup({
-        header: t`Unable to create workspace`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+          closeModal();
+        }
+      },
+      onError: () => {
+        showPopup({
+          header: t`Unable to create workspace`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -128,15 +138,14 @@ export function NewWorkspaceForm() {
     }
 
     createWorkspace.mutate({
-      name: values.name,
-      slug: values.slug,
+      data: { name: values.name, slug: values.slug },
     });
   };
 
   const isSlugAvailable =
     isValidSlug &&
     isWorkspaceSlugAvailable?.isAvailable &&
-    !isWorkspaceSlugAvailable?.isReserved;
+    !isWorkspaceSlugAvailable.isReserved;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -148,7 +157,7 @@ export function NewWorkspaceForm() {
           <button
             type="button"
             className={twMerge(
-              "rounded p-1 hover:bg-light-200 focus:outline-none dark:hover:bg-dark-300",
+              "rounded-sm p-1 hover:bg-light-200 focus:outline-hidden dark:hover:bg-dark-300",
               !hasAvailableWorkspaces && "invisible",
             )}
             onClick={(e) => {
@@ -186,7 +195,7 @@ export function NewWorkspaceForm() {
             errorMessage={
               errors.slug?.message ??
               (isWorkspaceSlugAvailable?.isAvailable === false &&
-              isWorkspaceSlugAvailable?.isReserved === false
+              isWorkspaceSlugAvailable.isReserved === false
                 ? t`This workspace URL has already been taken`
                 : isWorkspaceSlugAvailable?.isReserved
                   ? t`This workspace URL is reserved`
@@ -211,7 +220,7 @@ export function NewWorkspaceForm() {
           />
         </div>
       </div>
-      <div className="mt-6 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-6 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div>
           <Button
             type="submit"

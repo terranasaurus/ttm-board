@@ -38,6 +38,7 @@ services:
 
       # Redis (optional - for rate limiting)
       - REDIS_URL=${REDIS_URL}
+      - RATE_LIMIT_IP_HEADER=${RATE_LIMIT_IP_HEADER}
 
       # Logging (optional - debug, info, warn, error; defaults to debug in dev, info in prod)
       - LOG_LEVEL=${LOG_LEVEL}
@@ -92,6 +93,8 @@ services:
       - OIDC_DISCOVERY_URL=${OIDC_DISCOVERY_URL}
 
       - BETTER_AUTH_COOKIE_DOMAIN=${BETTER_AUTH_COOKIE_DOMAIN}
+
+      - BETTER_AUTH_COOKIE_PREFIX=${BETTER_AUTH_COOKIE_PREFIX:-kan}
 
       # OAuth providers (optional)
       - BETTER_AUTH_TRUSTED_ORIGINS=${BETTER_AUTH_TRUSTED_ORIGINS}

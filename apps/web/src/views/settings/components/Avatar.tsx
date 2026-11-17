@@ -1,18 +1,19 @@
 import Image from "next/image";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useRef, useState } from "react";
 import ReactCrop from "react-image-crop";
 
 import "react-image-crop/dist/ReactCrop.css";
 
+import { getGetUserQueryKey } from "@kan/api-client/hooks";
 import { generateUID } from "@kan/shared/utils";
 
 import Button from "~/components/Button";
 import Modal from "~/components/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 import { getAvatarUrl } from "~/utils/helpers";
+import { uploadFile } from "~/utils/uploadFile";
 
 interface PercentCrop {
   unit: "%";
@@ -47,7 +48,7 @@ export default function Avatar({
   userId: string | undefined;
   userImage: string | null | undefined;
 }) {
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
   const { showPopup } = usePopup();
   const [uploading, setUploading] = useState(false);
   const [cropDialogOpen, setCropDialogOpen] = useState(false);
@@ -57,7 +58,6 @@ export default function Avatar({
   );
   const [crop, setCrop] = useState<PercentCrop>();
   const imgRef = useRef<HTMLImageElement | null>(null);
-
 
   const avatarUrl = userImage ? getAvatarUrl(userImage) : undefined;
 
@@ -165,32 +165,21 @@ export default function Avatar({
       const originalExt = selectedFile.name.split(".").pop() ?? "jpg";
       const fileName = `${userId}/avatar-${generateUID()}.${originalExt}`;
 
-      const baseUrl = env("NEXT_PUBLIC_BASE_URL") ?? "";
-      const response = await fetch(
-        `${baseUrl}/api/upload/avatar`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": blob.type,
-            "x-original-filename": encodeURIComponent(fileName),
-          },
-          body: blob,
-        },
-      );
+      const response = await uploadFile("/users/me/avatar", blob, fileName);
 
       if (!response.ok) {
         throw new Error("Failed to upload profile image");
       }
 
       // User image is updated in the backend, refresh user data
-      await utils.user.getUser.refetch();
-      
+      await queryClient.refetchQueries({ queryKey: getGetUserQueryKey() });
+
       showPopup({
         header: t`Profile image updated`,
         message: t`Your profile image has been updated.`,
         icon: "success",
       });
-      
+
       setCropDialogOpen(false);
       resetCropState();
     } catch (error) {
@@ -208,7 +197,7 @@ export default function Avatar({
     resetCropState,
     selectedFile,
     showPopup,
-    utils.user.getUser,
+    queryClient,
     userId,
   ]);
 

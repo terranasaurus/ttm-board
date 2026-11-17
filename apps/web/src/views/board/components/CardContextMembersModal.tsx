@@ -1,47 +1,29 @@
 import { t } from "@lingui/core/macro";
 
+import { useGetCard } from "@kan/api-client/hooks";
+
 import { useModal } from "~/providers/modal";
-import { api } from "~/utils/api";
-import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
-import Avatar from "~/components/Avatar";
+import { getCardMemberOptions } from "~/views/card/components/memberOptions";
 import MemberSelector from "~/views/card/components/MemberSelector";
 
 export function CardContextMembersModal() {
   const { entityId: cardPublicId, closeModal } = useModal();
 
-  const { data: card, isLoading } = api.card.byId.useQuery(
-    { cardPublicId: cardPublicId ?? "" },
-    { enabled: !!cardPublicId && cardPublicId.length >= 12 },
-  );
+  const { data: card, isLoading } = useGetCard(cardPublicId, {
+    query: {
+      enabled: !!cardPublicId && cardPublicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
-  const board = card?.list?.board;
-  const workspaceMembers = board?.workspace?.members ?? [];
+  const board = card?.list.board;
+  const workspaceMembers = board?.workspace.members ?? [];
   const selectedMembers = card?.members ?? [];
 
-  const formattedMembers = workspaceMembers.map((member) => {
-    const isSelected = selectedMembers.some(
-      (m) => m.publicId === member.publicId,
-    );
-    return {
-      key: member.publicId,
-      value: formatMemberDisplayName(
-        member.user?.name ?? null,
-        member.user?.email ?? member.email,
-      ),
-      imageUrl: member.user?.image ? getAvatarUrl(member.user.image) : undefined,
-      selected: isSelected,
-      leftIcon: (
-        <Avatar
-          size="xs"
-          name={member.user?.name ?? ""}
-          imageUrl={
-            member.user?.image ? getAvatarUrl(member.user.image) : undefined
-          }
-          email={member.user?.email ?? member.email}
-        />
-      ),
-    };
-  });
+  const formattedMembers = getCardMemberOptions(
+    workspaceMembers,
+    selectedMembers.map((member) => member.publicId),
+  );
 
   if (!cardPublicId) return null;
 
@@ -51,7 +33,7 @@ export function CardContextMembersModal() {
         {t`Manage members`}
       </h2>
       {isLoading ? (
-        <div className="h-10 w-full animate-pulse rounded bg-light-200 dark:bg-dark-300" />
+        <div className="h-10 w-full animate-pulse rounded-sm bg-light-200 dark:bg-dark-300" />
       ) : (
         <MemberSelector
           cardPublicId={cardPublicId}

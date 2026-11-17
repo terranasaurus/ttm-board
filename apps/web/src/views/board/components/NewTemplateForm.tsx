@@ -6,11 +6,12 @@ import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 import { z } from "zod";
 
+import { useCreateBoard } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 
 const schema = z.object({
   name: z
@@ -53,41 +54,37 @@ export function NewTemplateForm({
     },
   });
 
-  const createBoard = api.board.create.useMutation({
-    onSuccess: (newTemplate) => {
-      if (!newTemplate) {
-        showPopup({
-          header: t`Unable to create template`,
-          message: t`Please try again later, or contact customer support.`,
-          icon: "error",
-        });
-      } else {
+  const createBoard = useCreateBoard({
+    mutation: {
+      onSuccess: ({ data: newTemplate }) => {
         router.push(`/templates/${newTemplate.publicId}`);
         showPopup({
           header: t`Template created`,
           message: t`Template created successfully`,
           icon: "success",
         });
-      }
-      closeModal();
-    },
-    onError: () => {
-      showPopup({
-        header: t`Unable to create template`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+        closeModal();
+      },
+      onError: () => {
+        showPopup({
+          header: t`Unable to create template`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
   const onSubmit = (data: NewBoardInputWithTemplate) => {
     createBoard.mutate({
-      name: data.name,
       workspacePublicId: data.workspacePublicId,
-      sourceBoardPublicId: data.sourceBoardPublicId,
-      lists: [],
-      labels: [],
-      type: "template",
+      data: {
+        name: data.name,
+        sourceBoardPublicId: data.sourceBoardPublicId,
+        lists: [],
+        labels: [],
+        type: "template",
+      },
     });
   };
 
@@ -104,7 +101,7 @@ export function NewTemplateForm({
           <h2 className="text-sm font-bold">{t`New template`}</h2>
           <button
             type="button"
-            className="hover:bg-li ght-300 rounded p-1 focus:outline-none dark:hover:bg-dark-300"
+            className="hover:bg-li ght-300 rounded-sm p-1 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -126,7 +123,7 @@ export function NewTemplateForm({
           }}
         />
       </div>
-      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div>
           <Button type="submit" isLoading={createBoard.isPending}>
             {t`Create template`}

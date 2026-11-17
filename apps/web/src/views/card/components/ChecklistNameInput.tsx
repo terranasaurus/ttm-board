@@ -2,8 +2,10 @@ import { t } from "@lingui/core/macro";
 import { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
+import { useUpdateChecklist } from "@kan/api-client/hooks";
+
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
 
 export default function ChecklistNameInput({
@@ -17,7 +19,7 @@ export default function ChecklistNameInput({
   cardPublicId: string;
   viewOnly?: boolean;
 }) {
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
   const { showPopup } = usePopup();
   const [name, setName] = useState(initialName);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -26,30 +28,34 @@ export default function ChecklistNameInput({
     setName(initialName);
   }, [initialName, checklistPublicId]);
 
-  const update = api.checklist.update.useMutation({
-    onMutate: async (vars) => {
-      await utils.card.byId.cancel({ cardPublicId });
-      const previous = utils.card.byId.getData({ cardPublicId });
-      utils.card.byId.setData({ cardPublicId }, (old) => {
-        if (!old) return old as any;
-        const updated = old.checklists.map((cl) =>
-          cl.publicId === checklistPublicId ? { ...cl, name: vars.name } : cl,
-        );
-        return { ...old, checklists: updated } as typeof old;
-      });
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous)
-        utils.card.byId.setData({ cardPublicId }, ctx.previous);
-      showPopup({
-        header: t`Unable to update checklist`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      await invalidateCard(utils, cardPublicId);
+  const update = useUpdateChecklist({
+    mutation: {
+      onMutate: async (vars) => {
+        await cardCache.byId.cancel({ cardPublicId });
+        const previous = cardCache.byId.getData({ cardPublicId });
+        cardCache.byId.setData({ cardPublicId }, (old) => {
+          if (!old) return old;
+          const updated = old.checklists.map((cl) =>
+            cl.publicId === checklistPublicId
+              ? { ...cl, name: vars.data.name }
+              : cl,
+          );
+          return { ...old, checklists: updated };
+        });
+        return { previous };
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous)
+          cardCache.byId.setData({ cardPublicId }, ctx.previous);
+        showPopup({
+          header: t`Unable to update checklist`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        await invalidateCard(cardCache, cardPublicId);
+      },
     },
   });
 
@@ -57,7 +63,7 @@ export default function ChecklistNameInput({
     if (viewOnly) return;
     const trimmed = name.trim();
     if (!trimmed || trimmed === initialName) return;
-    update.mutate({ checklistPublicId, name: trimmed });
+    update.mutate({ checklistPublicId, data: { name: trimmed } });
   };
 
   return (
@@ -83,7 +89,7 @@ export default function ChecklistNameInput({
       }}
       title={name}
       className={twMerge(
-        "text-md block w-full truncate border-0 bg-transparent p-0 py-0 font-medium text-light-1000 outline-none focus:ring-0 dark:text-dark-1000",
+        "text-md block w-full truncate border-0 bg-transparent p-0 py-0 font-medium text-light-1000 outline-hidden focus:ring-0 dark:text-dark-1000",
         viewOnly && "cursor-default",
       )}
     />

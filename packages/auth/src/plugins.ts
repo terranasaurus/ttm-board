@@ -1,5 +1,6 @@
 import { stripe } from "@better-auth/stripe";
-import { apiKey, genericOAuth } from "better-auth/plugins";
+import { apiKey } from "@better-auth/api-key";
+import { genericOAuth } from "better-auth/plugins";
 import { magicLink } from "better-auth/plugins/magic-link";
 
 import type { dbClient } from "@kan/db/client";
@@ -10,7 +11,7 @@ import * as workspaceRepo from "@kan/db/repository/workspace.repo";
 import { sendEmail } from "@kan/email";
 import { createLogger } from "@kan/logger";
 import { generateUID } from "@kan/shared/utils";
-import { createStripeClient } from "@kan/stripe";
+import { createStripeClient, subscriptionBillingMode } from "@kan/stripe";
 
 import { socialProvidersPlugin } from "./providers";
 
@@ -71,22 +72,22 @@ export function createPlugins(db: dbClient) {
       ? [
           stripe({
             stripeClient: createStripeClient(),
-            stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
+            stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
             createCustomerOnSignUp: true,
             subscription: {
               enabled: true,
               plans: [
                 {
                   name: "team",
-                  priceId: process.env.STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID!,
+                  priceId: process.env.STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID ?? "",
                   annualDiscountPriceId:
-                    process.env.STRIPE_TEAM_PLAN_YEARLY_PRICE_ID!,
+                    process.env.STRIPE_TEAM_PLAN_YEARLY_PRICE_ID ?? "",
                 },
                 {
                   name: "pro",
-                  priceId: process.env.STRIPE_PRO_PLAN_MONTHLY_PRICE_ID!,
+                  priceId: process.env.STRIPE_PRO_PLAN_MONTHLY_PRICE_ID ?? "",
                   annualDiscountPriceId:
-                    process.env.STRIPE_PRO_PLAN_YEARLY_PRICE_ID!,
+                    process.env.STRIPE_PRO_PLAN_YEARLY_PRICE_ID ?? "",
                 },
               ],
               authorizeReference: async (data) => {
@@ -111,6 +112,9 @@ export function createPlugins(db: dbClient) {
                 return {
                   params: {
                     allow_promotion_codes: true,
+                    subscription_data: {
+                      billing_mode: subscriptionBillingMode,
+                    },
                   },
                 };
               },
@@ -159,8 +163,10 @@ export function createPlugins(db: dbClient) {
         ]
       : []),
     apiKey({
+      schema: { apikey: { fields: { referenceId: "userId" } } },
       enableSessionForAPIKeys: true,
-      customAPIKeyGetter: (ctx) => getApiKeyFromHeaders(ctx.headers),
+      customAPIKeyGetter: (ctx) =>
+        getApiKeyFromHeaders(ctx.headers as Headers | undefined),
       rateLimit: {
         enabled: true,
         timeWindow: 1000 * 60, // 1 minute
@@ -253,7 +259,8 @@ export function createPlugins(db: dbClient) {
                 discoveryUrl: process.env.OIDC_DISCOVERY_URL,
                 scopes: ["openid", "email", "profile"],
                 pkce: true,
-                mapProfileToUser: (profile: {
+                mapProfileToUser: (raw) => {
+                  const profile = raw as {
                   name?: string;
                   display_name?: string;
                   preferred_username?: string;
@@ -264,7 +271,7 @@ export function createPlugins(db: dbClient) {
                   sub?: string;
                   picture?: string;
                   avatar?: string;
-                }) => {
+                  };
                   log.debug({ profile }, "OIDC profile received");
 
                   const name =
@@ -281,7 +288,7 @@ export function createPlugins(db: dbClient) {
                     email: profile.email,
                     name: name,
                     emailVerified: profile.email_verified ?? false,
-                    image: profile.picture ?? profile.avatar ?? null,
+                    image: profile.picture ?? profile.avatar,
                   };
                 },
               },

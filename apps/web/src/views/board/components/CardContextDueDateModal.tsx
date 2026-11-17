@@ -1,16 +1,19 @@
 import { t } from "@lingui/core/macro";
 
+import { useGetCard } from "@kan/api-client/hooks";
+
 import { useModal } from "~/providers/modal";
-import { api } from "~/utils/api";
 import { DueDateSelector } from "~/views/card/components/DueDateSelector";
 
 export function CardContextDueDateModal() {
   const { entityId: cardPublicId, closeModal } = useModal();
 
-  const { data: card, isLoading } = api.card.byId.useQuery(
-    { cardPublicId: cardPublicId ?? "" },
-    { enabled: !!cardPublicId && cardPublicId.length >= 12 },
-  );
+  const { data: card, isLoading } = useGetCard(cardPublicId, {
+    query: {
+      enabled: !!cardPublicId && cardPublicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   if (!cardPublicId) return null;
 
@@ -20,7 +23,7 @@ export function CardContextDueDateModal() {
         {t`Set due date`}
       </h2>
       {isLoading ? (
-        <div className="h-10 w-full animate-pulse rounded bg-light-200 dark:bg-dark-300" />
+        <div className="h-10 w-full animate-pulse rounded-sm bg-light-200 dark:bg-dark-300" />
       ) : (
         <DueDateSelector
           cardPublicId={cardPublicId}

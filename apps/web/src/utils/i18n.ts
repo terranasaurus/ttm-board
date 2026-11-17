@@ -23,7 +23,9 @@ const loadMessages = async (locale: Locale) => {
     case "pl":
       return (await import("~/locales/pl/messages")).messages;
     case "ptbr":
-      return (await import("~/locales/ptbr/messages")).messages;
+      return (await import("~/locales/pt-BR/messages")).messages;
+    case "da":
+      return (await import("~/locales/da/messages")).messages;
     default:
       return enMessages;
   }
@@ -32,7 +34,7 @@ const loadMessages = async (locale: Locale) => {
 let isInitialized = false;
 const loadedLocales = new Set<string>();
 
-export function initializeI18n(locale: Locale = defaultLocale) {
+export function initializeI18n() {
   if (!isInitialized) {
     i18n.load(defaultLocale, enMessages);
     i18n.activate(defaultLocale);

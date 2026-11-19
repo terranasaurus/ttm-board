@@ -205,17 +205,16 @@ Daily: Mon 11/16 12.1 · Tue 11/17 9.8 · ...
 Subject: `Payroll preview · Nov 16–29 · run by Wed Dec 2 · payday Fri Dec 4`.
 
 ```
-CASSANDRA HIGGINS
+CLINICIAN A
   Visits                38
   Mileage               142.6 mi × $0.725 =   $103.39
-  Visit hours (est.)    44.5 h × $60.00   = $2,670.00
-  Admin hours (est.)    3.0 h × $60.00    =   $180.00
-  Admin Support (est.)  4.0 h × $17.00    =    $68.00   (only if > 0)
+  Visit hours (est.)    44.5 h × $50.00   = $2,225.00
+  Admin hours (est.)    3.0 h × $50.00    =   $150.00
+  Admin Support (est.)  4.0 h × $20.00    =    $80.00   (only if > 0)
   Flags: 2 long drives · 1 missing location
 ... each clinician ...
 TTM TOTALS
-  Visits 71 · Mileage $194.37 · Visit hours $4,890.00 · Admin $360.00
-  Admin Support $68.00 · Estimated total $5,512.37
+  Visits · Mileage $ · Visit hours $ · Admin $ · Admin Support $ · Estimated total $
 -------------------------------------------------
 Daily detail (per clinician): date · visits · paid mi · visit h · admin h
 ```
@@ -283,7 +282,7 @@ Daily detail (per clinician): date · visits · paid mi · visit h · admin h
 - Rate is $0.725/mi.
 - Charting/admin calendar blocks are paid at the PT rate. "Admin Support" is a
   separate job, for things like MilestonesHEP activity reviews, at its own rate
-  ($17 for Cassandra).
+  (set per person in the Staff tab).
 - 15 paid minutes between visits counts toward hours.
 - Chart prep is 100–150 words per patient, branded.
 - Dashboard inside Kan. Nightly data plus a refresh button. About 2 months of
@@ -313,7 +312,7 @@ Daily detail (per clinician): date · visits · paid mi · visit h · admin h
   `Primary Provider`, and co-provider visits count as visits for whoever did them.
   Progress notes due: see open items.
 - **Who's on payroll.** The payroll preview includes active `Staff` rows with
-  `payroll = yes` (Cassandra and Jordan today). Terran isn't a Gusto employee: she
+  `payroll = yes`. The owner isn't on payroll: she
   gets the morning email and her own dashboard numbers, but no period-close email
   and no payroll row. Sheila is an admin recipient only, and her hours aren't
   tracked from the calendar.

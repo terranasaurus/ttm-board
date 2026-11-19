@@ -245,7 +245,7 @@ Settings = { mileageRate, anchorPeriodEnd, anchorPayday, paidGapMinutes, longDri
 
 - [ ] **Step 1:** Create the Ops Config sheet in the TTM Shared Drive.
   - `Staff` tab, with rows for Terran (payroll no), Cassandra and Jordan
-    (payroll yes, ptRate 60; Cassandra's adminSupportRate 17).
+    (payroll yes, rates copied from Gusto into the private sheet).
   - `Settings` tab with the values from Global Constraints, plus `cancelPattern`
     from A2.
   - Put its ID in Script Properties and the private notes only.
@@ -367,8 +367,8 @@ Card = { time, patientName, isNew, lastSeen, staleDays|null, prep: Prep|null, pr
     `holidayReminderDue(today)`.
 
 - [ ] **Step 1:** Write the tests:
-  - `spec example math`: 142.6 mi × 0.725 → `$103.39`, 44.5 h × 60 → `$2,670.00`,
-    3.0 h × 60 → `$180.00`, 4.0 h × 17 → `$68.00`.
+  - `spec example math`: 142.6 mi × 0.725 → `$103.39`, 44.5 h × 50 → `$2,225.00`,
+    3.0 h × 50 → `$150.00`, 4.0 h × 20 → `$80.00` (fictional test rates).
   - `totals sum rows`.
   - `zero-visit clinician renders zero row` (no NaN, "0 visits").
   - `admin support line hidden at 0`.

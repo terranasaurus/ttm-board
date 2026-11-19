@@ -301,14 +301,13 @@ Daily detail (per clinician): date · visits · paid mi · visit h · admin h
 
 ## Builder-check answers (my calls unless marked)
 
-- **Existing code to reuse.** Chart Review's source is the Apps Script project
-  `1wwBuo3EnPHGLI5Oxq_mChOfjBRx3wsFUuxaUxKEll5YDNGdF2r_Uj9Xo`, which exports as
-  JSON through the Drive API. The Patient Tracker's calendar script is bound to
-  sheet `1x7kL0rpsxZjx5rcNnWZSG3hvFsXAHfer-b3lzpjbFmg`, and its `Raw` tab already
-  holds Provider / Status / Location / Original Title for every matched event.
-  Before planning the day model, the builder reads both and copies the title
-  matching and status (cancelled / no-show) rules. These IDs belong in the plan
-  doc, not in code.
+- **Existing code to reuse.** Chart Review's source is the "TTM Chart Review" Apps
+  Script project, which exports as JSON through the Drive API. The Patient
+  Tracker's calendar script is bound to the "TTM Patient Tracker" sheet, and its
+  `Raw` tab already holds Provider / Status / Location / Original Title for every
+  matched event. Before planning the day model, the builder reads both and copies
+  the title matching and status (cancelled / no-show) rules. Google file IDs stay
+  out of this public repo: they go in Script Properties or private notes.
 - **Snapshot sources.** Active and stale patients come from the Patient Tracker
   `Patients` / `Not Seen Recently` tabs. Each patient is attributed to their
   `Primary Provider`, and co-provider visits count as visits for whoever did them.

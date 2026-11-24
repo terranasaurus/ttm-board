@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 
-import type { NewListInput } from "@kan/api/types";
+import type { CreateListDto as NewListInput } from "@kan/api-client/hooks";
 import { useCreateList } from "@kan/api-client/hooks";
 import { generateUID } from "@kan/shared/utils";
 
@@ -12,7 +12,7 @@ import Input from "~/components/Input";
 import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 
 type NewListFormInput = NewListInput & {
   isCreateAnotherEnabled: boolean;
@@ -36,7 +36,7 @@ export function NewListForm({
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
 
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
 
   const { register, handleSubmit, reset, setValue, watch } =
     useForm<NewListFormInput>({
@@ -52,12 +52,12 @@ export function NewListForm({
   const createList = useCreateList({
     mutation: {
       onMutate: async (args) => {
-        await utils.board.byId.cancel();
+        await boardCache.cancel();
 
-        const currentState = utils.board.byId.getData(queryParams);
+        const currentState = boardCache.getData(queryParams);
         const optimisticPublicId = `PLACEHOLDER_${generateUID()}`;
 
-        utils.board.byId.setData(queryParams, (oldBoard) => {
+        boardCache.setData(queryParams, (oldBoard) => {
           if (!oldBoard) return oldBoard;
 
           const newList = {
@@ -77,8 +77,7 @@ export function NewListForm({
         return { previousState: currentState, optimisticPublicId };
       },
       onSuccess: (result, _args, context) => {
-        if (!context) return;
-        utils.board.byId.setData(queryParams, (oldBoard) => {
+        boardCache.setData(queryParams, (oldBoard) => {
           if (!oldBoard) return oldBoard;
           return {
             ...oldBoard,
@@ -91,7 +90,7 @@ export function NewListForm({
         });
       },
       onError: (_error, _newList, context) => {
-        utils.board.byId.setData(queryParams, context?.previousState);
+        boardCache.setData(queryParams, context?.previousState);
         showPopup({
           header: t`Unable to create list`,
           message: t`Please try again later, or contact customer support.`,
@@ -99,7 +98,7 @@ export function NewListForm({
         });
       },
       onSettled: async () => {
-        await utils.board.byId.invalidate(queryParams);
+        await boardCache.invalidate(queryParams.boardPublicId);
       },
     },
   });
@@ -135,7 +134,7 @@ export function NewListForm({
           </h2>
           <button
             type="button"
-            className="rounded p-1 hover:bg-light-200 focus:outline-none dark:hover:bg-dark-300"
+            className="rounded-sm p-1 hover:bg-light-200 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -157,7 +156,7 @@ export function NewListForm({
           }}
         />
       </div>
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <Toggle
           label={t`Create another`}
           isChecked={isCreateAnotherEnabled}

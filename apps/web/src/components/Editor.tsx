@@ -3,6 +3,7 @@ import type { Editor as TiptapEditor } from "@tiptap/react";
 import type {
   SuggestionKeyDownProps,
   SuggestionOptions,
+  SuggestionProps,
 } from "@tiptap/suggestion";
 import type { Instance as TippyInstance } from "tippy.js";
 import { Button } from "@headlessui/react";
@@ -12,12 +13,12 @@ import Mention from "@tiptap/extension-mention";
 import Placeholder from "@tiptap/extension-placeholder";
 import Typography from "@tiptap/extension-typography";
 import {
-  BubbleMenu,
   EditorContent,
   Extension,
   ReactRenderer,
   useEditor,
 } from "@tiptap/react";
+import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Suggestion from "@tiptap/suggestion";
 import {
@@ -64,9 +65,8 @@ export interface SlashCommandItem {
 }
 
 export interface SlashCommandsOptions {
-  suggestion?: Partial<SuggestionOptions>;
+  suggestion?: Partial<SuggestionOptions<SlashCommandItem>>;
   commandItems?: SlashCommandItem[];
-  options?: any;
 }
 
 function filterSlashCommandItems(items: SlashCommandItem[], query: string) {
@@ -77,7 +77,7 @@ function filterSlashCommandItems(items: SlashCommandItem[], query: string) {
 
 export interface RenderSuggestionsProps {
   editor: TiptapEditor;
-  clientRect: () => DOMRect;
+  clientRect?: (() => DOMRect) | null;
   items: SlashCommandItem[];
   command: (item: SlashCommandItem) => void;
 }
@@ -126,7 +126,7 @@ const CommandsList = forwardRef<
   }));
 
   return (
-    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
+    <div className="w-56 rounded-md border border-light-200 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-hidden dark:border-dark-500 dark:bg-dark-200">
       <div className="max-h-[350px] overflow-y-auto p-1">
         {items.map((item, index) => (
           <button
@@ -154,7 +154,7 @@ CommandsList.displayName = "CommandsList";
 
 const RenderSuggestions = () => {
   let reactRenderer: ReactRenderer;
-  let popup: TippyInstance[];
+  let popup: TippyInstance | undefined;
 
   return {
     onStart: (props: RenderSuggestionsProps) => {
@@ -165,7 +165,7 @@ const RenderSuggestions = () => {
 
       if (!props.clientRect) return;
 
-      popup = tippy("body", {
+      [popup] = tippy("body", {
         getReferenceClientRect: props.clientRect,
         appendTo: () => document.body,
         content: reactRenderer.element,
@@ -180,13 +180,13 @@ const RenderSuggestions = () => {
 
       if (!props.clientRect) return;
 
-      popup?.[0]?.setProps({
+      popup?.setProps({
         getReferenceClientRect: props.clientRect,
       });
     },
     onKeyDown(props: SuggestionKeyDownProps): boolean {
       if (props.event.key === "Escape") {
-        popup?.[0]?.hide();
+        popup?.hide();
         return true;
       }
 
@@ -199,7 +199,7 @@ const RenderSuggestions = () => {
       );
     },
     onExit() {
-      popup?.[0]?.destroy();
+      popup?.destroy();
       reactRenderer.destroy();
     },
   };
@@ -245,8 +245,8 @@ const MentionList = forwardRef<
   }));
 
   return (
-    <div className="w-56 rounded-md border-[1px] border-light-200 bg-light-50 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-500 dark:bg-dark-200">
-      <div className="max-h-[350px] overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-light-200 dark:scrollbar-thumb-dark-300">
+    <div className="w-56 rounded-md border border-light-200 bg-light-50 shadow-lg ring-1 ring-black/5 focus:outline-hidden dark:border-dark-500 dark:bg-dark-200">
+      <div className="scrollbar-thin max-h-[350px] scrollbar-thumb-light-200 overflow-y-auto p-1 dark:scrollbar-thumb-dark-300">
         {items.length > 0 ? (
           items.map((item, index) => (
             <button
@@ -284,10 +284,10 @@ MentionList.displayName = "MentionList";
 
 const renderMentionSuggestions = () => {
   let reactRenderer: ReactRenderer;
-  let popup: TippyInstance[];
+  let popup: TippyInstance | undefined;
 
   return {
-    onStart: (props: any) => {
+    onStart: (props: SuggestionProps) => {
       reactRenderer = new ReactRenderer(MentionList, {
         props,
         editor: props.editor,
@@ -295,8 +295,8 @@ const renderMentionSuggestions = () => {
 
       if (!props.clientRect) return;
 
-      popup = tippy("body", {
-        getReferenceClientRect: props.clientRect,
+      [popup] = tippy("body", {
+        getReferenceClientRect: () => props.clientRect?.() ?? new DOMRect(),
         appendTo: () => document.body,
         content: reactRenderer.element,
         showOnCreate: true,
@@ -305,14 +305,16 @@ const renderMentionSuggestions = () => {
         placement: "bottom-start",
       });
     },
-    onUpdate(props: any) {
+    onUpdate(props: SuggestionProps) {
       reactRenderer.updateProps(props);
       if (!props.clientRect) return;
-      popup?.[0]?.setProps({ getReferenceClientRect: props.clientRect });
+      popup?.setProps({
+        getReferenceClientRect: () => props.clientRect?.() ?? new DOMRect(),
+      });
     },
     onKeyDown(props: SuggestionKeyDownProps) {
       if (props.event.key === "Escape") {
-        popup?.[0]?.hide();
+        popup?.hide();
         return true;
       }
       return (
@@ -324,7 +326,7 @@ const renderMentionSuggestions = () => {
       );
     },
     onExit() {
-      popup?.[0]?.destroy();
+      popup?.destroy();
       reactRenderer.destroy();
     },
   };
@@ -336,36 +338,23 @@ const SlashCommands = Extension.create<SlashCommandsOptions>({
     return {
       suggestion: {
         char: "/",
-        command: ({ editor, range, props }) => {
+        command: ({
+          editor,
+          range,
+          props,
+        }: {
+          editor: TiptapEditor;
+          range: TiptapRange;
+          props: SlashCommandItem;
+        }) => {
           editor.chain().focus().deleteRange(range).run();
-          props.command({ editor, range });
+          props.command?.({ editor, range });
         },
         items: ({ query }: { query: string }) => {
           return filterSlashCommandItems(
-            this.parent().commandItems ?? [],
+            this.parent?.().commandItems ?? [],
             query,
           );
-        },
-        render: () => {
-          let component: ReturnType<typeof RenderSuggestions>;
-          return {
-            onStart: (props: any) => {
-              component = RenderSuggestions();
-              component.onStart(props);
-            },
-            onUpdate(props: any) {
-              component.onUpdate(props);
-            },
-            onKeyDown(props: any) {
-              if (props.event.key === "Escape") {
-                return true;
-              }
-              return component.onKeyDown(props) ?? false;
-            },
-            onExit: () => {
-              component.onExit();
-            },
-          };
         },
       },
       commandItems: [] as SlashCommandItem[],
@@ -381,11 +370,6 @@ const SlashCommands = Extension.create<SlashCommandsOptions>({
     ];
   },
 });
-
-export interface SlashNodeAttrs {
-  id: string | null;
-  label?: string | null;
-}
 
 const getCommandItems = (disableHeadings: boolean): SlashCommandItem[] => {
   const headingCommands: SlashCommandItem[] = disableHeadings
@@ -474,11 +458,15 @@ export default function Editor({
     onSubmitRef.current = onSubmit;
   }, [onSubmit]);
 
+  // Null on the first render despite the types
   const editor = useEditor(
     {
       extensions: [
         StarterKit.configure({
           heading: disableHeadings ? false : undefined,
+          link: false,
+          underline: false,
+          trailingNode: false,
         }),
         Link.configure({
           openOnClick: true,
@@ -520,8 +508,8 @@ export default function Editor({
 
               const mapped = withEmail.map((member: WorkspaceMember) => ({
                 id: member.publicId,
-                label: member?.user?.name?.trim() || member.email || "",
-                image: member?.user?.image ?? null,
+                label: member.user?.name?.trim() || member.email || "",
+                image: member.user?.image ?? null,
               }));
 
               const all: MentionItem[] = mapped.filter(
@@ -575,19 +563,18 @@ export default function Editor({
       onUpdate: ({ editor }) => onChangeRef.current?.(editor.getHTML()),
       onBlur: ({ event }) => {
         if (
-          document
-            .querySelector(".tippy-box")
-            ?.contains(event.relatedTarget as Node)
+          (event.relatedTarget as Element | null)?.closest(
+            ".tippy-box, .editor-bubble-menu",
+          )
         )
           return;
-        // Only trigger onBlur if the click was outside both the editor and menu
         if (!containerRef.current?.contains(event.relatedTarget as Node)) {
           onBlurRef.current?.();
         }
       },
       editorProps: {
         attributes: {
-          class: "outline-none focus:outline-none focus-visible:ring-0",
+          class: "outline-hidden focus:outline-hidden focus-visible:ring-0",
         },
         handleKeyDown: (_view, event) => {
           if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
@@ -599,24 +586,22 @@ export default function Editor({
       },
       editable: !readOnly,
       injectCSS: false,
+      shouldRerenderOnTransaction: true,
     },
-    [], // creating the editor only once
-  );
+    [],
+  ) as TiptapEditor | null;
 
-  // this will sync external content changes without re-creating the editor instance
   useEffect(() => {
     if (!editor) return;
     const currentHTML = editor.getHTML();
     const safeContent = content ?? "";
     if (safeContent !== currentHTML) {
-      editor.commands.setContent(safeContent, false);
+      editor.commands.setContent(safeContent, { emitUpdate: false });
     }
   }, [content, editor]);
 
-  // useEditor captures `readOnly` once at creation time (empty deps above), so
-  // explicitly sync `editable` when the prop changes. Without this the editor
-  // gets stuck read-only when `readOnly` flips from true to false after mount
-  // (e.g. card permissions resolving slower than the card data on first load).
+  // useEditor captures `readOnly` once, so a card whose permissions load after
+  // its data would otherwise stay read-only.
   useEffect(() => {
     if (!editor) return;
     if (editor.isEditable === !readOnly) return;
@@ -650,13 +635,13 @@ export default function Editor({
       {!readOnly && editor && <EditorBubbleMenu editor={editor} />}
       <EditorContent
         editor={editor}
-        className="prose dark:prose-invert prose-sm max-w-none overflow-y-auto [&_blockquote]:!text-xs [&_h1]:!text-lg [&_h2]:!text-base [&_h3]:!text-sm [&_ol]:!text-xs [&_p.is-empty::before]:text-light-900 [&_p.is-empty::before]:dark:text-dark-800 [&_p]:!text-sm [&_p]:text-light-950 [&_p]:dark:text-dark-950 [&_ul]:!text-xs"
+        className="prose prose-sm max-w-none overflow-y-auto dark:prose-invert [&_blockquote]:text-xs! [&_h1]:text-lg! [&_h2]:text-base! [&_h3]:text-sm! [&_ol]:text-xs! [&_p]:text-sm! [&_p]:text-light-950 dark:[&_p]:text-dark-950 [&_p.is-empty::before]:text-light-900 dark:[&_p.is-empty::before]:text-dark-800 [&_ul]:text-xs!"
       />
     </div>
   );
 }
 
-function EditorBubbleMenu({ editor }: { editor: TiptapEditor | null }) {
+function EditorBubbleMenu({ editor }: { editor: TiptapEditor }) {
   const isMac = navigator.platform.includes("Mac");
 
   const bubbleMenuItems = [
@@ -664,39 +649,39 @@ function EditorBubbleMenu({ editor }: { editor: TiptapEditor | null }) {
       title: "Bold",
       icon: <HiOutlineBold />,
       keys: ["meta", "b"],
-      onClick: () => editor?.chain().focus().toggleBold().run(),
-      active: editor?.isActive("bold"),
+      onClick: () => editor.chain().focus().toggleBold().run(),
+      active: editor.isActive("bold"),
     },
     {
       title: "Italic",
       icon: <HiOutlineItalic />,
       keys: ["meta", "i"],
-      onClick: () => editor?.chain().focus().toggleItalic().run(),
-      active: editor?.isActive("italic"),
+      onClick: () => editor.chain().focus().toggleItalic().run(),
+      active: editor.isActive("italic"),
     },
     {
       title: "Strikethrough",
       icon: <HiOutlineStrikethrough />,
       keys: ["meta", "shift", "s"],
-      onClick: () => editor?.chain().focus().toggleStrike().run(),
-      active: editor?.isActive("strike"),
+      onClick: () => editor.chain().focus().toggleStrike().run(),
+      active: editor.isActive("strike"),
     },
     {
       title: "Code",
       icon: <HiOutlineCodeBracket />,
       keys: ["meta", "e"],
-      onClick: () => editor?.chain().focus().toggleCode().run(),
-      active: editor?.isActive("code"),
+      onClick: () => editor.chain().focus().toggleCode().run(),
+      active: editor.isActive("code"),
     },
   ];
   return (
-    <BubbleMenu editor={editor}>
+    <BubbleMenu editor={editor} className="editor-bubble-menu">
       <div className="flex items-center gap-2 rounded-md border border-light-600 bg-light-50 p-1 dark:border-dark-600 dark:bg-dark-50">
         {bubbleMenuItems.map((item) => (
           <Button
             key={item.title}
             className={twMerge(
-              "rounded p-1 text-light-900 focus:ring-2 focus:ring-light-600 dark:text-dark-900 dark:focus:ring-dark-600",
+              "rounded-sm p-1 text-light-900 focus:ring-2 focus:ring-light-600 dark:text-dark-900 dark:focus:ring-dark-600",
               item.active && "bg-light-100 dark:bg-dark-400",
             )}
             title={`${item.title} [${item.keys.join(" + ").replace("meta", isMac ? "⌘" : "ctrl")}]`}

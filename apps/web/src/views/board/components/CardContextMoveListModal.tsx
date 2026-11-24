@@ -1,28 +1,37 @@
 import { t } from "@lingui/core/macro";
+import { useMutation } from "@tanstack/react-query";
+
+import { useGetCard } from "@kan/api-client/hooks";
 
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
+import { updateCardFromInput } from "~/utils/cardMutations";
 
 export function CardContextMoveListModal() {
   const { entityId: cardPublicId, closeModal } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
+  const boardCache = useBoardCache();
 
-  const { data: card, isLoading } = api.card.byId.useQuery(
-    { cardPublicId: cardPublicId ?? "" },
-    { enabled: !!cardPublicId && cardPublicId.length >= 12 },
-  );
+  const { data: card, isLoading } = useGetCard(cardPublicId, {
+    query: {
+      enabled: !!cardPublicId && cardPublicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
-  const updateCardList = api.card.update.useMutation({
+  const updateCardList = useMutation({
+    mutationFn: updateCardFromInput,
     onMutate: async (vars) => {
       if (!cardPublicId) return undefined;
-      await utils.card.byId.cancel();
-      const previous = utils.card.byId.getData({ cardPublicId });
-      utils.card.byId.setData({ cardPublicId }, (old) => {
+      await cardCache.byId.cancel();
+      const previous = cardCache.byId.getData({ cardPublicId });
+      cardCache.byId.setData({ cardPublicId }, (old) => {
         if (!old) return old;
-        const list = old.list.board?.lists?.find(
+        const list = old.list.board.lists.find(
           (l) => l.publicId === vars.listPublicId,
         );
         if (!list) return old;
@@ -35,7 +44,7 @@ export function CardContextMoveListModal() {
     },
     onError: (_err, _vars, ctx) => {
       if (cardPublicId && ctx?.previous) {
-        utils.card.byId.setData({ cardPublicId }, ctx.previous);
+        cardCache.byId.setData({ cardPublicId }, ctx.previous);
       }
       showPopup({
         header: t`Unable to move card`,
@@ -45,14 +54,14 @@ export function CardContextMoveListModal() {
     },
     onSettled: async () => {
       if (cardPublicId) {
-        await invalidateCard(utils, cardPublicId);
-        await utils.board.byId.invalidate();
+        await invalidateCard(cardCache, cardPublicId);
+        await boardCache.invalidate();
       }
     },
   });
 
-  const lists = card?.list?.board?.lists ?? [];
-  const currentListPublicId = card?.list?.publicId;
+  const lists = card?.list.board.lists ?? [];
+  const currentListPublicId = card?.list.publicId;
 
   const handleSelectList = (listPublicId: string) => {
     if (listPublicId === currentListPublicId || !cardPublicId) return;
@@ -74,12 +83,12 @@ export function CardContextMoveListModal() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="h-10 w-full animate-pulse rounded bg-light-200 dark:bg-dark-300"
+              className="h-10 w-full animate-pulse rounded-sm bg-light-200 dark:bg-dark-300"
             />
           ))}
         </div>
       ) : (
-        <div className="max-h-[60vh] overflow-y-auto pr-1 scrollbar scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600">
+        <div className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] scrollbar max-h-[60vh] scrollbar-thumb-light-400 scrollbar-track-light-200 overflow-y-auto pr-1 dark:scrollbar-thumb-dark-600 dark:scrollbar-track-dark-100">
           <ul className="space-y-1">
             {lists.map((list) => (
               <li key={list.publicId}>

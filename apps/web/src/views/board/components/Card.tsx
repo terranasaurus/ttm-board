@@ -24,7 +24,7 @@ const Card = ({
   description,
   comments,
   attachments,
-  dueDate,
+  dueDate: dueDateIso,
 }: {
   title: string;
   ticketNumber?: string | null;
@@ -32,6 +32,7 @@ const Card = ({
   members: {
     publicId: string;
     email: string;
+    status: string;
     user: { name: string | null; email: string; image: string | null } | null;
   }[];
   summary?: {
@@ -54,9 +55,10 @@ const Card = ({
   description: string | null;
   comments: { publicId: string }[];
   attachments: { publicId: string }[];
-  dueDate?: Date | null;
+  dueDate?: string | null;
 }) => {
   const { dateLocale } = useLocalisation();
+  const dueDate = dueDateIso ? new Date(dueDateIso) : null;
   const showYear = dueDate ? !isSameYear(dueDate, new Date()) : false;
   const isOverdue = dueDate ? isBefore(dueDate, startOfDay(new Date())) : false;
   const cardSummary = summary ?? {
@@ -91,7 +93,7 @@ const Card = ({
           {ticketNumber}
         </span>
       )}
-      <span className="break-words">{title}</span>
+      <span className="wrap-break-word">{title}</span>
       {labels.length ||
       members.length ||
       cardSummary.checklistItemCount > 0 ||
@@ -115,7 +117,7 @@ const Card = ({
                   <HiBars3BottomLeft className="h-4 w-4" />
                 </div>
               )}
-              {hasDueDate && dueDate && (
+              {dueDate && (
                 <div
                   className={twMerge(
                     "flex items-center gap-1",
@@ -145,11 +147,11 @@ const Card = ({
             </div>
             <div className="flex items-center justify-end gap-1">
               {cardSummary.checklistItemCount > 0 && (
-                <div className="flex items-center gap-1 rounded-full border-[1px] border-light-300 px-2 py-1 dark:border-dark-600">
+                <div className="flex items-center gap-1 rounded-full border border-light-300 px-2 py-1 dark:border-dark-600">
                   <CircularProgress
                     progress={progress || 2}
                     size="sm"
-                    className="flex-shrink-0"
+                    className="shrink-0"
                   />
                   <span className="text-[10px] text-light-900 dark:text-dark-950">
                     {cardSummary.completedChecklistItemCount}/
@@ -159,17 +161,19 @@ const Card = ({
               )}
               {members.length > 0 && (
                 <div className="isolate flex justify-end -space-x-1 overflow-hidden">
-                  {members.map(({ user, email }) => {
+                  {members.map(({ publicId, user, email, status }) => {
                     const avatarUrl = user?.image
                       ? getAvatarUrl(user.image)
                       : undefined;
 
                     return (
                       <Avatar
+                        key={publicId}
                         name={user?.name ?? ""}
                         email={user?.email ?? email}
                         imageUrl={avatarUrl}
                         size="sm"
+                        paused={status === "paused"}
                       />
                     );
                   })}

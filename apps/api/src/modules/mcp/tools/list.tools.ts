@@ -1,20 +1,28 @@
+import { UseFilters } from "@nestjs/common";
+import { Ctx, Payload } from "@nestjs/microservices";
+import {
+  McpController,
+  McpExceptionFilter,
+  McpRawRequest,
+  Tool,
+} from "@rekog/mcp-nest";
 import { z } from "zod";
-import { Injectable } from "@nestjs/common";
-import { Tool } from "@rekog/mcp-nest";
 
 import { CreateListSchema, UpdateListSchema } from "../../list/dto/list.dto.js";
 import { ListService } from "../../list/list.service.js";
 import { requireMcpUser } from "../mcp-user.util.js";
+import { listPublicId } from "./public-ids.js";
 
 const DeleteListSchema = z.object({
-  listPublicId: z.string().min(12),
+  listPublicId,
 });
 
 const UpdateListWithIdSchema = UpdateListSchema.extend({
-  listPublicId: z.string().min(12),
+  listPublicId,
 });
 
-@Injectable()
+@UseFilters(McpExceptionFilter)
+@McpController()
 export class ListTools {
   constructor(private readonly listService: ListService) {}
 
@@ -24,9 +32,9 @@ export class ListTools {
     parameters: CreateListSchema,
   })
   async createList(
-    args: z.infer<typeof CreateListSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof CreateListSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.listService.create({
@@ -42,9 +50,9 @@ export class ListTools {
     parameters: DeleteListSchema,
   })
   async deleteList(
-    args: z.infer<typeof DeleteListSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof DeleteListSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.listService.delete({
@@ -60,9 +68,9 @@ export class ListTools {
     parameters: UpdateListWithIdSchema,
   })
   async updateList(
-    args: z.infer<typeof UpdateListWithIdSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof UpdateListWithIdSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.listService.update({

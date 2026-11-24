@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -11,8 +11,15 @@ import {
 } from "react-icons/hi2";
 import { z } from "zod";
 
-import type { InviteMemberInput } from "@kan/api/types";
 import type { Subscription } from "@kan/shared/utils";
+import {
+  getGetWorkspaceQueryKey,
+  useCreateInviteLink,
+  useDeactivateInviteLink,
+  useGetActiveInviteLink,
+  useInviteMember,
+} from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 import { getSubscriptionByPlan } from "@kan/shared/utils";
 
 import Button from "~/components/Button";
@@ -21,8 +28,18 @@ import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
+<<<<<<< HEAD
 import { api } from "~/utils/api";
 import { AddMemberDirect } from "~/views/ttm/members/AddMemberDirect";
+=======
+import { getApiErrorStatus } from "~/utils/apiError";
+import { useBoardCache } from "~/utils/boardCache";
+
+interface InviteMemberInput {
+  email: string;
+  workspacePublicId: string;
+}
+>>>>>>> upstream/main
 
 export function InviteMemberForm({
   subscriptions,
@@ -35,7 +52,8 @@ export function InviteMemberForm({
   memberCount: number;
   seatLimit: number | null;
 }) {
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
+  const queryClient = useQueryClient();
   const [isShareInviteLinkEnabled, setIsShareInviteLinkEnabled] =
     useState(false);
   const [inviteLink, setInviteLink] = useState<string>("");
@@ -65,95 +83,103 @@ export function InviteMemberForm({
     resolver: zodResolver(InviteMemberSchema),
   });
 
-  const refetchBoards = () => utils.board.all.refetch();
+  const refetchBoards = () => boardCache.refetchLists();
 
-  // Fetch active invite link on component mount
   const { data: activeInviteLink, refetch: _refetchInviteLink } =
-    api.member.getActiveInviteLink.useQuery(
-      { workspacePublicId: workspace.publicId || "" },
-      { enabled: !!workspace.publicId },
-    );
+    useGetActiveInviteLink(workspace.publicId || "", {
+      query: { enabled: !!workspace.publicId },
+    });
 
-  // Set initial state based on active invite link
   useEffect(() => {
     if (activeInviteLink) {
-      setIsShareInviteLinkEnabled(activeInviteLink.isActive);
-      setInviteLink(activeInviteLink.inviteLink ?? "");
+      setIsShareInviteLinkEnabled(activeInviteLink.data.isActive);
+      setInviteLink(activeInviteLink.data.inviteLink ?? "");
     }
   }, [activeInviteLink]);
 
-  const inviteMember = api.member.invite.useMutation({
-    onSuccess: async () => {
-      closeModal();
-      await utils.workspace.byId.refetch();
-      await refetchBoards();
-    },
-    onError: (error) => {
-      reset();
-      if (!isShareInviteLinkEnabled) closeModal();
+  const inviteMember = useInviteMember({
+    mutation: {
+      onSuccess: async () => {
+        closeModal();
+        await queryClient.refetchQueries({
+          queryKey: getGetWorkspaceQueryKey(workspace.publicId),
+        });
+        await refetchBoards();
+      },
+      onError: (error) => {
+        reset();
+        if (!isShareInviteLinkEnabled) closeModal();
 
-      if (error.data?.code === "CONFLICT") {
-        showPopup({
-          header: t`Error inviting member`,
-          message: t`User is already a member of this workspace`,
-          icon: "error",
-        });
-      } else if (
-        error.data?.code === "FORBIDDEN" &&
-        error.message === "SEAT_LIMIT_REACHED"
-      ) {
-        showPopup({
-          header: t`Seat limit reached`,
-          message: t`You've reached your ${seatLimit ?? 0}-seat limit. Please upgrade your plan to add more members.`,
-          icon: "error",
-        });
-      } else {
-        showPopup({
-          header: t`Error inviting member`,
-          message: t`Please try again later, or contact customer support.`,
-          icon: "error",
-        });
-      }
+        const status = getApiErrorStatus(error);
+
+        if (status === 409) {
+          showPopup({
+            header: t`Error inviting member`,
+            message: t`User is already a member of this workspace`,
+            icon: "error",
+          });
+        } else if (
+          status === 403 &&
+          error instanceof Error &&
+          error.message === "SEAT_LIMIT_REACHED"
+        ) {
+          showPopup({
+            header: t`Seat limit reached`,
+            message: t`You've reached your ${seatLimit ?? 0}-seat limit. Please upgrade your plan to add more members.`,
+            icon: "error",
+          });
+        } else {
+          showPopup({
+            header: t`Error inviting member`,
+            message: t`Please try again later, or contact customer support.`,
+            icon: "error",
+          });
+        }
+      },
     },
   });
 
-  const createInviteLink = api.member.createInviteLink.useMutation({
-    onSuccess: (data) => {
-      setInviteLink(data.inviteLink);
-      setIsLoadingInviteLink(false);
-    },
-    onError: (error) => {
-      setIsLoadingInviteLink(false);
-      setIsShareInviteLinkEnabled(false);
+  const createInviteLink = useCreateInviteLink({
+    mutation: {
+      onSuccess: (result) => {
+        setInviteLink(result.data.inviteLink);
+        setIsLoadingInviteLink(false);
+      },
+      onError: (error) => {
+        setIsLoadingInviteLink(false);
+        setIsShareInviteLinkEnabled(false);
 
-      if (error.data?.code === "FORBIDDEN") {
+        if (getApiErrorStatus(error) === 403) {
+          showPopup({
+            header: t`Subscription Required`,
+            message: t`Invite links require a Team or Pro subscription. Please upgrade your workspace.`,
+            icon: "error",
+          });
+        } else {
+          showPopup({
+            header: t`Error creating invite link`,
+            message: t`Please try again later.`,
+            icon: "error",
+          });
+        }
+      },
+    },
+  });
+
+  const deactivateInviteLink = useDeactivateInviteLink({
+    mutation: {
+      onSuccess: () => {
+        setInviteLink("");
+        setIsLoadingInviteLink(false);
+      },
+      onError: () => {
+        setIsLoadingInviteLink(false);
         showPopup({
-          header: t`Subscription Required`,
-          message: t`Invite links require a Team or Pro subscription. Please upgrade your workspace.`,
-          icon: "error",
-        });
-      } else {
-        showPopup({
-          header: t`Error creating invite link`,
+          header: t`Error deactivating invite link`,
           message: t`Please try again later.`,
           icon: "error",
         });
-      }
-    },
-  });
-
-  const deactivateInviteLink = api.member.deactivateInviteLink.useMutation({
-    onSuccess: () => {
-      setInviteLink("");
-      setIsLoadingInviteLink(false);
-    },
-    onError: () => {
-      setIsLoadingInviteLink(false);
-      showPopup({
-        header: t`Error deactivating invite link`,
-        message: t`Please try again later.`,
-        icon: "error",
-      });
+      },
     },
   });
 
@@ -166,7 +192,6 @@ export function InviteMemberForm({
     teamSubscription?.partnerTier ?? proSubscription?.partnerTier
   );
 
-  let isYearly = false;
   let price = t`$10/month`;
   let billingType = t`monthly billing`;
 
@@ -178,13 +203,16 @@ export function InviteMemberForm({
         (1000 * 60 * 60 * 24),
     );
 
-    isYearly = diffInDays > 31;
+    const isYearly = diffInDays > 31;
     price = isYearly ? t`$8/month` : t`$10/month`;
     billingType = isYearly ? t`billed annually` : t`billed monthly`;
   }
 
   const onSubmit = (member: InviteMemberInput) => {
-    inviteMember.mutate(member);
+    inviteMember.mutate({
+      workspacePublicId: member.workspacePublicId,
+      data: { email: member.email },
+    });
   };
 
   const isFreePlan =
@@ -198,13 +226,11 @@ export function InviteMemberForm({
     setIsLoadingInviteLink(true);
 
     if (isShareInviteLinkEnabled && workspace.publicId) {
-      // Deactivate invite link
       await deactivateInviteLink.mutateAsync({
         workspacePublicId: workspace.publicId,
       });
       setIsShareInviteLinkEnabled(false);
     } else {
-      // Create new invite link
       await createInviteLink.mutateAsync({
         workspacePublicId: workspace.publicId,
       });
@@ -244,7 +270,7 @@ export function InviteMemberForm({
           <h2 className="text-sm font-bold">{t`Add member`}</h2>
           <button
             type="button"
-            className="hover:bg-li ght-300 rounded p-1 focus:outline-none dark:hover:bg-dark-300"
+            className="hover:bg-li ght-300 rounded-sm p-1 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -338,7 +364,7 @@ export function InviteMemberForm({
           ) : null)}
       </div>
 
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         {!isFreePlan && (
           <Toggle
             label={

@@ -16,14 +16,14 @@ export function RevokeApiKeyConfirmation() {
 
   const deleteApiKeyMutation = useMutation({
     mutationFn: () => authClient.apiKey.delete({ keyId: entityId }),
-    onSuccess: async () => {
+    onSuccess: () => {
       closeModal();
       showPopup({
         header: "API key revoked",
         message: `Your API key: ${entityLabel} has been revoked.`,
         icon: "success",
       });
-      qc.invalidateQueries({
+      void qc.invalidateQueries({
         queryKey: ["apiKeys"],
       });
     },
@@ -61,7 +61,7 @@ export function RevokeApiKeyConfirmation() {
             name="acknowledgment"
             type="checkbox"
             aria-describedby="acknowledgment-description"
-            className="mt-2 h-[14px] w-[14px] rounded border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
+            className="mt-2 h-[14px] w-[14px] rounded-sm border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
             checked={isAcknowledgmentChecked}
             onChange={() =>
               setIsAcknowledgmentChecked(!isAcknowledgmentChecked)

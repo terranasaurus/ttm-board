@@ -2,22 +2,20 @@ import { useRouter } from "next/router";
 import { t } from "@lingui/core/macro";
 import { HiMiniPlus } from "react-icons/hi2";
 
+import { useToggleCardMember } from "@kan/api-client/hooks";
+
+import type { getCardMemberOptions } from "./memberOptions";
 import Avatar from "~/components/Avatar";
 import CheckboxDropdown from "~/components/CheckboxDropdown";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
 
 interface MemberSelectorProps {
   cardPublicId: string;
-  members: {
-    key: string;
-    value: string;
-    selected: boolean;
-    leftIcon: React.ReactNode;
-    imageUrl: string | undefined;
-  }[];
+  members: ReturnType<typeof getCardMemberOptions>;
   isLoading: boolean;
   disabled?: boolean;
 }
@@ -29,63 +27,66 @@ export default function MemberSelector({
   disabled = false,
 }: MemberSelectorProps) {
   const router = useRouter();
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
+  const boardCache = useBoardCache();
   const { openModal } = useModal();
   const { showPopup } = usePopup();
 
-  const addOrRemoveMember = api.card.addOrRemoveMember.useMutation({
-    onMutate: async (update) => {
-      await utils.card.byId.cancel();
+  const addOrRemoveMember = useToggleCardMember({
+    mutation: {
+      onMutate: async (update) => {
+        await cardCache.byId.cancel();
 
-      const previousCard = utils.card.byId.getData({ cardPublicId });
+        const previousCard = cardCache.byId.getData({ cardPublicId });
 
-      utils.card.byId.setData({ cardPublicId }, (oldCard) => {
-        if (!oldCard) return oldCard;
+        cardCache.byId.setData({ cardPublicId }, (oldCard) => {
+          if (!oldCard) return oldCard;
 
-        const hasMember = oldCard.members.some(
-          (member) => member.publicId === update.workspaceMemberPublicId,
-        );
+          const hasMember = oldCard.members.some(
+            (member) => member.publicId === update.workspaceMemberPublicId,
+          );
 
-        const memberToAdd = oldCard.members.find(
-          (member) => member.publicId === update.workspaceMemberPublicId,
-        );
+          const memberToAdd = members.find(
+            (member) => member.key === update.workspaceMemberPublicId,
+          );
 
-        const updatedMembers = hasMember
-          ? oldCard.members.filter(
-              (member) => member.publicId !== update.workspaceMemberPublicId,
-            )
-          : [
-              ...oldCard.members,
-              {
-                publicId: update.workspaceMemberPublicId,
-                email: memberToAdd?.email ?? "",
-                deletedAt: null,
-                user: {
-                  id: memberToAdd?.user?.id ?? "",
-                  name: memberToAdd?.user?.name ?? "",
+          const updatedMembers = hasMember
+            ? oldCard.members.filter(
+                (member) => member.publicId !== update.workspaceMemberPublicId,
+              )
+            : [
+                ...oldCard.members,
+                {
+                  publicId: update.workspaceMemberPublicId,
+                  email: memberToAdd?.email ?? "",
+                  status: memberToAdd?.status ?? "active",
+                  user: {
+                    id: memberToAdd?.userId ?? null,
+                    name: memberToAdd?.name ?? null,
+                  },
                 },
-              },
-            ];
+              ];
 
-        return {
-          ...oldCard,
-          members: updatedMembers,
-        };
-      });
+          return {
+            ...oldCard,
+            members: updatedMembers,
+          };
+        });
 
-      return { previousCard };
-    },
-    onError: (_error, _newList, context) => {
-      utils.card.byId.setData({ cardPublicId }, context?.previousCard);
-      showPopup({
-        header: t`Unable to update members`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      await invalidateCard(utils, cardPublicId);
-      await utils.board.byId.invalidate();
+        return { previousCard };
+      },
+      onError: (_error, _newList, context) => {
+        cardCache.byId.setData({ cardPublicId }, context?.previousCard);
+        showPopup({
+          header: t`Unable to update members`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        await invalidateCard(cardCache, cardPublicId);
+        await boardCache.invalidate();
+      },
     },
   });
 
@@ -118,17 +119,18 @@ export default function MemberSelector({
           asChild
         >
           <div
-            className={`flex h-full w-full items-center rounded-[5px] border-[1px] border-light-50 py-1 pl-2 text-left text-xs text-neutral-900 dark:border-dark-50 dark:text-dark-1000 ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-light-300 hover:bg-light-200 dark:hover:border-dark-200 dark:hover:bg-dark-100"}`}
+            className={`flex h-full w-full items-center rounded-[5px] border border-light-50 py-1 pl-2 text-left text-xs text-neutral-900 dark:border-dark-50 dark:text-dark-1000 ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-light-300 hover:bg-light-200 dark:hover:border-dark-200 dark:hover:bg-dark-100"}`}
           >
             {selectedMembers.length ? (
               <div className="isolate flex justify-end -space-x-1 overflow-hidden">
-                {selectedMembers.map(({ value, imageUrl }) => (
+                {selectedMembers.map(({ key, value, imageUrl, status }) => (
                   <Avatar
-                    key={value}
+                    key={key}
                     size="sm"
                     name={value}
                     imageUrl={imageUrl}
                     email={value}
+                    paused={status === "paused"}
                   />
                 ))}
               </div>

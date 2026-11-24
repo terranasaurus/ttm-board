@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { t } from "@lingui/core/macro";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 import { IoChevronForwardSharp } from "react-icons/io5";
 
+import { useGetCard, useToggleCardLabel } from "@kan/api-client/hooks";
 import { authClient } from "@kan/auth/client";
 
-import Avatar from "~/components/Avatar";
 import Editor from "~/components/Editor";
 import FeedbackModal from "~/components/FeedbackModal";
 import { LabelForm } from "~/components/LabelForm";
@@ -25,10 +26,11 @@ import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
+import { getApiErrorStatus } from "~/utils/apiError";
 import { getBoardReturnUrl } from "~/utils/board-return-url";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
-import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
+import { updateCardFromInput } from "~/utils/cardMutations";
 import { DeleteLabelConfirmation } from "../../components/DeleteLabelConfirmation";
 import ActivityList from "./components/ActivityList";
 import { ActivitySortOrderToggle } from "./components/ActivitySortOrderToggle";
@@ -42,6 +44,10 @@ import Dropdown from "./components/Dropdown";
 import { DueDateSelector } from "./components/DueDateSelector";
 import LabelSelector from "./components/LabelSelector";
 import ListSelector from "./components/ListSelector";
+import {
+  getCardMemberOptions,
+  getMentionableMembers,
+} from "./components/memberOptions";
 import MemberSelector from "./components/MemberSelector";
 import { NewChecklistForm } from "./components/NewChecklistForm";
 import NewCommentForm from "./components/NewCommentForm";
@@ -60,10 +66,12 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
     ? router.query.cardId[0]
     : router.query.cardId;
 
-  const { data: card } = api.card.byId.useQuery(
-    { cardPublicId: cardId ?? "" },
-    { enabled: !!cardId && cardId.length >= 12 },
-  );
+  const { data: card } = useGetCard(cardId ?? "", {
+    query: {
+      enabled: !!cardId && cardId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   const isCreator = card?.createdBy && session?.user.id === card.createdBy;
   const canEdit = canEditCard || isCreator;
@@ -95,37 +103,13 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
       selected: list.publicId === card?.list.publicId,
     })) ?? [];
 
-  const formattedMembers =
-    workspaceMembers?.map((member) => {
-      const isSelected = selectedMembers?.some(
-        (assignedMember) => assignedMember.publicId === member.publicId,
-      );
-
-      return {
-        key: member.publicId,
-        value: formatMemberDisplayName(
-          member.user?.name ?? null,
-          member.user?.email ?? member.email,
-        ),
-        imageUrl: member.user?.image
-          ? getAvatarUrl(member.user.image)
-          : undefined,
-        selected: isSelected ?? false,
-        leftIcon: (
-          <Avatar
-            size="xs"
-            name={member.user?.name ?? ""}
-            imageUrl={
-              member.user?.image ? getAvatarUrl(member.user.image) : undefined
-            }
-            email={member.user?.email ?? member.email}
-          />
-        ),
-      };
-    }) ?? [];
+  const formattedMembers = getCardMemberOptions(
+    workspaceMembers ?? [],
+    selectedMembers?.map((member) => member.publicId) ?? [],
+  );
 
   return (
-    <div className="h-full w-[360px] border-l-[1px] border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
+    <div className="h-full w-[360px] border-l border-light-300 bg-light-50 p-8 text-light-900 dark:border-dark-300 dark:bg-dark-50 dark:text-dark-900">
       <div className="mb-4 flex w-full flex-row pt-[18px]">
         <p className="my-2 mb-2 w-[100px] text-sm font-medium">{t`List`}</p>
         <ListSelector
@@ -171,7 +155,7 @@ export function CardRightPanel({ isTemplate }: { isTemplate?: boolean }) {
 export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const router = useRouter();
   const activitySortOrder = useActivitySortOrder();
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
   const {
     modalContentType,
     entityId,
@@ -203,16 +187,17 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     data: card,
     isLoading,
     error,
-  } = api.card.byId.useQuery(
-    { cardPublicId: cardId ?? "" },
-    { enabled: !!cardId && cardId.length >= 12 },
-  );
+  } = useGetCard(cardId ?? "", {
+    query: {
+      enabled: !!cardId && cardId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
-  // Redirect to 404 if card doesn't exist
   useEffect(() => {
     if (router.isReady && cardId && !isLoading) {
-      if (error?.data?.code === "NOT_FOUND" || (!card && !isLoading)) {
-        router.replace("/404");
+      if (getApiErrorStatus(error) === 404 || !card) {
+        void router.replace("/404");
       }
     }
   }, [router, cardId, isLoading, error, card]);
@@ -226,7 +211,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
   const canEdit = canEditCard || isCreator;
 
   const refetchCard = async () => {
-    if (cardId) await utils.card.byId.refetch({ cardPublicId: cardId });
+    if (cardId) await cardCache.byId.refetch({ cardPublicId: cardId });
   };
 
   const board = card?.list.board;
@@ -237,22 +222,10 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     `/${isTemplate ? "templates" : "boards"}/${boardId}`,
   );
 
-  const editorWorkspaceMembers =
-    workspaceMembers
-      ?.filter((member) => member.email)
-      .map((member) => ({
-        publicId: member.publicId,
-        email: member.email,
-        user: member.user
-          ? {
-              id: member.user.id,
-              name: member.user.name ?? null,
-              image: member.user.image ?? null,
-            }
-          : null,
-      })) ?? [];
+  const editorWorkspaceMembers = getMentionableMembers(workspaceMembers ?? []);
 
-  const updateCard = api.card.update.useMutation({
+  const updateCard = useMutation({
+    mutationFn: updateCardFromInput,
     onError: () => {
       showPopup({
         header: t`Unable to update card`,
@@ -261,35 +234,36 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       });
     },
     onSettled: async () => {
-      if (cardId) await invalidateCard(utils, cardId);
+      if (cardId) await invalidateCard(cardCache, cardId);
     },
   });
 
-  const addOrRemoveLabel = api.card.addOrRemoveLabel.useMutation({
-    onError: () => {
-      showPopup({
-        header: t`Unable to add label`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      if (cardId) {
-        await utils.card.byId.invalidate({ cardPublicId: cardId });
-      }
-    },
-  });
-
-  const { register, handleSubmit, setValue, watch, reset } =
-    useForm<FormValues>({
-      values: {
-        cardId: cardId ?? "",
-        title: card?.title ?? "",
-        description: card?.description ?? "",
+  const addOrRemoveLabel = useToggleCardLabel({
+    mutation: {
+      onError: () => {
+        showPopup({
+          header: t`Unable to add label`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
       },
-      // keepDirtyValues: a card.byId refetch shouldn't overwrite a field still being edited.
-      resetOptions: { keepDirtyValues: true },
-    });
+      onSettled: async () => {
+        if (cardId) {
+          await cardCache.byId.invalidate({ cardPublicId: cardId });
+        }
+      },
+    },
+  });
+
+  const { register, handleSubmit, setValue, reset } = useForm<FormValues>({
+    values: {
+      cardId: cardId ?? "",
+      title: card?.title ?? "",
+      description: card?.description ?? "",
+    },
+    // keepDirtyValues: a card.byId refetch shouldn't overwrite a field still being edited.
+    resetOptions: { keepDirtyValues: true },
+  });
 
   // Force a clean reset on card switch, since keepDirtyValues would otherwise carry a dirty field over.
   useEffect(() => {
@@ -313,9 +287,8 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
     setRecentCommentPublicIds((current) => [...current, commentPublicId]);
   };
 
-  // this adds the new created label to selected labels
   useEffect(() => {
-    const newLabelId = modalStates.NEW_LABEL_CREATED;
+    const newLabelId = modalStates.NEW_LABEL_CREATED as string | undefined;
     if (newLabelId && cardId) {
       const isAlreadyAdded = card?.labels.some(
         (label) => label.publicId === newLabelId,
@@ -329,24 +302,29 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       }
       clearModalState("NEW_LABEL_CREATED");
     }
-  }, [modalStates.NEW_LABEL_CREATED, card, cardId]);
+  }, [
+    modalStates.NEW_LABEL_CREATED,
+    card,
+    cardId,
+    addOrRemoveLabel,
+    clearModalState,
+  ]);
 
-  // Open the new item form after creating a new checklist
   useEffect(() => {
     if (!card) return;
-    const state = getModalState("ADD_CHECKLIST");
-    const createdId: string | undefined = state?.createdChecklistId;
+    const state = getModalState("ADD_CHECKLIST") as
+      { createdChecklistId?: string } | undefined;
+    const createdId = state?.createdChecklistId;
     if (createdId) {
       setActiveChecklistForm(createdId);
       clearModalState("ADD_CHECKLIST");
     }
   }, [card, getModalState, clearModalState]);
 
-  // Auto-resize title textarea
   useEffect(() => {
     const titleTextarea = document.getElementById(
       "title",
-    ) as HTMLTextAreaElement;
+    ) as HTMLTextAreaElement | null;
     if (titleTextarea) {
       titleTextarea.style.height = "auto";
       titleTextarea.style.height = `${titleTextarea.scrollHeight}px`;
@@ -362,10 +340,10 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
       />
       <div className="flex h-full flex-1 flex-col overflow-hidden">
         {/* Full-width top strip with board link and dropdown */}
-        <div className="flex w-full items-center justify-between border-b-[1px] border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
+        <div className="flex w-full items-center justify-between border-b border-light-300 bg-light-50 px-8 py-2 dark:border-dark-300 dark:bg-dark-50">
           {!card && isLoading && (
             <div className="flex space-x-2">
-              <div className="h-[1.5rem] w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
+              <div className="h-6 w-[150px] animate-pulse rounded-[5px] bg-light-300 dark:bg-dark-300" />
             </div>
           )}
           {card && (
@@ -379,7 +357,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                 </Link>
                 <IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
                 <Link
-                  className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-900 dark:text-dark-950"
+                  className="text-sm leading-6 font-bold whitespace-nowrap text-light-900 dark:text-dark-950"
                   href={boardReturnUrl}
                 >
                   {board?.name}
@@ -388,7 +366,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   card.list.board.workspace.cardPrefix && (
                     <>
                       <IoChevronForwardSharp className="h-[10px] w-[10px] text-light-900 dark:text-dark-900" />
-                      <span className="whitespace-nowrap text-sm font-bold leading-[1.5rem] text-light-700 dark:text-dark-800">
+                      <span className="text-sm leading-6 font-bold whitespace-nowrap text-light-700 dark:text-dark-800">
                         {card.list.board.workspace.cardPrefix}-{card.cardNumber}
                       </span>
                     </>
@@ -399,15 +377,15 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   cardPublicId={cardId}
                   isTemplate={isTemplate}
                   boardPublicId={boardId}
-                  cardCreatedBy={card?.createdBy}
+                  cardCreatedBy={card.createdBy}
                   ticketNumber={
                     card.cardNumber != null &&
                     card.list.board.workspace.cardPrefix
                       ? `${card.list.board.workspace.cardPrefix}-${card.cardNumber}`
                       : null
                   }
-                  listPublicId={card?.list.publicId}
-                  cardIndex={card?.index}
+                  listPublicId={card.list.publicId}
+                  cardIndex={card.index}
                 />
                 <Link
                   href={boardReturnUrl}
@@ -420,12 +398,12 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             </>
           )}
           {!card && !isLoading && (
-            <p className="block p-0 py-0 font-bold leading-[1.5rem] tracking-tight text-light-900 dark:text-dark-900 sm:text-[1rem]">
+            <p className="block p-0 py-0 leading-6 font-bold tracking-tight text-light-900 sm:text-[1rem] dark:text-dark-900">
               {t`Card not found`}
             </p>
           )}
         </div>
-        <div className="scrollbar-thumb-rounded-[4px] scrollbar-track-rounded-[4px] w-full flex-1 overflow-y-auto scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 hover:scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300 dark:hover:scrollbar-thumb-dark-300">
+        <div className="scrollbar-thumb-rounded-[4px] scrollbar-track-rounded-[4px] scrollbar w-full flex-1 scrollbar-thumb-light-400 scrollbar-track-light-200 overflow-y-auto hover:scrollbar-thumb-light-400 dark:scrollbar-thumb-dark-300 dark:scrollbar-track-dark-100 dark:hover:scrollbar-thumb-dark-300">
           <div className="p-auto mx-auto flex h-full w-full max-w-[800px] flex-col">
             <div className="p-6 md:p-8">
               <div className="mb-8 md:mt-4">
@@ -446,7 +424,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                         onBlur={canEdit ? handleSubmit(onSubmit) : undefined}
                         rows={1}
                         disabled={!canEdit}
-                        className={`block w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-0 font-bold leading-relaxed text-neutral-900 focus:ring-0 dark:text-dark-1000 sm:text-[1.2rem] ${!canEdit ? "cursor-default" : ""}`}
+                        className={`block w-full resize-none overflow-hidden border-0 bg-transparent p-0 py-0 leading-relaxed font-bold text-neutral-900 focus:ring-0 sm:text-[1.2rem] dark:text-dark-1000 ${!canEdit ? "cursor-default" : ""}`}
                         onInput={(e) => {
                           const target = e.target as HTMLTextAreaElement;
                           target.style.height = "auto";
@@ -457,7 +435,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   </form>
                 )}
                 {!card && !isLoading && (
-                  <p className="block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
+                  <p className="block p-0 py-0 leading-[2.3rem] font-bold tracking-tight text-neutral-900 sm:text-[1.2rem] dark:text-dark-1000">
                     {t`Card not found`}
                   </p>
                 )}
@@ -483,7 +461,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                           onBlur={
                             canEdit ? () => handleSubmit(onSubmit)() : undefined
                           }
-                          workspaceMembers={workspaceMembers ?? []}
+                          workspaceMembers={editorWorkspaceMembers}
                           readOnly={!canEdit}
                         />
                       </div>
@@ -498,11 +476,11 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                   />
                   {!isTemplate && (
                     <>
-                      {card?.attachments.length > 0 && (
+                      {card.attachments.length > 0 && (
                         <div className="mt-6">
                           <AttachmentThumbnails
                             attachments={card.attachments}
-                            cardPublicId={cardId ?? ""}
+                            cardPublicId={cardId}
                             isReadOnly={!canEdit}
                           />
                         </div>
@@ -514,7 +492,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
                       )}
                     </>
                   )}
-                  <div className="border-t-[1px] border-light-300 pt-12 dark:border-dark-300">
+                  <div className="border-t border-light-300 pt-12 dark:border-dark-300">
                     <header className="flex items-center justify-between pb-4">
                       <h2 className="text-md font-medium text-light-1000 dark:text-dark-1000">
                         {t`Activity`}
@@ -600,6 +578,7 @@ export default function CardPage({ isTemplate }: { isTemplate?: boolean }) {
             <DeleteCardConfirmation
               boardPublicId={boardId ?? ""}
               cardPublicId={cardId}
+              returnUrl={boardReturnUrl}
             />
           </Modal>
 

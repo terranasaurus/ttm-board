@@ -10,11 +10,13 @@ import { useState } from "react";
 import { HiChevronDown } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 
+import { useDuplicateCard, useGetCard } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 
 interface CardContextDuplicateModalProps {
   lists: { publicId: string; name: string }[];
@@ -25,7 +27,7 @@ export function CardContextDuplicateModal({
 }: CardContextDuplicateModalProps) {
   const { entityId: cardPublicId, closeModal } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
 
   const [listPublicId, setListPublicId] = useState("");
   const [copyLabels, setCopyLabels] = useState(true);
@@ -34,47 +36,50 @@ export function CardContextDuplicateModal({
   const [position, setPosition] = useState<string>("");
   const [title, setTitle] = useState("");
 
-  const { data: card, isLoading: isCardLoading } = api.card.byId.useQuery(
-    { cardPublicId: cardPublicId ?? "" },
-    { enabled: !!cardPublicId && cardPublicId.length >= 12 },
-  );
+  const { data: card, isLoading: isCardLoading } = useGetCard(cardPublicId, {
+    query: {
+      enabled: !!cardPublicId && cardPublicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   const listOptions = lists.map((l) => ({
     publicId: l.publicId,
     name: l.name,
   }));
-  const currentListPublicId = card?.list?.publicId;
-  const hasLabels = (card?.labels?.length ?? 0) > 0;
-  const hasMembers = (card?.members?.length ?? 0) > 0;
-  const hasChecklists = (card?.checklists?.length ?? 0) > 0;
+  const currentListPublicId = card?.list.publicId;
+  const hasLabels = (card?.labels.length ?? 0) > 0;
+  const hasMembers = (card?.members.length ?? 0) > 0;
+  const hasChecklists = (card?.checklists.length ?? 0) > 0;
   const hasAnyCopyOption = hasLabels || hasMembers || hasChecklists;
 
-  const duplicateCard = api.card.duplicate.useMutation({
-    onSuccess: () => {
-      showPopup({
-        header: t`Card duplicated`,
-        icon: "success",
-        message: t`The card has been duplicated.`,
-      });
-      closeModal();
-    },
-    onError: () => {
-      showPopup({
-        header: t`Unable to duplicate card`,
-        message: t`Please try again.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      await utils.board.byId.invalidate();
+  const duplicateCard = useDuplicateCard({
+    mutation: {
+      onSuccess: () => {
+        showPopup({
+          header: t`Card duplicated`,
+          icon: "success",
+          message: t`The card has been duplicated.`,
+        });
+        closeModal();
+      },
+      onError: () => {
+        showPopup({
+          header: t`Unable to duplicate card`,
+          message: t`Please try again.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        await boardCache.invalidate();
+      },
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!cardPublicId || !listPublicId) return;
-    const indexNum =
-      position === "" ? undefined : parseInt(position, 10);
+    const indexNum = position === "" ? undefined : parseInt(position, 10);
     if (
       position !== "" &&
       (indexNum === undefined || isNaN(indexNum) || indexNum < 0)
@@ -82,12 +87,14 @@ export function CardContextDuplicateModal({
       return;
     duplicateCard.mutate({
       cardPublicId,
-      listPublicId,
-      copyLabels,
-      copyMembers,
-      copyChecklists,
-      ...(typeof indexNum === "number" && { index: indexNum }),
-      title: title.trim() || undefined,
+      data: {
+        listPublicId,
+        copyLabels,
+        copyMembers,
+        copyChecklists,
+        ...(typeof indexNum === "number" && { index: indexNum }),
+        title: title.trim() || undefined,
+      },
     });
   };
 
@@ -108,17 +115,16 @@ export function CardContextDuplicateModal({
             <div className="relative">
               <ListboxButton
                 className={twMerge(
-                  "relative w-full cursor-pointer rounded-md border border-light-300 bg-white py-2 pl-3 pr-10 text-left text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-light-400 focus:ring-offset-0 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-1000 dark:focus:ring-dark-500",
+                  "relative w-full cursor-pointer rounded-md border border-light-300 bg-white py-2 pr-10 pl-3 text-left text-sm shadow-xs focus:ring-2 focus:ring-light-400 focus:ring-offset-0 focus:outline-hidden dark:border-dark-400 dark:bg-dark-200 dark:text-dark-1000 dark:focus:ring-dark-500",
                   !listPublicId && "text-light-600 dark:text-dark-600",
                 )}
               >
                 <span className="block truncate">
                   {listPublicId
-                    ? listOptions.find((o) => o.publicId === listPublicId)
-                        ?.name
+                    ? listOptions.find((o) => o.publicId === listPublicId)?.name
                     : t`Select a list`}
                 </span>
-                <span className="pointer-events-none absolute right-2 top-1/2 flex -translate-y-1/2 items-center">
+                <span className="pointer-events-none absolute top-1/2 right-2 flex -translate-y-1/2 items-center">
                   <HiChevronDown
                     className="h-4 w-4 text-light-600 dark:text-dark-600"
                     aria-hidden
@@ -130,8 +136,8 @@ export function CardContextDuplicateModal({
                 leaveFrom="opacity-100"
                 leaveTo="opacity-0"
               >
-                <ListboxOptions className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-light-200 bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:border-dark-400 dark:bg-dark-200">
-                  <div className="max-h-60 overflow-y-auto py-1 pr-1 scrollbar scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-600">
+                <ListboxOptions className="absolute z-50 mt-1 w-full overflow-hidden rounded-md border border-light-200 bg-white shadow-lg ring-1 ring-black/5 focus:outline-hidden dark:border-dark-400 dark:bg-dark-200">
+                  <div className="scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-w-[8px] scrollbar max-h-60 scrollbar-thumb-light-400 scrollbar-track-light-200 overflow-y-auto py-1 pr-1 dark:scrollbar-thumb-dark-600 dark:scrollbar-track-dark-100">
                     {listOptions.map((option) => {
                       const isCurrentList =
                         option.publicId === currentListPublicId;
@@ -142,7 +148,7 @@ export function CardContextDuplicateModal({
                           disabled={isCurrentList}
                           className={({ focus }) =>
                             twMerge(
-                              "relative select-none py-2 pl-3 pr-9 text-sm",
+                              "relative py-2 pr-9 pl-3 text-sm select-none",
                               isCurrentList
                                 ? "cursor-default opacity-50"
                                 : "cursor-pointer",
@@ -194,13 +200,13 @@ export function CardContextDuplicateModal({
           <div className="flex flex-col gap-2">
             {hasLabels && (
               <div className="flex items-center gap-3">
-                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] flex-shrink-0 cursor-pointer items-center justify-center">
+                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] shrink-0 cursor-pointer items-center justify-center">
                   <input
                     type="checkbox"
                     checked={copyLabels}
                     onChange={(e) => setCopyLabels(e.target.checked)}
                     className={twMerge(
-                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent outline-none ring-0 checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none dark:border-dark-500 dark:hover:border-dark-500",
+                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent ring-0 outline-hidden checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-hidden dark:border-dark-500 dark:hover:border-dark-500",
                       "cursor-pointer",
                     )}
                   />
@@ -212,13 +218,13 @@ export function CardContextDuplicateModal({
             )}
             {hasMembers && (
               <div className="flex items-center gap-3">
-                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] flex-shrink-0 cursor-pointer items-center justify-center">
+                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] shrink-0 cursor-pointer items-center justify-center">
                   <input
                     type="checkbox"
                     checked={copyMembers}
                     onChange={(e) => setCopyMembers(e.target.checked)}
                     className={twMerge(
-                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent outline-none ring-0 checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none dark:border-dark-500 dark:hover:border-dark-500",
+                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent ring-0 outline-hidden checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-hidden dark:border-dark-500 dark:hover:border-dark-500",
                       "cursor-pointer",
                     )}
                   />
@@ -230,13 +236,13 @@ export function CardContextDuplicateModal({
             )}
             {hasChecklists && (
               <div className="flex items-center gap-3">
-                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] flex-shrink-0 cursor-pointer items-center justify-center">
+                <label className="relative mt-[2px] inline-flex h-[16px] w-[16px] shrink-0 cursor-pointer items-center justify-center">
                   <input
                     type="checkbox"
                     checked={copyChecklists}
                     onChange={(e) => setCopyChecklists(e.target.checked)}
                     className={twMerge(
-                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent outline-none ring-0 checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-none dark:border-dark-500 dark:hover:border-dark-500",
+                      "h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent ring-0 outline-hidden checked:bg-blue-600 focus:shadow-none focus:ring-0 focus:ring-offset-0 focus-visible:outline-hidden dark:border-dark-500 dark:hover:border-dark-500",
                       "cursor-pointer",
                     )}
                   />

@@ -1,24 +1,35 @@
+import { UseFilters } from "@nestjs/common";
+import { Ctx, Payload } from "@nestjs/microservices";
+import {
+  McpController,
+  McpExceptionFilter,
+  McpRawRequest,
+  Tool,
+} from "@rekog/mcp-nest";
 import { z } from "zod";
-import { Injectable } from "@nestjs/common";
-import { Tool } from "@rekog/mcp-nest";
 
-import { CreateLabelSchema, UpdateLabelSchema } from "../../label/dto/label.dto.js";
+import {
+  CreateLabelSchema,
+  UpdateLabelSchema,
+} from "../../label/dto/label.dto.js";
 import { LabelService } from "../../label/label.service.js";
 import { requireMcpUser } from "../mcp-user.util.js";
+import { labelPublicId } from "./public-ids.js";
 
 const GetLabelSchema = z.object({
-  labelPublicId: z.string().min(12),
+  labelPublicId,
 });
 
 const DeleteLabelSchema = z.object({
-  labelPublicId: z.string().min(12),
+  labelPublicId,
 });
 
 const UpdateLabelWithIdSchema = UpdateLabelSchema.extend({
-  labelPublicId: z.string().min(12),
+  labelPublicId,
 });
 
-@Injectable()
+@UseFilters(McpExceptionFilter)
+@McpController()
 export class LabelTools {
   constructor(private readonly labelService: LabelService) {}
 
@@ -28,9 +39,9 @@ export class LabelTools {
     parameters: GetLabelSchema,
   })
   async getLabel(
-    args: z.infer<typeof GetLabelSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof GetLabelSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.labelService.byPublicId({
@@ -45,9 +56,9 @@ export class LabelTools {
     parameters: CreateLabelSchema,
   })
   async createLabel(
-    args: z.infer<typeof CreateLabelSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof CreateLabelSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.labelService.create({
@@ -60,13 +71,14 @@ export class LabelTools {
 
   @Tool({
     name: "update_label",
-    description: "Update a label's name or colour, on behalf of the current user.",
+    description:
+      "Update a label's name or colour, on behalf of the current user.",
     parameters: UpdateLabelWithIdSchema,
   })
   async updateLabel(
-    args: z.infer<typeof UpdateLabelWithIdSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof UpdateLabelWithIdSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.labelService.update({
@@ -83,9 +95,9 @@ export class LabelTools {
     parameters: DeleteLabelSchema,
   })
   async deleteLabel(
-    args: z.infer<typeof DeleteLabelSchema>,
-    _context: unknown,
-    rawRequest: { user?: unknown } | undefined,
+    @Payload() args: z.infer<typeof DeleteLabelSchema>,
+    @Ctx() _context: unknown,
+    @McpRawRequest() rawRequest: { user?: unknown } | undefined,
   ) {
     const user = requireMcpUser(rawRequest);
     return this.labelService.delete({

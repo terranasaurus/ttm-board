@@ -1,11 +1,11 @@
 import { InternalServerErrorException } from "@nestjs/common";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as permissions from "@kan/api/utils/permissions";
 import * as boardRepo from "@kan/db/repository/board.repo";
 import * as cardRepo from "@kan/db/repository/card.repo";
 import * as activityRepo from "@kan/db/repository/cardActivity.repo";
 import * as listRepo from "@kan/db/repository/list.repo";
+import * as permissions from "@kan/server/utils/permissions";
 
 import { ListService } from "../list.service.js";
 
@@ -63,16 +63,15 @@ describe("ListService.create", () => {
         boardPublicId: "board_missing",
         userId: "user_1",
       }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 
 describe("ListService.delete", () => {
   it("soft deletes the list and its cards", async () => {
-    vi.spyOn(
-      listRepo,
-      "getWorkspaceAndListIdByListPublicId",
-    ).mockResolvedValue(list as never);
+    vi.spyOn(listRepo, "getWorkspaceAndListIdByListPublicId").mockResolvedValue(
+      list as never,
+    );
     vi.spyOn(listRepo, "softDeleteById").mockResolvedValue({ id: 1 } as never);
     vi.spyOn(cardRepo, "softDeleteAllByListIds").mockResolvedValue([
       { id: 1 },
@@ -90,34 +89,31 @@ describe("ListService.delete", () => {
     expect(bulkCreate).toHaveBeenCalled();
     // toHaveBeenCalledWith/toEqual on this spy's args crashes vitest (OOM) here — check shallowly.
     const activities = bulkCreate.mock.calls[0]?.[1] as
-      | { type: string; createdBy: string; cardId: number }[]
-      | undefined;
+      { type: string; createdBy: string; cardId: number }[] | undefined;
     expect(activities?.[0]?.type).toBe("card.archived");
     expect(activities?.[0]?.cardId).toBe(1);
   });
 
   it("throws NOT_FOUND when the list doesn't exist", async () => {
-    vi.spyOn(
-      listRepo,
-      "getWorkspaceAndListIdByListPublicId",
-    ).mockResolvedValue(undefined as never);
+    vi.spyOn(listRepo, "getWorkspaceAndListIdByListPublicId").mockResolvedValue(
+      undefined as never,
+    );
 
     await expect(
       service.delete({ listPublicId: "list_missing", userId: "user_1" }),
-    ).rejects.toMatchObject({ code: "NOT_FOUND" });
+    ).rejects.toMatchObject({ status: 404 });
   });
 });
 
 describe("ListService.update", () => {
   it("renames the list", async () => {
-    vi.spyOn(
-      listRepo,
-      "getWorkspaceAndListIdByListPublicId",
-    ).mockResolvedValue(list as never);
+    vi.spyOn(listRepo, "getWorkspaceAndListIdByListPublicId").mockResolvedValue(
+      list as never,
+    );
     vi.spyOn(listRepo, "update").mockResolvedValue({
       publicId: "list_12345",
       name: "Doing",
-    } as never);
+    });
 
     const result = await service.update({
       listPublicId: "list_12345",
@@ -129,14 +125,13 @@ describe("ListService.update", () => {
   });
 
   it("reorders the list when an index is given", async () => {
-    vi.spyOn(
-      listRepo,
-      "getWorkspaceAndListIdByListPublicId",
-    ).mockResolvedValue(list as never);
+    vi.spyOn(listRepo, "getWorkspaceAndListIdByListPublicId").mockResolvedValue(
+      list as never,
+    );
     vi.spyOn(listRepo, "reorder").mockResolvedValue({
       publicId: "list_12345",
       name: "To do",
-    } as never);
+    });
 
     const result = await service.update({
       listPublicId: "list_12345",
@@ -148,10 +143,9 @@ describe("ListService.update", () => {
   });
 
   it("throws when neither update produces a result", async () => {
-    vi.spyOn(
-      listRepo,
-      "getWorkspaceAndListIdByListPublicId",
-    ).mockResolvedValue(list as never);
+    vi.spyOn(listRepo, "getWorkspaceAndListIdByListPublicId").mockResolvedValue(
+      list as never,
+    );
 
     await expect(
       service.update({ listPublicId: "list_12345", userId: "user_1" }),

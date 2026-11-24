@@ -1,6 +1,7 @@
 import type { Browser, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
+import { apiBaseURL } from "../support/api-base-url";
 import { AuthPage } from "../support/pages/auth-page";
 import { BoardPage } from "../support/pages/board-page";
 import { DashboardPage } from "../support/pages/dashboard-page";
@@ -125,16 +126,12 @@ test(
     if (!boardPublicId) throw new Error("Could not resolve board from URL");
 
     const listResponse = await page.request.get(
-      `/api/trpc/board.byId?batch=1&input=${encodeURIComponent(
-        JSON.stringify({
-          "0": { json: { boardPublicId } },
-        }),
-      )}`,
+      `${apiBaseURL}/boards/${boardPublicId}`,
     );
-    const listBody = (await listResponse.json()) as [
-      { result: { data: { json: { lists: { publicId: string }[] } } } },
-    ];
-    const targetListPublicId = listBody[0].result.data.json.lists[0]?.publicId;
+    const listBody = (await listResponse.json()) as {
+      lists: { publicId: string }[];
+    };
+    const targetListPublicId = listBody.lists[0]?.publicId;
     if (!targetListPublicId) throw new Error("Could not resolve list publicId");
 
     await settings.open();
@@ -153,34 +150,21 @@ test(
       throw new Error("workspacePublicId not found in localStorage");
 
     const workspaceResponse = await page.request.get(
-      `/api/trpc/workspace.byId?batch=1&input=${encodeURIComponent(
-        JSON.stringify({ "0": { json: { workspacePublicId } } }),
-      )}`,
+      `${apiBaseURL}/workspaces/${workspacePublicId}`,
     );
-    const workspaceBody = (await workspaceResponse.json()) as [
-      {
-        result: {
-          data: { json: { members: { publicId: string; email?: string }[] } };
-        };
-      },
-    ];
-    const invitedMember = workspaceBody[0].result.data.json.members.find(
+    const workspaceBody = (await workspaceResponse.json()) as {
+      members: { publicId: string; email?: string }[];
+    };
+    const invitedMember = workspaceBody.members.find(
       (member) => member.email === memberUser.email,
     );
     if (!invitedMember)
       throw new Error("Could not resolve invited member's publicId");
 
     const boardMemberAddResponse = await page.request.post(
-      "/api/trpc/boardMember.add?batch=1",
+      `${apiBaseURL}/boards/${boardPublicId}/members`,
       {
-        data: {
-          "0": {
-            json: {
-              boardPublicId,
-              workspaceMemberPublicId: invitedMember.publicId,
-            },
-          },
-        },
+        data: { workspaceMemberPublicId: invitedMember.publicId },
       },
     );
     expect(boardMemberAddResponse.ok()).toBe(true);
@@ -195,8 +179,10 @@ test(
     };
 
     const blockedResponse = await memberPage.request.post(
-      "/api/trpc/card.create?batch=1",
-      { data: { "0": { json: cardInput } } },
+      `${apiBaseURL}/cards`,
+      {
+        data: cardInput,
+      },
     );
     expect(blockedResponse.status()).toBe(403);
 
@@ -205,8 +191,10 @@ test(
     await settings.setRolePermission("Can create cards", "member", true);
 
     const allowedResponse = await memberPage.request.post(
-      "/api/trpc/card.create?batch=1",
-      { data: { "0": { json: cardInput } } },
+      `${apiBaseURL}/cards`,
+      {
+        data: cardInput,
+      },
     );
     expect(allowedResponse.ok()).toBe(true);
 

@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { t } from "@lingui/core/macro";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { authClient } from "@kan/auth/client";
@@ -8,20 +8,19 @@ import { authClient } from "@kan/auth/client";
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 
 export function DeleteAccountConfirmation() {
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
   const router = useRouter();
 
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const [isAcknowledgmentChecked, setIsAcknowledgmentChecked] = useState(false);
 
   const deleteAccountMutation = useMutation({
     mutationFn: () => authClient.deleteUser(),
-    onSuccess: async () => {
+    onSuccess: () => {
       closeModal();
       showPopup({
         header: t`Account deleted`,
@@ -29,7 +28,7 @@ export function DeleteAccountConfirmation() {
         icon: "success",
       });
 
-      utils.invalidate();
+      void queryClient.invalidateQueries();
 
       router.push("/");
     },
@@ -67,7 +66,7 @@ export function DeleteAccountConfirmation() {
             name="acknowledgment"
             type="checkbox"
             aria-describedby="acknowledgment-description"
-            className="mt-2 h-[14px] w-[14px] rounded border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
+            className="mt-2 h-[14px] w-[14px] rounded-sm border-gray-300 bg-transparent text-indigo-600 focus:shadow-none focus:ring-0 focus:ring-offset-0"
             checked={isAcknowledgmentChecked}
             onChange={() =>
               setIsAcknowledgmentChecked(!isAcknowledgmentChecked)

@@ -4,7 +4,7 @@ import { config as loadDotenv } from "dotenv";
 
 import { apiBaseURL, apiPort } from "./tests/support/api-base-url";
 
-loadDotenv({ path: "../../.env" });
+loadDotenv({ path: "../../.env", quiet: true });
 
 const stripeEnv = (key: string, placeholder: string) =>
   process.env[key] || placeholder;
@@ -78,12 +78,6 @@ const modeConfig: Record<Mode, { port: string; env: Record<string, string> }> =
         STRIPE_WEBHOOK_SECRET:
           stripeListenSecret ??
           stripeEnv("STRIPE_WEBHOOK_SECRET", "whsec_e2e_placeholder"),
-        STRIPE_WEBHOOK_SECRET_LEGACY:
-          stripeListenSecret ??
-          stripeEnv(
-            "STRIPE_WEBHOOK_SECRET_LEGACY",
-            "whsec_e2e_legacy_placeholder",
-          ),
         STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID: stripeEnv(
           "STRIPE_TEAM_PLAN_MONTHLY_PRICE_ID",
           "price_e2e_placeholder",
@@ -113,13 +107,15 @@ const baseURL = remoteBaseURL ?? `http://localhost:${port}`;
 export default defineConfig({
   globalSetup: "./tests/support/global-setup.ts",
   fullyParallel: true,
+  timeout: 60_000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 1,
-  workers: 1,
+  // Cloud tests each run `stripe listen`, which forwards every account event, so they stay serial.
+  workers: mode === "cloud" ? 1 : 3,
   reporter: process.env.CI ? [["html", { open: "never" }], ["github"]] : "list",
   use: {
     baseURL,
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
   projects: [
@@ -160,12 +156,18 @@ export default defineConfig({
           },
         },
         {
-          command: "pnpm --filter @kan/api-server start",
+          command: "pnpm --filter @kan/api start",
           cwd: "../..",
           url: `${apiBaseURL}/health`,
           reuseExistingServer: !process.env.CI,
           timeout: 60_000,
-          env: { API_PORT: apiPort, CORS_ORIGIN: baseURL },
+          env: {
+            API_PORT: apiPort,
+            CORS_ORIGIN: baseURL,
+            NEXT_PUBLIC_BASE_URL: baseURL,
+            ...sharedEnv,
+            ...modeEnv,
+          },
         },
         {
           command: `pnpm --filter @kan/web build && pnpm --filter @kan/web with-env next start -p ${port}`,

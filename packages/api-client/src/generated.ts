@@ -23,18 +23,1237 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 
 import { customFetch } from "./mutator/custom-fetch";
 
-export interface CreateFeedbackDto {
-  /** @minLength 1 */
-  feedback: string;
-  /** @minLength 1 */
-  url: string;
+export interface AttachmentResponseDtoOutput {
+  publicId: string;
+  filename: string;
+  originalFilename: string;
+  contentType: string;
+  size: number;
+  s3Key: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
 }
 
-export interface CreateFeedbackResponseDto {
+export interface GenerateUploadUrlDto {
+  /**
+   * @minLength 1
+   * @maxLength 255
+   */
+  filename: string;
+  contentType: string;
+  /**
+   * @maximum 52428800
+   * @exclusiveMinimum 0
+   */
+  size: number;
+}
+
+export interface UploadUrlResponseDtoOutput {
+  url: string;
+  key: string;
+}
+
+export interface ConfirmAttachmentDto {
+  s3Key: string;
+  filename: string;
+  originalFilename: string;
+  contentType: string;
+  /** @exclusiveMinimum 0 */
+  size: number;
+}
+
+export interface DeleteAttachmentResponseDtoOutput {
   success: boolean;
 }
 
-export interface LabelResponseDto {
+export type BoardListItemDtoOutputListsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+};
+
+export type BoardListItemDtoOutputLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export interface BoardListItemDtoOutput {
+  publicId: string;
+  name: string;
+  favorite: boolean;
+  lists: BoardListItemDtoOutputListsItem[];
+  labels: BoardListItemDtoOutputLabelsItem[];
+}
+
+/**
+ * 'regular' for a board (default), 'template' for a board template.
+ */
+export type CreateBoardDtoType =
+  (typeof CreateBoardDtoType)[keyof typeof CreateBoardDtoType];
+
+export const CreateBoardDtoType = {
+  regular: "regular",
+  template: "template",
+} as const;
+
+export interface CreateBoardDto {
+  /**
+   * Board name.
+   * @minLength 1
+   * @maxLength 100
+   */
+  name: string;
+  /**
+   * Names of the lists to create, in order, e.g. ['To do', 'Done'].
+   * @items.minLength 1
+   */
+  lists: string[];
+  /**
+   * Names of the labels to create, e.g. ['Bug', 'Feature'].
+   * @items.minLength 1
+   */
+  labels: string[];
+  /** 'regular' for a board (default), 'template' for a board template. */
+  type?: CreateBoardDtoType;
+  /**
+   * Public ID of a board or template to copy lists and labels from.
+   * @minLength 12
+   */
+  sourceBoardPublicId?: string;
+}
+
+export interface BoardCreateResponseDtoOutput {
+  publicId: string;
+  name: string;
+}
+
+export type BoardDetailDtoOutputVisibility =
+  (typeof BoardDetailDtoOutputVisibility)[keyof typeof BoardDetailDtoOutputVisibility];
+
+export const BoardDetailDtoOutputVisibility = {
+  private: "private",
+  public: "public",
+} as const;
+
+export type BoardDetailDtoOutputWorkspaceMembersItemStatus =
+  (typeof BoardDetailDtoOutputWorkspaceMembersItemStatus)[keyof typeof BoardDetailDtoOutputWorkspaceMembersItemStatus];
+
+export const BoardDetailDtoOutputWorkspaceMembersItemStatus = {
+  invited: "invited",
+  active: "active",
+  removed: "removed",
+  paused: "paused",
+} as const;
+
+/**
+ * @nullable
+ */
+export type BoardDetailDtoOutputWorkspaceMembersItemUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+export type BoardDetailDtoOutputWorkspaceMembersItem = {
+  publicId: string;
+  email: string;
+  status: BoardDetailDtoOutputWorkspaceMembersItemStatus;
+  /** @nullable */
+  user: BoardDetailDtoOutputWorkspaceMembersItemUser;
+};
+
+export type BoardDetailDtoOutputWorkspace = {
+  publicId: string;
+  cardPrefix: string;
+  members: BoardDetailDtoOutputWorkspaceMembersItem[];
+};
+
+export type BoardDetailDtoOutputLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemMembersItemStatus =
+  (typeof BoardDetailDtoOutputListsItemCardsItemMembersItemStatus)[keyof typeof BoardDetailDtoOutputListsItemCardsItemMembersItemStatus];
+
+export const BoardDetailDtoOutputListsItemCardsItemMembersItemStatus = {
+  invited: "invited",
+  active: "active",
+  removed: "removed",
+  paused: "paused",
+} as const;
+
+/**
+ * @nullable
+ */
+export type BoardDetailDtoOutputListsItemCardsItemMembersItemUser = {
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+export type BoardDetailDtoOutputListsItemCardsItemMembersItem = {
+  publicId: string;
+  email: string;
+  status: BoardDetailDtoOutputListsItemCardsItemMembersItemStatus;
+  /** @nullable */
+  user: BoardDetailDtoOutputListsItemCardsItemMembersItemUser;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemAttachmentsItem = {
+  publicId: string;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemChecklistsItemItemsItem = {
+  publicId: string;
+  title: string;
+  completed: boolean;
+  index: number;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemChecklistsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+  items: BoardDetailDtoOutputListsItemCardsItemChecklistsItemItemsItem[];
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemCommentsItem = {
+  publicId: string;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItemSummary = {
+  hasDescription: boolean;
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  attachmentCount: number;
+  hasComments: boolean;
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  checklistItemCount: number;
+  /**
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  completedChecklistItemCount: number;
+};
+
+export type BoardDetailDtoOutputListsItemCardsItem = {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  index: number;
+  /** @nullable */
+  cardNumber: number | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate: string | null;
+  labels: BoardDetailDtoOutputListsItemCardsItemLabelsItem[];
+  members: BoardDetailDtoOutputListsItemCardsItemMembersItem[];
+  attachments: BoardDetailDtoOutputListsItemCardsItemAttachmentsItem[];
+  checklists: BoardDetailDtoOutputListsItemCardsItemChecklistsItem[];
+  comments: BoardDetailDtoOutputListsItemCardsItemCommentsItem[];
+  summary?: BoardDetailDtoOutputListsItemCardsItemSummary;
+};
+
+export type BoardDetailDtoOutputListsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+  cards: BoardDetailDtoOutputListsItemCardsItem[];
+};
+
+export type BoardDetailDtoOutputAllListsItem = {
+  publicId: string;
+  name: string;
+};
+
+export interface BoardDetailDtoOutput {
+  publicId: string;
+  name: string;
+  slug: string;
+  visibility: BoardDetailDtoOutputVisibility;
+  isArchived: boolean;
+  favorite: boolean;
+  /** Members assigned to at least one card on the board. */
+  assignedMemberPublicIds: string[];
+  workspace: BoardDetailDtoOutputWorkspace;
+  labels: BoardDetailDtoOutputLabelsItem[];
+  lists: BoardDetailDtoOutputListsItem[];
+  allLists: BoardDetailDtoOutputAllListsItem[];
+}
+
+/**
+ * 'public' boards can be viewed by anyone with the link, 'private' only by members.
+ */
+export type UpdateBoardDtoVisibility =
+  (typeof UpdateBoardDtoVisibility)[keyof typeof UpdateBoardDtoVisibility];
+
+export const UpdateBoardDtoVisibility = {
+  public: "public",
+  private: "private",
+} as const;
+
+export interface UpdateBoardDto {
+  /**
+   * New board name.
+   * @minLength 1
+   */
+  name?: string;
+  /**
+   * New URL slug of letters, numbers and hyphens.
+   * @minLength 1
+   * @maxLength 60
+   * @pattern ^(?![-]+$)[a-zA-Z0-9-]+$
+   */
+  slug?: string;
+  /** 'public' boards can be viewed by anyone with the link, 'private' only by members. */
+  visibility?: UpdateBoardDtoVisibility;
+  /** Whether the board is in the current user's favourites. */
+  favorite?: boolean;
+  /** Archive (true) or restore (false) the board. */
+  isArchived?: boolean;
+}
+
+export interface BoardUpdateResponseDtoOutput {
+  success?: boolean;
+  publicId?: string;
+  name?: string;
+}
+
+export interface SuccessResponseDtoOutput {
+  success: boolean;
+}
+
+export interface MoveBoardDto {
+  /**
+   * Public ID of the workspace to move the board to.
+   * @minLength 12
+   */
+  targetWorkspacePublicId: string;
+}
+
+export interface BoardSlugAvailabilityDtoOutput {
+  isReserved: boolean;
+}
+
+export type BoardBySlugDtoOutputVisibility =
+  (typeof BoardBySlugDtoOutputVisibility)[keyof typeof BoardBySlugDtoOutputVisibility];
+
+export const BoardBySlugDtoOutputVisibility = {
+  private: "private",
+  public: "public",
+} as const;
+
+export type BoardBySlugDtoOutputWorkspace = {
+  publicId: string;
+  name: string;
+  slug: string;
+};
+
+export type BoardBySlugDtoOutputLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItemLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItemAttachmentsItem = {
+  publicId: string;
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItemChecklistsItemItemsItem = {
+  publicId: string;
+  title: string;
+  completed: boolean;
+  index: number;
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItemChecklistsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+  items: BoardBySlugDtoOutputListsItemCardsItemChecklistsItemItemsItem[];
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItemCommentsItem = {
+  publicId: string;
+};
+
+export type BoardBySlugDtoOutputListsItemCardsItem = {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  index: number;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate: string | null;
+  labels: BoardBySlugDtoOutputListsItemCardsItemLabelsItem[];
+  attachments: BoardBySlugDtoOutputListsItemCardsItemAttachmentsItem[];
+  checklists: BoardBySlugDtoOutputListsItemCardsItemChecklistsItem[];
+  comments: BoardBySlugDtoOutputListsItemCardsItemCommentsItem[];
+};
+
+export type BoardBySlugDtoOutputListsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+  cards: BoardBySlugDtoOutputListsItemCardsItem[];
+};
+
+export type BoardBySlugDtoOutputAllListsItem = {
+  publicId: string;
+  name: string;
+};
+
+export interface BoardBySlugDtoOutput {
+  publicId: string;
+  name: string;
+  slug: string;
+  visibility: BoardBySlugDtoOutputVisibility;
+  workspace: BoardBySlugDtoOutputWorkspace;
+  labels: BoardBySlugDtoOutputLabelsItem[];
+  lists: BoardBySlugDtoOutputListsItem[];
+  allLists: BoardBySlugDtoOutputAllListsItem[];
+}
+
+export type BoardMemberDtoOutputRole =
+  (typeof BoardMemberDtoOutputRole)[keyof typeof BoardMemberDtoOutputRole];
+
+export const BoardMemberDtoOutputRole = {
+  admin: "admin",
+  member: "member",
+} as const;
+
+/**
+ * @nullable
+ */
+export type BoardMemberDtoOutputUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+export interface BoardMemberDtoOutput {
+  publicId: string;
+  email: string;
+  status: string;
+  role: BoardMemberDtoOutputRole;
+  workspaceRole: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @nullable */
+  user: BoardMemberDtoOutputUser;
+}
+
+/**
+ * Board role: 'admin' or 'member' (default).
+ */
+export type AddBoardMemberDtoRole =
+  (typeof AddBoardMemberDtoRole)[keyof typeof AddBoardMemberDtoRole];
+
+export const AddBoardMemberDtoRole = {
+  admin: "admin",
+  member: "member",
+} as const;
+
+export interface AddBoardMemberDto {
+  /**
+   * Public ID of the workspace member (not the user ID) to add.
+   * @minLength 12
+   */
+  workspaceMemberPublicId: string;
+  /** Board role: 'admin' or 'member' (default). */
+  role?: AddBoardMemberDtoRole;
+}
+
+export type BoardMemberRoleResultDtoOutputRole =
+  (typeof BoardMemberRoleResultDtoOutputRole)[keyof typeof BoardMemberRoleResultDtoOutputRole];
+
+export const BoardMemberRoleResultDtoOutputRole = {
+  admin: "admin",
+  member: "member",
+} as const;
+
+export interface BoardMemberRoleResultDtoOutput {
+  publicId: string;
+  role: BoardMemberRoleResultDtoOutputRole;
+}
+
+/**
+ * New board role: 'admin' or 'member'.
+ */
+export type UpdateBoardMemberRoleDtoRole =
+  (typeof UpdateBoardMemberRoleDtoRole)[keyof typeof UpdateBoardMemberRoleDtoRole];
+
+export const UpdateBoardMemberRoleDtoRole = {
+  admin: "admin",
+  member: "member",
+} as const;
+
+export interface UpdateBoardMemberRoleDto {
+  /** New board role: 'admin' or 'member'. */
+  role: UpdateBoardMemberRoleDtoRole;
+}
+
+export interface BoardMemberRemoveResponseDtoOutput {
+  publicId: string;
+}
+
+/**
+ * Add the card at the start or end of the list.
+ */
+export type CreateCardDtoPosition =
+  (typeof CreateCardDtoPosition)[keyof typeof CreateCardDtoPosition];
+
+export const CreateCardDtoPosition = {
+  start: "start",
+  end: "end",
+} as const;
+
+export interface CreateCardDto {
+  /**
+   * Card title.
+   * @minLength 1
+   * @maxLength 2000
+   */
+  title: string;
+  /**
+   * Card description. Plain text, or markdown or HTML for formatting.
+   * @maxLength 10000
+   */
+  description: string;
+  /**
+   * Public ID of the list to add the card to.
+   * @minLength 12
+   */
+  listPublicId: string;
+  /**
+   * Public IDs of board labels to attach.
+   * @items.minLength 12
+   */
+  labelPublicIds: string[];
+  /**
+   * Public IDs of workspace members (not user IDs) to assign.
+   * @items.minLength 12
+   */
+  memberPublicIds: string[];
+  /** Add the card at the start or end of the list. */
+  position: CreateCardDtoPosition;
+  /**
+   * Due date in ISO 8601, e.g. 2026-12-31T17:00:00Z.
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate?: string | null;
+}
+
+export interface PublicIdResponseDtoOutput {
+  publicId: string;
+}
+
+export interface UpdateCardDto {
+  /**
+   * New card title.
+   * @minLength 1
+   * @maxLength 2000
+   */
+  title?: string;
+  /** New card description. Plain text, or markdown or HTML for formatting. */
+  description?: string;
+  /** Zero-based position in the card's list, or in listPublicId when moving; 0 is the top. */
+  index?: number;
+  /**
+   * Public ID of a list to move the card to.
+   * @minLength 12
+   */
+  listPublicId?: string;
+  /**
+   * Due date in ISO 8601, e.g. 2026-12-31T17:00:00Z, or null to clear it.
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate?: string | null;
+}
+
+export interface CardUpdateResponseDtoOutput {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate: string | null;
+}
+
+export interface DuplicateCardDto {
+  /**
+   * Public ID of the list to put the copy in.
+   * @minLength 12
+   */
+  listPublicId: string;
+  /**
+   * Zero-based position in that list. Defaults to the end.
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  index?: number;
+  /**
+   * Title for the copy. Defaults to the original title.
+   * @minLength 1
+   * @maxLength 2000
+   */
+  title?: string;
+  /** Copy the card's labels. */
+  copyLabels: boolean;
+  /** Copy the card's assigned members. */
+  copyMembers: boolean;
+  /** Copy the card's checklists. */
+  copyChecklists: boolean;
+}
+
+export interface CommentDto {
+  /**
+   * Comment text. Plain text, or markdown or HTML for formatting.
+   * @minLength 1
+   */
+  comment: string;
+}
+
+export interface CommentResponseDtoOutput {
+  publicId: string;
+  comment: string;
+}
+
+export interface ToggleLabelResponseDtoOutput {
+  newLabel: boolean;
+}
+
+export interface ToggleMemberResponseDtoOutput {
+  newMember: boolean;
+}
+
+export type CardDetailDtoOutputLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type CardDetailDtoOutputAttachmentsItem = {
+  publicId: string;
+  contentType: string;
+  s3Key: string;
+  /** @nullable */
+  originalFilename: string | null;
+  /** @nullable */
+  size: number | null;
+  /** @nullable */
+  url: string | null;
+  /** @nullable */
+  downloadUrl: string | null;
+};
+
+export type CardDetailDtoOutputChecklistsItemItemsItem = {
+  publicId: string;
+  title: string;
+  completed: boolean;
+  index: number;
+};
+
+export type CardDetailDtoOutputChecklistsItem = {
+  publicId: string;
+  name: string;
+  index: number;
+  items: CardDetailDtoOutputChecklistsItemItemsItem[];
+};
+
+export type CardDetailDtoOutputListBoardLabelsItem = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  colourCode: string | null;
+};
+
+export type CardDetailDtoOutputListBoardListsItem = {
+  publicId: string;
+  name: string;
+};
+
+export type CardDetailDtoOutputListBoardWorkspaceMembersItemStatus =
+  (typeof CardDetailDtoOutputListBoardWorkspaceMembersItemStatus)[keyof typeof CardDetailDtoOutputListBoardWorkspaceMembersItemStatus];
+
+export const CardDetailDtoOutputListBoardWorkspaceMembersItemStatus = {
+  invited: "invited",
+  active: "active",
+  removed: "removed",
+  paused: "paused",
+} as const;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputListBoardWorkspaceMembersItemUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+export type CardDetailDtoOutputListBoardWorkspaceMembersItem = {
+  publicId: string;
+  email: string;
+  status: CardDetailDtoOutputListBoardWorkspaceMembersItemStatus;
+  /** @nullable */
+  user: CardDetailDtoOutputListBoardWorkspaceMembersItemUser;
+};
+
+export type CardDetailDtoOutputListBoardWorkspace = {
+  publicId: string;
+  cardPrefix: string;
+  members: CardDetailDtoOutputListBoardWorkspaceMembersItem[];
+};
+
+export type CardDetailDtoOutputListBoard = {
+  publicId: string;
+  name: string;
+  labels: CardDetailDtoOutputListBoardLabelsItem[];
+  lists: CardDetailDtoOutputListBoardListsItem[];
+  workspace: CardDetailDtoOutputListBoardWorkspace;
+};
+
+export type CardDetailDtoOutputList = {
+  publicId: string;
+  name: string;
+  board: CardDetailDtoOutputListBoard;
+};
+
+export type CardDetailDtoOutputMembersItemStatus =
+  (typeof CardDetailDtoOutputMembersItemStatus)[keyof typeof CardDetailDtoOutputMembersItemStatus];
+
+export const CardDetailDtoOutputMembersItemStatus = {
+  invited: "invited",
+  active: "active",
+  removed: "removed",
+  paused: "paused",
+} as const;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputMembersItemUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+} | null;
+
+export type CardDetailDtoOutputMembersItem = {
+  publicId: string;
+  email: string;
+  status: CardDetailDtoOutputMembersItemStatus;
+  /** @nullable */
+  user: CardDetailDtoOutputMembersItemUser;
+};
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemFromList = {
+  publicId: string;
+  name: string;
+  index: number;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemToList = {
+  publicId: string;
+  name: string;
+  index: number;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemLabel = {
+  publicId: string;
+  name: string;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemComment = {
+  publicId: string;
+  comment: string;
+  /** @nullable */
+  createdBy: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  deletedAt: string | null;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemMemberUser = {
+  /** @nullable */
+  name: string | null;
+  email: string;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemMember = {
+  publicId: string;
+  /** @nullable */
+  user: CardDetailDtoOutputActivitiesItemMemberUser;
+} | null;
+
+/**
+ * @nullable
+ */
+export type CardDetailDtoOutputActivitiesItemUser = {
+  /** @nullable */
+  name: string | null;
+  email: string;
+} | null;
+
+export type CardDetailDtoOutputActivitiesItem = {
+  publicId: string;
+  type: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @nullable */
+  fromIndex: number | null;
+  /** @nullable */
+  toIndex: number | null;
+  /** @nullable */
+  fromTitle: string | null;
+  /** @nullable */
+  toTitle: string | null;
+  /** @nullable */
+  fromDescription: string | null;
+  /** @nullable */
+  toDescription: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  fromDueDate: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  toDueDate: string | null;
+  /** @nullable */
+  fromList: CardDetailDtoOutputActivitiesItemFromList;
+  /** @nullable */
+  toList: CardDetailDtoOutputActivitiesItemToList;
+  /** @nullable */
+  label: CardDetailDtoOutputActivitiesItemLabel;
+  /** @nullable */
+  comment: CardDetailDtoOutputActivitiesItemComment;
+  /** @nullable */
+  member: CardDetailDtoOutputActivitiesItemMember;
+  /** @nullable */
+  user: CardDetailDtoOutputActivitiesItemUser;
+};
+
+export interface CardDetailDtoOutput {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  /** @nullable */
+  cardNumber: number | null;
+  index: number;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  dueDate: string | null;
+  /** @nullable */
+  createdBy: string | null;
+  labels: CardDetailDtoOutputLabelsItem[];
+  attachments: CardDetailDtoOutputAttachmentsItem[];
+  checklists: CardDetailDtoOutputChecklistsItem[];
+  list: CardDetailDtoOutputList;
+  members: CardDetailDtoOutputMembersItem[];
+  activities: CardDetailDtoOutputActivitiesItem[];
+}
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemFromList = {
+  publicId: string;
+  name: string;
+  index: number;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemToList = {
+  publicId: string;
+  name: string;
+  index: number;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemLabel = {
+  publicId: string;
+  name: string;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemComment = {
+  publicId: string;
+  comment: string;
+  /** @nullable */
+  createdBy: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  deletedAt: string | null;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemMemberUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemMember = {
+  publicId: string;
+  /** @nullable */
+  user: ActivitiesResponseDtoOutputActivitiesItemMemberUser;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+/**
+ * @nullable
+ */
+export type ActivitiesResponseDtoOutputActivitiesItemAttachment = {
+  publicId: string;
+  filename: string;
+  /** @nullable */
+  originalFilename: string | null;
+} | null;
+
+export type ActivitiesResponseDtoOutputActivitiesItem = {
+  publicId: string;
+  type: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @nullable */
+  fromIndex: number | null;
+  /** @nullable */
+  toIndex: number | null;
+  /** @nullable */
+  fromTitle: string | null;
+  /** @nullable */
+  toTitle: string | null;
+  /** @nullable */
+  fromDescription: string | null;
+  /** @nullable */
+  toDescription: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  fromDueDate: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  toDueDate: string | null;
+  /** @nullable */
+  fromList: ActivitiesResponseDtoOutputActivitiesItemFromList;
+  /** @nullable */
+  toList: ActivitiesResponseDtoOutputActivitiesItemToList;
+  /** @nullable */
+  label: ActivitiesResponseDtoOutputActivitiesItemLabel;
+  /** @nullable */
+  comment: ActivitiesResponseDtoOutputActivitiesItemComment;
+  /** @nullable */
+  member: ActivitiesResponseDtoOutputActivitiesItemMember;
+  /** @nullable */
+  user: ActivitiesResponseDtoOutputActivitiesItemUser;
+  /** @nullable */
+  attachment: ActivitiesResponseDtoOutputActivitiesItemAttachment;
+};
+
+export interface ActivitiesResponseDtoOutput {
+  activities: ActivitiesResponseDtoOutputActivitiesItem[];
+  hasMore: boolean;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  nextCursor: string | null;
+  /**
+   * @minLength 12
+   * @maxLength 12
+   * @nullable
+   */
+  nextCursorPublicId: string | null;
+}
+
+export interface UpdateChecklistDto {
+  /**
+   * New checklist name.
+   * @minLength 1
+   * @maxLength 255
+   */
+  name: string;
+}
+
+export interface ChecklistResponseDtoOutput {
+  publicId: string;
+  name: string;
+}
+
+export interface DeleteChecklistResponseDtoOutput {
+  success: boolean;
+}
+
+export interface CreateChecklistItemDto {
+  /**
+   * Checklist item text.
+   * @minLength 1
+   * @maxLength 500
+   */
+  title: string;
+}
+
+export interface ChecklistItemResponseDtoOutput {
+  publicId: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface UpdateChecklistItemDto {
+  /**
+   * New checklist item text.
+   * @minLength 1
+   * @maxLength 500
+   */
+  title?: string;
+  /** Whether the item is done. */
+  completed?: boolean;
+  /**
+   * Zero-based position within the checklist.
+   * @minimum 0
+   * @maximum 9007199254740991
+   */
+  index?: number;
+}
+
+export interface CreateChecklistDto {
+  /**
+   * Checklist name.
+   * @minLength 1
+   * @maxLength 255
+   */
+  name: string;
+}
+
+export interface CreateFeedbackDto {
+  /**
+   * The feedback message.
+   * @minLength 1
+   */
+  feedback: string;
+  /**
+   * The page the feedback is about.
+   * @minLength 1
+   */
+  url: string;
+}
+
+export interface CreateFeedbackResponseDtoOutput {
+  success: boolean;
+}
+
+export interface ExternalSourceItemDtoOutput {
+  id: string;
+  name: string;
+}
+
+export interface ImportTrelloBoardsDto {
+  boardIds: string[];
+  /** @minLength 12 */
+  workspacePublicId: string;
+}
+
+export type ImportTrelloBoardsResponseDtoOutputFailuresItemCode =
+  (typeof ImportTrelloBoardsResponseDtoOutputFailuresItemCode)[keyof typeof ImportTrelloBoardsResponseDtoOutputFailuresItemCode];
+
+export const ImportTrelloBoardsResponseDtoOutputFailuresItemCode = {
+  no_access: "no_access",
+  not_found: "not_found",
+  rate_limited: "rate_limited",
+  timeout: "timeout",
+  unknown: "unknown",
+} as const;
+
+export type ImportTrelloBoardsResponseDtoOutputFailuresItem = {
+  boardId: string;
+  /** @nullable */
+  boardName: string | null;
+  code: ImportTrelloBoardsResponseDtoOutputFailuresItemCode;
+};
+
+export interface ImportTrelloBoardsResponseDtoOutput {
+  boardsCreated: number;
+  failures: ImportTrelloBoardsResponseDtoOutputFailuresItem[];
+}
+
+export interface ImportGitHubProjectsDto {
+  projectIds: string[];
+  /** @minLength 12 */
+  workspacePublicId: string;
+}
+
+export interface ImportGitHubProjectsResponseDtoOutput {
+  projectsImported: number;
+}
+
+export interface IntegrationProviderDtoOutput {
+  provider: string;
+  userId: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  expiresAt: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+}
+
+export type DisconnectIntegrationDtoProvider =
+  (typeof DisconnectIntegrationDtoProvider)[keyof typeof DisconnectIntegrationDtoProvider];
+
+export const DisconnectIntegrationDtoProvider = {
+  trello: "trello",
+  github: "github",
+} as const;
+
+export interface DisconnectIntegrationDto {
+  provider: DisconnectIntegrationDtoProvider;
+}
+
+export interface EmptyResponseDtoOutput {
+  [key: string]: never;
+}
+
+export interface AuthorizationUrlResponseDtoOutput {
+  url: string;
+}
+
+export interface SaveGitHubTokenDto {
+  token: string;
+}
+
+export interface SaveTrelloTokenDto {
+  /** @minLength 1 */
+  token: string;
+}
+
+export interface GitHubStatusResponseDtoOutput {
+  connected: boolean;
+}
+
+export interface LabelResponseDtoOutput {
   publicId: string;
   name: string;
   /** @nullable */
@@ -43,13 +1262,18 @@ export interface LabelResponseDto {
 
 export interface CreateLabelDto {
   /**
+   * Label name.
    * @minLength 1
    * @maxLength 36
    */
   name: string;
-  /** @minLength 12 */
+  /**
+   * Public ID of the board the label belongs to.
+   * @minLength 12
+   */
   boardPublicId: string;
   /**
+   * Label colour as a hex code, e.g. #0d9488.
    * @minLength 7
    * @maxLength 7
    */
@@ -58,42 +1282,800 @@ export interface CreateLabelDto {
 
 export interface UpdateLabelDto {
   /**
+   * Label name.
    * @minLength 1
    * @maxLength 36
    */
   name: string;
   /**
+   * Label colour as a hex code, e.g. #0d9488.
    * @minLength 7
    * @maxLength 7
    */
   colourCode: string;
 }
 
-export interface DeleteLabelResponseDto {
+export interface DeleteLabelResponseDtoOutput {
   success: boolean;
 }
 
 export interface CreateListDto {
-  /** @minLength 1 */
+  /**
+   * List name.
+   * @minLength 1
+   */
   name: string;
-  /** @minLength 12 */
+  /**
+   * Public ID of the board to add the list to.
+   * @minLength 12
+   */
   boardPublicId: string;
 }
 
-export interface ListResponseDto {
+export interface ListResponseDtoOutput {
   publicId: string;
   name: string;
 }
 
-export interface DeleteListResponseDto {
+export interface DeleteListResponseDtoOutput {
   success: boolean;
 }
 
 export interface UpdateListDto {
-  /** @minLength 1 */
+  /**
+   * New list name.
+   * @minLength 1
+   */
   name?: string;
+  /** Zero-based position of the list on the board; 0 is leftmost. */
   index?: number;
 }
+
+export interface InviteMemberDto {
+  /**
+   * Email address to invite.
+   * @pattern ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+   */
+  email: string;
+}
+
+export interface MemberInviteResponseDtoOutput {
+  publicId: string;
+}
+
+export interface DeleteMemberResponseDtoOutput {
+  success: boolean;
+}
+
+/**
+ * New workspace role: 'admin', 'member' or 'guest'.
+ */
+export type UpdateMemberRoleDtoRole =
+  (typeof UpdateMemberRoleDtoRole)[keyof typeof UpdateMemberRoleDtoRole];
+
+export const UpdateMemberRoleDtoRole = {
+  admin: "admin",
+  member: "member",
+  guest: "guest",
+} as const;
+
+export interface UpdateMemberRoleDto {
+  /** New workspace role: 'admin', 'member' or 'guest'. */
+  role: UpdateMemberRoleDtoRole;
+}
+
+export interface UpdateMemberRoleResponseDtoOutput {
+  success: boolean;
+  role: string;
+}
+
+export interface ActiveInviteLinkResponseDtoOutput {
+  id?: number;
+  inviteCode?: string;
+  inviteLink?: string;
+  isActive: boolean;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  expiresAt?: string;
+}
+
+export interface CreateInviteLinkResponseDtoOutput {
+  publicId: string;
+  inviteCode: string;
+  inviteLink: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  expiresAt: string | null;
+}
+
+export interface DeactivateInviteLinkResponseDtoOutput {
+  success: boolean;
+}
+
+export interface InviteByCodeResponseDtoOutput {
+  publicId: string;
+  status: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  expiresAt: string | null;
+}
+
+export interface AcceptInviteLinkDto {
+  /** @minLength 12 */
+  inviteCode: string;
+}
+
+export interface AcceptInviteLinkResponseDtoOutput {
+  success: boolean;
+  workspacePublicId?: string;
+  workspaceSlug?: string;
+}
+
+export interface GetMyPermissionsResponseDtoOutput {
+  permissions: string[];
+  role: string;
+}
+
+export type GetMemberPermissionsResponseDtoOutputOverridesItem = {
+  permission: string;
+  granted: boolean;
+};
+
+export interface GetMemberPermissionsResponseDtoOutput {
+  memberPublicId: string;
+  role: string;
+  permissions: string[];
+  overrides: GetMemberPermissionsResponseDtoOutputOverridesItem[];
+}
+
+/**
+ * The permission, as resource:action, e.g. board:edit.
+ */
+export type PermissionActionDtoPermission =
+  (typeof PermissionActionDtoPermission)[keyof typeof PermissionActionDtoPermission];
+
+export const PermissionActionDtoPermission = {
+  "workspace:view": "workspace:view",
+  "workspace:edit": "workspace:edit",
+  "workspace:delete": "workspace:delete",
+  "workspace:manage": "workspace:manage",
+  "board:view": "board:view",
+  "board:create": "board:create",
+  "board:edit": "board:edit",
+  "board:delete": "board:delete",
+  "list:view": "list:view",
+  "list:create": "list:create",
+  "list:edit": "list:edit",
+  "list:delete": "list:delete",
+  "card:view": "card:view",
+  "card:create": "card:create",
+  "card:edit": "card:edit",
+  "card:delete": "card:delete",
+  "comment:view": "comment:view",
+  "comment:create": "comment:create",
+  "comment:edit": "comment:edit",
+  "comment:delete": "comment:delete",
+  "member:view": "member:view",
+  "member:invite": "member:invite",
+  "member:edit": "member:edit",
+  "member:remove": "member:remove",
+} as const;
+
+export interface PermissionActionDto {
+  /** The permission, as resource:action, e.g. board:edit. */
+  permission: PermissionActionDtoPermission;
+}
+
+export type GetWorkspaceRolesResponseDtoOutputRolesItem = {
+  /** @minLength 12 */
+  publicId: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  hierarchyLevel: number;
+  isSystem: boolean;
+};
+
+export interface GetWorkspaceRolesResponseDtoOutput {
+  roles: GetWorkspaceRolesResponseDtoOutputRolesItem[];
+}
+
+export type GetWorkspaceRolePermissionsResponseDtoOutputRolesItem = {
+  /** @minLength 12 */
+  publicId: string;
+  name: string;
+  permissions: string[];
+};
+
+export interface GetWorkspaceRolePermissionsResponseDtoOutput {
+  roles: GetWorkspaceRolePermissionsResponseDtoOutputRolesItem[];
+}
+
+export interface GetRolePermissionsResponseDtoOutput {
+  rolePublicId: string;
+  name: string;
+  permissions: string[];
+}
+
+/**
+ * @nullable
+ */
+export type UserResponseDtoOutputApiKey = {
+  id: number;
+  /** @nullable */
+  prefix: string | null;
+} | null;
+
+export interface UserResponseDtoOutput {
+  id: string;
+  email: string;
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  image: string | null;
+  /** @nullable */
+  stripeCustomerId: string | null;
+  hasPassword: boolean;
+  hasMagicLinkAccount: boolean;
+  /** @nullable */
+  apiKey: UserResponseDtoOutputApiKey;
+}
+
+export interface UpdateUserDto {
+  /** New display name. */
+  name?: string;
+  /** New avatar image URL. */
+  image?: string;
+}
+
+export interface UpdateUserResponseDtoOutput {
+  /** @nullable */
+  name: string | null;
+  /** @nullable */
+  image: string | null;
+}
+
+export interface SetPasswordDto {
+  /** @minLength 8 */
+  newPassword: string;
+}
+
+export type WebhookResponseDtoOutputEventsItem =
+  (typeof WebhookResponseDtoOutputEventsItem)[keyof typeof WebhookResponseDtoOutputEventsItem];
+
+export const WebhookResponseDtoOutputEventsItem = {
+  cardcreated: "card.created",
+  cardupdated: "card.updated",
+  cardmoved: "card.moved",
+  carddeleted: "card.deleted",
+} as const;
+
+export interface WebhookResponseDtoOutput {
+  publicId: string;
+  name: string;
+  url: string;
+  events: WebhookResponseDtoOutputEventsItem[];
+  active: boolean;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+}
+
+export type CreateWebhookDtoEventsItem =
+  (typeof CreateWebhookDtoEventsItem)[keyof typeof CreateWebhookDtoEventsItem];
+
+export const CreateWebhookDtoEventsItem = {
+  cardcreated: "card.created",
+  cardupdated: "card.updated",
+  cardmoved: "card.moved",
+  carddeleted: "card.deleted",
+} as const;
+
+export interface CreateWebhookDto {
+  /**
+   * A label for the webhook.
+   * @minLength 1
+   * @maxLength 255
+   */
+  name: string;
+  /** HTTPS URL to send events to. Must be a public host. */
+  url: string;
+  /**
+   * Secret used to sign each delivery so the receiver can verify it.
+   * @maxLength 512
+   */
+  secret?: string;
+  /**
+   * Card events to send, e.g. ['card.created', 'card.moved'].
+   * @minItems 1
+   */
+  events: CreateWebhookDtoEventsItem[];
+}
+
+export type UpdateWebhookDtoEventsItem =
+  (typeof UpdateWebhookDtoEventsItem)[keyof typeof UpdateWebhookDtoEventsItem];
+
+export const UpdateWebhookDtoEventsItem = {
+  cardcreated: "card.created",
+  cardupdated: "card.updated",
+  cardmoved: "card.moved",
+  carddeleted: "card.deleted",
+} as const;
+
+export interface UpdateWebhookDto {
+  /**
+   * New label for the webhook.
+   * @minLength 1
+   * @maxLength 255
+   */
+  name?: string;
+  /** New HTTPS URL to send events to. Must be a public host. */
+  url?: string;
+  /**
+   * New secret used to sign deliveries.
+   * @maxLength 512
+   */
+  secret?: string;
+  /**
+   * Card events to send, e.g. ['card.created', 'card.moved'].
+   * @minItems 1
+   */
+  events?: UpdateWebhookDtoEventsItem[];
+  /** Whether the webhook sends events. */
+  active?: boolean;
+}
+
+export interface DeleteWebhookResponseDtoOutput {
+  success: boolean;
+}
+
+export interface TestWebhookResponseDtoOutput {
+  success: boolean;
+  statusCode?: number;
+  error?: string;
+}
+
+export type SearchBoardResultDtoType =
+  (typeof SearchBoardResultDtoType)[keyof typeof SearchBoardResultDtoType];
+
+export const SearchBoardResultDtoType = {
+  board: "board",
+} as const;
+
+export interface SearchBoardResultDto {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  slug: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  type: SearchBoardResultDtoType;
+}
+
+export type SearchCardResultDtoType =
+  (typeof SearchCardResultDtoType)[keyof typeof SearchCardResultDtoType];
+
+export const SearchCardResultDtoType = {
+  card: "card",
+} as const;
+
+export interface SearchCardResultDto {
+  publicId: string;
+  title: string;
+  /** @nullable */
+  description: string | null;
+  boardPublicId: string;
+  boardName: string;
+  listName: string;
+  /** @nullable */
+  cardNumber: number | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  updatedAt: string | null;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  type: SearchCardResultDtoType;
+}
+
+export type WorkspaceListItemDtoOutputWorkspacePlan =
+  (typeof WorkspaceListItemDtoOutputWorkspacePlan)[keyof typeof WorkspaceListItemDtoOutputWorkspacePlan];
+
+export const WorkspaceListItemDtoOutputWorkspacePlan = {
+  free: "free",
+  team: "team",
+  pro: "pro",
+  enterprise: "enterprise",
+} as const;
+
+export type WorkspaceListItemDtoOutputWorkspace = {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  slug: string;
+  plan: WorkspaceListItemDtoOutputWorkspacePlan;
+  /** @nullable */
+  weekStartDay: number | null;
+  cardPrefix: string;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  deletedAt: string | null;
+};
+
+export interface WorkspaceListItemDtoOutput {
+  role: string;
+  workspace: WorkspaceListItemDtoOutputWorkspace;
+}
+
+export interface CheckSlugAvailabilityResponseDtoOutput {
+  isAvailable: boolean;
+  isReserved: boolean;
+}
+
+export type WorkspaceWithBoardsResponseDtoOutputBoardsItem = {
+  publicId: string;
+  slug: string;
+  name: string;
+};
+
+export interface WorkspaceWithBoardsResponseDtoOutput {
+  publicId: string;
+  name: string;
+  /** @nullable */
+  description: string | null;
+  slug: string;
+  boards: WorkspaceWithBoardsResponseDtoOutputBoardsItem[];
+}
+
+/**
+ * @nullable
+ */
+export type WorkspaceDetailResponseDtoOutputMembersItemUser = {
+  /** @nullable */
+  id: string | null;
+  /** @nullable */
+  name: string | null;
+  email?: string;
+  /** @nullable */
+  image: string | null;
+} | null;
+
+export type WorkspaceDetailResponseDtoOutputMembersItem = {
+  publicId: string;
+  email?: string;
+  role: string;
+  status: string;
+  /** @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$ */
+  createdAt: string;
+  /** @nullable */
+  user: WorkspaceDetailResponseDtoOutputMembersItemUser;
+};
+
+export type WorkspaceDetailResponseDtoOutputSubscriptionsItem = {
+  plan: string;
+  status: string;
+  /** @nullable */
+  seats: number | null;
+  /** @nullable */
+  unlimitedSeats: boolean | null;
+  /** @nullable */
+  partnerTier: number | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  periodStart: string | null;
+  /**
+   * @nullable
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  periodEnd: string | null;
+};
+
+export interface WorkspaceDetailResponseDtoOutput {
+  publicId: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  showEmailsToMembers: boolean | null;
+  /** @nullable */
+  weekStartDay: number | null;
+  members: WorkspaceDetailResponseDtoOutputMembersItem[];
+  subscriptions: WorkspaceDetailResponseDtoOutputSubscriptionsItem[];
+}
+
+export interface CreateWorkspaceDto {
+  /**
+   * Workspace name.
+   * @minLength 1
+   * @maxLength 64
+   */
+  name: string;
+  /**
+   * Short description of the workspace.
+   * @maxLength 280
+   */
+  description?: string;
+  /** URL slug of letters, numbers and hyphens. Generated if omitted or empty. */
+  slug?: string;
+}
+
+export type WorkspaceCreateResponseDtoOutputPlan =
+  (typeof WorkspaceCreateResponseDtoOutputPlan)[keyof typeof WorkspaceCreateResponseDtoOutputPlan];
+
+export const WorkspaceCreateResponseDtoOutputPlan = {
+  free: "free",
+  team: "team",
+  pro: "pro",
+  enterprise: "enterprise",
+} as const;
+
+export interface WorkspaceCreateResponseDtoOutput {
+  publicId: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  description: string | null;
+  plan: WorkspaceCreateResponseDtoOutputPlan;
+  cardPrefix: string;
+}
+
+export const UpdateWorkspaceDtoWeekStartDay = {
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_6: 6,
+} as const;
+export interface UpdateWorkspaceDto {
+  /**
+   * New workspace name.
+   * @minLength 3
+   * @maxLength 64
+   */
+  name?: string;
+  /**
+   * New URL slug of letters, numbers and hyphens.
+   * @minLength 3
+   * @maxLength 64
+   * @pattern ^(?![-]+$)[a-zA-Z0-9-]+$
+   */
+  slug?: string;
+  /**
+   * New workspace description.
+   * @minLength 3
+   * @maxLength 280
+   */
+  description?: string;
+  /** Whether members can see each other's email addresses. */
+  showEmailsToMembers?: boolean;
+  /** First day of the week: 0 Sunday, 1 Monday or 6 Saturday. */
+  weekStartDay?: (typeof UpdateWorkspaceDtoWeekStartDay)[keyof typeof UpdateWorkspaceDtoWeekStartDay];
+}
+
+export type WorkspaceUpdateResponseDtoOutputPlan =
+  (typeof WorkspaceUpdateResponseDtoOutputPlan)[keyof typeof WorkspaceUpdateResponseDtoOutputPlan];
+
+export const WorkspaceUpdateResponseDtoOutputPlan = {
+  free: "free",
+  team: "team",
+  pro: "pro",
+  enterprise: "enterprise",
+} as const;
+
+export interface WorkspaceUpdateResponseDtoOutput {
+  publicId: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  description: string | null;
+  plan: WorkspaceUpdateResponseDtoOutputPlan;
+  /** @nullable */
+  showEmailsToMembers: boolean | null;
+  /** @nullable */
+  weekStartDay: number | null;
+}
+
+export interface WorkspaceDeleteResponseDtoOutput {
+  success: boolean;
+}
+
+export interface WorkspaceSlugExistsResponseDtoOutput {
+  exists: boolean;
+}
+
+export interface StatsDtoOutput {
+  users: number;
+  workspaces: number;
+  boards: number;
+  lists: number;
+  cards: number;
+  cardComments: number;
+  cardAttachments: number;
+  cardActivityLogs: number;
+  labels: number;
+  checklists: number;
+  checklistItems: number;
+  activeMembers: number;
+  activeInviteLinks: number;
+  imports: number;
+}
+
+export type GetBoardsParams = {
+  type?: GetBoardsType;
+  archived?: GetBoardsArchived;
+};
+
+export type GetBoardsType = (typeof GetBoardsType)[keyof typeof GetBoardsType];
+
+export const GetBoardsType = {
+  regular: "regular",
+  template: "template",
+} as const;
+
+export type GetBoardsArchived =
+  (typeof GetBoardsArchived)[keyof typeof GetBoardsArchived];
+
+export const GetBoardsArchived = {
+  true: "true",
+  false: "false",
+} as const;
+
+export type GetBoardParams = {
+  /** @items.minLength 12 */
+  members?: string[];
+  /** @items.minLength 12 */
+  labels?: string[];
+  /** @items.minLength 12 */
+  lists?: string[];
+  dueDateFilters?: GetBoardDueDateFiltersItem[];
+  type?: GetBoardType;
+  cardView?: GetBoardCardView;
+};
+
+export type GetBoardDueDateFiltersItem =
+  (typeof GetBoardDueDateFiltersItem)[keyof typeof GetBoardDueDateFiltersItem];
+
+export const GetBoardDueDateFiltersItem = {
+  overdue: "overdue",
+  today: "today",
+  tomorrow: "tomorrow",
+  "next-week": "next-week",
+  "next-month": "next-month",
+  "no-due-date": "no-due-date",
+} as const;
+
+export type GetBoardType = (typeof GetBoardType)[keyof typeof GetBoardType];
+
+export const GetBoardType = {
+  regular: "regular",
+  template: "template",
+} as const;
+
+export type GetBoardCardView =
+  (typeof GetBoardCardView)[keyof typeof GetBoardCardView];
+
+export const GetBoardCardView = {
+  full: "full",
+  summary: "summary",
+} as const;
+
+export type CheckBoardSlugAvailabilityParams = {
+  /**
+   * @minLength 1
+   * @maxLength 60
+   * @pattern ^(?![-]+$)[a-zA-Z0-9-]+$
+   */
+  boardSlug: string;
+};
+
+export type GetPublicBoardBySlugParams = {
+  /** @items.minLength 12 */
+  members?: string[];
+  /** @items.minLength 12 */
+  labels?: string[];
+  /** @items.minLength 12 */
+  lists?: string[];
+  dueDateFilters?: GetPublicBoardBySlugDueDateFiltersItem[];
+};
+
+export type GetPublicBoardBySlugDueDateFiltersItem =
+  (typeof GetPublicBoardBySlugDueDateFiltersItem)[keyof typeof GetPublicBoardBySlugDueDateFiltersItem];
+
+export const GetPublicBoardBySlugDueDateFiltersItem = {
+  overdue: "overdue",
+  today: "today",
+  tomorrow: "tomorrow",
+  "next-week": "next-week",
+  "next-month": "next-month",
+  "no-due-date": "no-due-date",
+} as const;
+
+export type GetCardActivitiesParams = {
+  /**
+   * Maximum number of activities to return.
+   * @minimum 1
+   * @maximum 100
+   */
+  limit?: number;
+  /**
+   * Pagination cursor: nextCursor from the previous page.
+   * @pattern ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+   */
+  cursor?: string;
+  /**
+   * Pagination cursor: nextCursorPublicId from the previous page.
+   * @minLength 12
+   * @maxLength 12
+   */
+  cursorPublicId?: string;
+  /** Return the oldest or newest activities first. */
+  order?: GetCardActivitiesOrder;
+};
+
+export type GetCardActivitiesOrder =
+  (typeof GetCardActivitiesOrder)[keyof typeof GetCardActivitiesOrder];
+
+export const GetCardActivitiesOrder = {
+  oldest: "oldest",
+  newest: "newest",
+} as const;
+
+export type GetIntegrationAuthorizationUrlParams = {
+  provider: GetIntegrationAuthorizationUrlProvider;
+};
+
+export type GetIntegrationAuthorizationUrlProvider =
+  (typeof GetIntegrationAuthorizationUrlProvider)[keyof typeof GetIntegrationAuthorizationUrlProvider];
+
+export const GetIntegrationAuthorizationUrlProvider = {
+  trello: "trello",
+} as const;
+
+export type CheckSlugAvailabilityParams = {
+  /**
+   * The slug to check.
+   * @minLength 3
+   * @maxLength 64
+   * @pattern ^(?![-]+$)[a-zA-Z0-9-]+$
+   */
+  workspaceSlug: string;
+  /**
+   * When renaming, the public ID of the workspace being renamed, so its own slug counts as available.
+   * @minLength 12
+   */
+  workspacePublicId?: string;
+};
+
+export type SearchWorkspaceParams = {
+  /**
+   * Text to search for in board and card titles.
+   * @minLength 1
+   * @maxLength 100
+   */
+  query: string;
+  /**
+   * Maximum number of results.
+   * @minimum 1
+   * @maximum 50
+   */
+  limit?: number;
+};
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
@@ -115,8 +2097,4560 @@ const withQueryKey = <T extends object, K>(
   return result;
 };
 
+export type uploadAttachmentResponse201 = {
+  data: AttachmentResponseDtoOutput;
+  status: 201;
+};
+
+export type uploadAttachmentResponseSuccess = uploadAttachmentResponse201 & {
+  headers: Headers;
+};
+export type uploadAttachmentResponse = uploadAttachmentResponseSuccess;
+
+export const getUploadAttachmentUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/attachments`;
+};
+
+/**
+ * @summary Upload a file and attach it to a card
+ */
+export const uploadAttachment = async (
+  cardPublicId: string,
+  uploadAttachmentBody: Blob,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<uploadAttachmentResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<uploadAttachmentResponse>(
+    getUploadAttachmentUrl(cardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        ...getHeaders(options?.headers),
+      },
+      body: uploadAttachmentBody,
+    },
+  );
+};
+
+export const getUploadAttachmentMutationKey = () =>
+  ["uploadAttachment"] as const;
+
+export const getUploadAttachmentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadAttachment>>,
+    TError,
+    UploadAttachmentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadAttachment>>,
+  TError,
+  UploadAttachmentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUploadAttachmentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadAttachment>>,
+    UploadAttachmentMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return uploadAttachment(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadAttachmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadAttachment>>
+>;
+export type UploadAttachmentMutationBody = Blob;
+export type UploadAttachmentMutationError = unknown;
+export type UploadAttachmentMutationVariables = {
+  cardPublicId: string;
+  data: Blob;
+};
+
+/** @summary Upload a file and attach it to a card */
+export const useUploadAttachment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadAttachment>>,
+      TError,
+      UploadAttachmentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadAttachment>>,
+  TError,
+  UploadAttachmentMutationVariables,
+  TContext
+> => {
+  return useMutation(getUploadAttachmentMutationOptions(options), queryClient);
+};
+
+export type generateAttachmentUploadUrlResponse201 = {
+  data: UploadUrlResponseDtoOutput;
+  status: 201;
+};
+
+export type generateAttachmentUploadUrlResponseSuccess =
+  generateAttachmentUploadUrlResponse201 & {
+    headers: Headers;
+  };
+export type generateAttachmentUploadUrlResponse =
+  generateAttachmentUploadUrlResponseSuccess;
+
+export const getGenerateAttachmentUploadUrlUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/attachments/upload-url`;
+};
+
+/**
+ * @summary Generate a presigned URL for uploading an attachment
+ */
+export const generateAttachmentUploadUrl = async (
+  cardPublicId: string,
+  generateUploadUrlDto: GenerateUploadUrlDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<generateAttachmentUploadUrlResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<generateAttachmentUploadUrlResponse>(
+    getGenerateAttachmentUploadUrlUrl(cardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(generateUploadUrlDto),
+    },
+  );
+};
+
+export const getGenerateAttachmentUploadUrlMutationKey = () =>
+  ["generateAttachmentUploadUrl"] as const;
+
+export const getGenerateAttachmentUploadUrlMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof generateAttachmentUploadUrl>>,
+    TError,
+    GenerateAttachmentUploadUrlMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof generateAttachmentUploadUrl>>,
+  TError,
+  GenerateAttachmentUploadUrlMutationVariables,
+  TContext
+> => {
+  const mutationKey = getGenerateAttachmentUploadUrlMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof generateAttachmentUploadUrl>>,
+    GenerateAttachmentUploadUrlMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return generateAttachmentUploadUrl(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GenerateAttachmentUploadUrlMutationResult = NonNullable<
+  Awaited<ReturnType<typeof generateAttachmentUploadUrl>>
+>;
+export type GenerateAttachmentUploadUrlMutationBody = GenerateUploadUrlDto;
+export type GenerateAttachmentUploadUrlMutationError = unknown;
+export type GenerateAttachmentUploadUrlMutationVariables = {
+  cardPublicId: string;
+  data: GenerateUploadUrlDto;
+};
+
+/** @summary Generate a presigned URL for uploading an attachment */
+export const useGenerateAttachmentUploadUrl = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof generateAttachmentUploadUrl>>,
+      TError,
+      GenerateAttachmentUploadUrlMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof generateAttachmentUploadUrl>>,
+  TError,
+  GenerateAttachmentUploadUrlMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getGenerateAttachmentUploadUrlMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type confirmAttachmentResponse201 = {
+  data: AttachmentResponseDtoOutput;
+  status: 201;
+};
+
+export type confirmAttachmentResponseSuccess = confirmAttachmentResponse201 & {
+  headers: Headers;
+};
+export type confirmAttachmentResponse = confirmAttachmentResponseSuccess;
+
+export const getConfirmAttachmentUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/attachments/confirm`;
+};
+
+/**
+ * @summary Confirm an attachment upload and save it to the card
+ */
+export const confirmAttachment = async (
+  cardPublicId: string,
+  confirmAttachmentDto: ConfirmAttachmentDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<confirmAttachmentResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<confirmAttachmentResponse>(
+    getConfirmAttachmentUrl(cardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(confirmAttachmentDto),
+    },
+  );
+};
+
+export const getConfirmAttachmentMutationKey = () =>
+  ["confirmAttachment"] as const;
+
+export const getConfirmAttachmentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof confirmAttachment>>,
+    TError,
+    ConfirmAttachmentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof confirmAttachment>>,
+  TError,
+  ConfirmAttachmentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getConfirmAttachmentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof confirmAttachment>>,
+    ConfirmAttachmentMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return confirmAttachment(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ConfirmAttachmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof confirmAttachment>>
+>;
+export type ConfirmAttachmentMutationBody = ConfirmAttachmentDto;
+export type ConfirmAttachmentMutationError = unknown;
+export type ConfirmAttachmentMutationVariables = {
+  cardPublicId: string;
+  data: ConfirmAttachmentDto;
+};
+
+/** @summary Confirm an attachment upload and save it to the card */
+export const useConfirmAttachment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof confirmAttachment>>,
+      TError,
+      ConfirmAttachmentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof confirmAttachment>>,
+  TError,
+  ConfirmAttachmentMutationVariables,
+  TContext
+> => {
+  return useMutation(getConfirmAttachmentMutationOptions(options), queryClient);
+};
+
+export type deleteAttachmentResponse200 = {
+  data: DeleteAttachmentResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteAttachmentResponseSuccess = deleteAttachmentResponse200 & {
+  headers: Headers;
+};
+export type deleteAttachmentResponse = deleteAttachmentResponseSuccess;
+
+export const getDeleteAttachmentUrl = (attachmentPublicId: string) => {
+  return `/attachments/${attachmentPublicId}`;
+};
+
+/**
+ * @summary Delete an attachment
+ */
+export const deleteAttachment = async (
+  attachmentPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteAttachmentResponse> => {
+  return customFetch<deleteAttachmentResponse>(
+    getDeleteAttachmentUrl(attachmentPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteAttachmentMutationKey = () =>
+  ["deleteAttachment"] as const;
+
+export const getDeleteAttachmentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteAttachment>>,
+    TError,
+    DeleteAttachmentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteAttachment>>,
+  TError,
+  DeleteAttachmentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteAttachmentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteAttachment>>,
+    DeleteAttachmentMutationVariables
+  > = (props) => {
+    const { attachmentPublicId } = props ?? {};
+
+    return deleteAttachment(attachmentPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteAttachmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteAttachment>>
+>;
+
+export type DeleteAttachmentMutationError = unknown;
+export type DeleteAttachmentMutationVariables = { attachmentPublicId: string };
+
+/** @summary Delete an attachment */
+export const useDeleteAttachment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteAttachment>>,
+      TError,
+      DeleteAttachmentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteAttachment>>,
+  TError,
+  DeleteAttachmentMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteAttachmentMutationOptions(options), queryClient);
+};
+
+export type getBoardsResponse200 = {
+  data: BoardListItemDtoOutput[];
+  status: 200;
+};
+
+export type getBoardsResponseSuccess = getBoardsResponse200 & {
+  headers: Headers;
+};
+export type getBoardsResponse = getBoardsResponseSuccess;
+
+export const getGetBoardsUrl = (
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/workspaces/${workspacePublicId}/boards?${stringifiedParams}`
+    : `/workspaces/${workspacePublicId}/boards`;
+};
+
+/**
+ * @summary List a workspace's boards
+ */
+export const getBoards = async (
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getBoardsResponse> => {
+  return customFetch<getBoardsResponse>(
+    getGetBoardsUrl(workspacePublicId, params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetBoardsQueryKey = (
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+) => {
+  return [
+    `/workspaces/${workspacePublicId}/boards`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetBoardsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBoards>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBoardsQueryKey(workspacePublicId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBoards>>> = ({
+    signal,
+  }) => getBoards(workspacePublicId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetBoardsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBoards>>
+>;
+export type GetBoardsQueryError = unknown;
+
+/** @summary List a workspace's boards */
+export function useGetBoards<
+  TData = Awaited<ReturnType<typeof getBoards>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: undefined | GetBoardsParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoards>>,
+          TError,
+          Awaited<ReturnType<typeof getBoards>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's boards */
+export function useGetBoards<
+  TData = Awaited<ReturnType<typeof getBoards>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoards>>,
+          TError,
+          Awaited<ReturnType<typeof getBoards>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's boards */
+export function useGetBoards<
+  TData = Awaited<ReturnType<typeof getBoards>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's boards */
+export function useGetBoards<
+  TData = Awaited<ReturnType<typeof getBoards>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params?: GetBoardsParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoards>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetBoardsQueryOptions(
+    workspacePublicId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type createBoardResponse201 = {
+  data: BoardCreateResponseDtoOutput;
+  status: 201;
+};
+
+export type createBoardResponseSuccess = createBoardResponse201 & {
+  headers: Headers;
+};
+export type createBoardResponse = createBoardResponseSuccess;
+
+export const getCreateBoardUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/boards`;
+};
+
+/**
+ * @summary Create a board
+ */
+export const createBoard = async (
+  workspacePublicId: string,
+  createBoardDto: CreateBoardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createBoardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createBoardResponse>(
+    getCreateBoardUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(createBoardDto),
+    },
+  );
+};
+
+export const getCreateBoardMutationKey = () => ["createBoard"] as const;
+
+export const getCreateBoardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBoard>>,
+    TError,
+    CreateBoardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBoard>>,
+  TError,
+  CreateBoardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateBoardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBoard>>,
+    CreateBoardMutationVariables
+  > = (props) => {
+    const { workspacePublicId, data } = props ?? {};
+
+    return createBoard(workspacePublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBoardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBoard>>
+>;
+export type CreateBoardMutationBody = CreateBoardDto;
+export type CreateBoardMutationError = unknown;
+export type CreateBoardMutationVariables = {
+  workspacePublicId: string;
+  data: CreateBoardDto;
+};
+
+/** @summary Create a board */
+export const useCreateBoard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createBoard>>,
+      TError,
+      CreateBoardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createBoard>>,
+  TError,
+  CreateBoardMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateBoardMutationOptions(options), queryClient);
+};
+
+export type getBoardResponse200 = {
+  data: BoardDetailDtoOutput;
+  status: 200;
+};
+
+export type getBoardResponseSuccess = getBoardResponse200 & {
+  headers: Headers;
+};
+export type getBoardResponse = getBoardResponseSuccess;
+
+export const getGetBoardUrl = (
+  boardPublicId: string,
+  params?: GetBoardParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["members", "labels", "lists", "dueDateFilters"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? "null" : String(v));
+      });
+      return;
+    }
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/boards/${boardPublicId}?${stringifiedParams}`
+    : `/boards/${boardPublicId}`;
+};
+
+/**
+ * @summary Get a board by public ID
+ */
+export const getBoard = async (
+  boardPublicId: string,
+  params?: GetBoardParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getBoardResponse> => {
+  return customFetch<getBoardResponse>(getGetBoardUrl(boardPublicId, params), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetBoardQueryKey = (
+  boardPublicId: string,
+  params?: GetBoardParams,
+) => {
+  return [`/boards/${boardPublicId}`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetBoardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBoard>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params?: GetBoardParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBoardQueryKey(boardPublicId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBoard>>> = ({
+    signal,
+  }) => getBoard(boardPublicId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: boardPublicId !== null && boardPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetBoardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBoard>>
+>;
+export type GetBoardQueryError = unknown;
+
+/** @summary Get a board by public ID */
+export function useGetBoard<
+  TData = Awaited<ReturnType<typeof getBoard>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: undefined | GetBoardParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getBoard>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a board by public ID */
+export function useGetBoard<
+  TData = Awaited<ReturnType<typeof getBoard>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params?: GetBoardParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoard>>,
+          TError,
+          Awaited<ReturnType<typeof getBoard>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a board by public ID */
+export function useGetBoard<
+  TData = Awaited<ReturnType<typeof getBoard>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params?: GetBoardParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a board by public ID */
+export function useGetBoard<
+  TData = Awaited<ReturnType<typeof getBoard>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params?: GetBoardParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getBoard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetBoardQueryOptions(boardPublicId, params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type updateBoardResponse200 = {
+  data: BoardUpdateResponseDtoOutput;
+  status: 200;
+};
+
+export type updateBoardResponseSuccess = updateBoardResponse200 & {
+  headers: Headers;
+};
+export type updateBoardResponse = updateBoardResponseSuccess;
+
+export const getUpdateBoardUrl = (boardPublicId: string) => {
+  return `/boards/${boardPublicId}`;
+};
+
+/**
+ * @summary Update a board
+ */
+export const updateBoard = async (
+  boardPublicId: string,
+  updateBoardDto: UpdateBoardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateBoardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateBoardResponse>(getUpdateBoardUrl(boardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(updateBoardDto),
+  });
+};
+
+export const getUpdateBoardMutationKey = () => ["updateBoard"] as const;
+
+export const getUpdateBoardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBoard>>,
+    TError,
+    UpdateBoardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateBoard>>,
+  TError,
+  UpdateBoardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateBoardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateBoard>>,
+    UpdateBoardMutationVariables
+  > = (props) => {
+    const { boardPublicId, data } = props ?? {};
+
+    return updateBoard(boardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateBoardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateBoard>>
+>;
+export type UpdateBoardMutationBody = UpdateBoardDto;
+export type UpdateBoardMutationError = unknown;
+export type UpdateBoardMutationVariables = {
+  boardPublicId: string;
+  data: UpdateBoardDto;
+};
+
+/** @summary Update a board */
+export const useUpdateBoard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateBoard>>,
+      TError,
+      UpdateBoardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateBoard>>,
+  TError,
+  UpdateBoardMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateBoardMutationOptions(options), queryClient);
+};
+
+export type deleteBoardResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteBoardResponseSuccess = deleteBoardResponse200 & {
+  headers: Headers;
+};
+export type deleteBoardResponse = deleteBoardResponseSuccess;
+
+export const getDeleteBoardUrl = (boardPublicId: string) => {
+  return `/boards/${boardPublicId}`;
+};
+
+/**
+ * @summary Delete a board
+ */
+export const deleteBoard = async (
+  boardPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteBoardResponse> => {
+  return customFetch<deleteBoardResponse>(getDeleteBoardUrl(boardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteBoardMutationKey = () => ["deleteBoard"] as const;
+
+export const getDeleteBoardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteBoard>>,
+    TError,
+    DeleteBoardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteBoard>>,
+  TError,
+  DeleteBoardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteBoardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteBoard>>,
+    DeleteBoardMutationVariables
+  > = (props) => {
+    const { boardPublicId } = props ?? {};
+
+    return deleteBoard(boardPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteBoardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteBoard>>
+>;
+
+export type DeleteBoardMutationError = unknown;
+export type DeleteBoardMutationVariables = { boardPublicId: string };
+
+/** @summary Delete a board */
+export const useDeleteBoard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteBoard>>,
+      TError,
+      DeleteBoardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteBoard>>,
+  TError,
+  DeleteBoardMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteBoardMutationOptions(options), queryClient);
+};
+
+export type moveBoardResponse201 = {
+  data: SuccessResponseDtoOutput;
+  status: 201;
+};
+
+export type moveBoardResponseSuccess = moveBoardResponse201 & {
+  headers: Headers;
+};
+export type moveBoardResponse = moveBoardResponseSuccess;
+
+export const getMoveBoardUrl = (boardPublicId: string) => {
+  return `/boards/${boardPublicId}/move`;
+};
+
+/**
+ * @summary Move a board to another workspace
+ */
+export const moveBoard = async (
+  boardPublicId: string,
+  moveBoardDto: MoveBoardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<moveBoardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<moveBoardResponse>(getMoveBoardUrl(boardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(moveBoardDto),
+  });
+};
+
+export const getMoveBoardMutationKey = () => ["moveBoard"] as const;
+
+export const getMoveBoardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof moveBoard>>,
+    TError,
+    MoveBoardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof moveBoard>>,
+  TError,
+  MoveBoardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getMoveBoardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof moveBoard>>,
+    MoveBoardMutationVariables
+  > = (props) => {
+    const { boardPublicId, data } = props ?? {};
+
+    return moveBoard(boardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type MoveBoardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof moveBoard>>
+>;
+export type MoveBoardMutationBody = MoveBoardDto;
+export type MoveBoardMutationError = unknown;
+export type MoveBoardMutationVariables = {
+  boardPublicId: string;
+  data: MoveBoardDto;
+};
+
+/** @summary Move a board to another workspace */
+export const useMoveBoard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof moveBoard>>,
+      TError,
+      MoveBoardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof moveBoard>>,
+  TError,
+  MoveBoardMutationVariables,
+  TContext
+> => {
+  return useMutation(getMoveBoardMutationOptions(options), queryClient);
+};
+
+export type checkBoardSlugAvailabilityResponse200 = {
+  data: BoardSlugAvailabilityDtoOutput;
+  status: 200;
+};
+
+export type checkBoardSlugAvailabilityResponseSuccess =
+  checkBoardSlugAvailabilityResponse200 & {
+    headers: Headers;
+  };
+export type checkBoardSlugAvailabilityResponse =
+  checkBoardSlugAvailabilityResponseSuccess;
+
+export const getCheckBoardSlugAvailabilityUrl = (
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/boards/${boardPublicId}/check-slug-availability?${stringifiedParams}`
+    : `/boards/${boardPublicId}/check-slug-availability`;
+};
+
+/**
+ * @summary Check if a board slug is available
+ */
+export const checkBoardSlugAvailability = async (
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<checkBoardSlugAvailabilityResponse> => {
+  return customFetch<checkBoardSlugAvailabilityResponse>(
+    getCheckBoardSlugAvailabilityUrl(boardPublicId, params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getCheckBoardSlugAvailabilityQueryKey = (
+  boardPublicId: string,
+  params?: CheckBoardSlugAvailabilityParams,
+) => {
+  return [
+    `/boards/${boardPublicId}/check-slug-availability`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getCheckBoardSlugAvailabilityQueryOptions = <
+  TData = Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCheckBoardSlugAvailabilityQueryKey(boardPublicId, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof checkBoardSlugAvailability>>
+  > = ({ signal }) =>
+    checkBoardSlugAvailability(boardPublicId, params, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: boardPublicId !== null && boardPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CheckBoardSlugAvailabilityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof checkBoardSlugAvailability>>
+>;
+export type CheckBoardSlugAvailabilityQueryError = unknown;
+
+/** @summary Check if a board slug is available */
+export function useCheckBoardSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkBoardSlugAvailability>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a board slug is available */
+export function useCheckBoardSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkBoardSlugAvailability>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a board slug is available */
+export function useCheckBoardSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a board slug is available */
+export function useCheckBoardSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  params: CheckBoardSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkBoardSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCheckBoardSlugAvailabilityQueryOptions(
+    boardPublicId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getPublicBoardBySlugResponse200 = {
+  data: BoardBySlugDtoOutput;
+  status: 200;
+};
+
+export type getPublicBoardBySlugResponseSuccess =
+  getPublicBoardBySlugResponse200 & {
+    headers: Headers;
+  };
+export type getPublicBoardBySlugResponse = getPublicBoardBySlugResponseSuccess;
+
+export const getGetPublicBoardBySlugUrl = (
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    const explodeParameters = ["members", "labels", "lists", "dueDateFilters"];
+
+    if (Array.isArray(value) && explodeParameters.includes(key)) {
+      value.forEach((v) => {
+        normalizedParams.append(key, v === null ? "null" : String(v));
+      });
+      return;
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/workspaces/${workspaceSlug}/boards/${boardSlug}?${stringifiedParams}`
+    : `/workspaces/${workspaceSlug}/boards/${boardSlug}`;
+};
+
+/**
+ * @summary Get a public board by workspace and board slug
+ */
+export const getPublicBoardBySlug = async (
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getPublicBoardBySlugResponse> => {
+  return customFetch<getPublicBoardBySlugResponse>(
+    getGetPublicBoardBySlugUrl(workspaceSlug, boardSlug, params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetPublicBoardBySlugQueryKey = (
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+) => {
+  return [
+    `/workspaces/${workspaceSlug}/boards/${boardSlug}`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetPublicBoardBySlugQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetPublicBoardBySlugQueryKey(workspaceSlug, boardSlug, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPublicBoardBySlug>>
+  > = ({ signal }) =>
+    getPublicBoardBySlug(workspaceSlug, boardSlug, params, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      workspaceSlug !== null &&
+      workspaceSlug !== undefined &&
+      boardSlug !== null &&
+      boardSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetPublicBoardBySlugQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPublicBoardBySlug>>
+>;
+export type GetPublicBoardBySlugQueryError = unknown;
+
+/** @summary Get a public board by workspace and board slug */
+export function useGetPublicBoardBySlug<
+  TData = Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  boardSlug: string,
+  params: undefined | GetPublicBoardBySlugParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+          TError,
+          Awaited<ReturnType<typeof getPublicBoardBySlug>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a public board by workspace and board slug */
+export function useGetPublicBoardBySlug<
+  TData = Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+          TError,
+          Awaited<ReturnType<typeof getPublicBoardBySlug>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a public board by workspace and board slug */
+export function useGetPublicBoardBySlug<
+  TData = Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a public board by workspace and board slug */
+export function useGetPublicBoardBySlug<
+  TData = Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  boardSlug: string,
+  params?: GetPublicBoardBySlugParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getPublicBoardBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetPublicBoardBySlugQueryOptions(
+    workspaceSlug,
+    boardSlug,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getBoardMembersResponse200 = {
+  data: BoardMemberDtoOutput[];
+  status: 200;
+};
+
+export type getBoardMembersResponseSuccess = getBoardMembersResponse200 & {
+  headers: Headers;
+};
+export type getBoardMembersResponse = getBoardMembersResponseSuccess;
+
+export const getGetBoardMembersUrl = (boardPublicId: string) => {
+  return `/boards/${boardPublicId}/members`;
+};
+
+/**
+ * @summary List a board's members
+ */
+export const getBoardMembers = async (
+  boardPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getBoardMembersResponse> => {
+  return customFetch<getBoardMembersResponse>(
+    getGetBoardMembersUrl(boardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetBoardMembersQueryKey = (boardPublicId: string) => {
+  return [`/boards/${boardPublicId}/members`] as const;
+};
+
+export const getGetBoardMembersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getBoardMembers>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getBoardMembers>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetBoardMembersQueryKey(boardPublicId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getBoardMembers>>> = ({
+    signal,
+  }) => getBoardMembers(boardPublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: boardPublicId !== null && boardPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getBoardMembers>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetBoardMembersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getBoardMembers>>
+>;
+export type GetBoardMembersQueryError = unknown;
+
+/** @summary List a board's members */
+export function useGetBoardMembers<
+  TData = Awaited<ReturnType<typeof getBoardMembers>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getBoardMembers>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoardMembers>>,
+          TError,
+          Awaited<ReturnType<typeof getBoardMembers>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a board's members */
+export function useGetBoardMembers<
+  TData = Awaited<ReturnType<typeof getBoardMembers>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getBoardMembers>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getBoardMembers>>,
+          TError,
+          Awaited<ReturnType<typeof getBoardMembers>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a board's members */
+export function useGetBoardMembers<
+  TData = Awaited<ReturnType<typeof getBoardMembers>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getBoardMembers>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a board's members */
+export function useGetBoardMembers<
+  TData = Awaited<ReturnType<typeof getBoardMembers>>,
+  TError = unknown,
+>(
+  boardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getBoardMembers>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetBoardMembersQueryOptions(boardPublicId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type addBoardMemberResponse201 = {
+  data: BoardMemberRoleResultDtoOutput;
+  status: 201;
+};
+
+export type addBoardMemberResponseSuccess = addBoardMemberResponse201 & {
+  headers: Headers;
+};
+export type addBoardMemberResponse = addBoardMemberResponseSuccess;
+
+export const getAddBoardMemberUrl = (boardPublicId: string) => {
+  return `/boards/${boardPublicId}/members`;
+};
+
+/**
+ * @summary Add a workspace member to a board
+ */
+export const addBoardMember = async (
+  boardPublicId: string,
+  addBoardMemberDto: AddBoardMemberDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<addBoardMemberResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<addBoardMemberResponse>(
+    getAddBoardMemberUrl(boardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(addBoardMemberDto),
+    },
+  );
+};
+
+export const getAddBoardMemberMutationKey = () => ["addBoardMember"] as const;
+
+export const getAddBoardMemberMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addBoardMember>>,
+    TError,
+    AddBoardMemberMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addBoardMember>>,
+  TError,
+  AddBoardMemberMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAddBoardMemberMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addBoardMember>>,
+    AddBoardMemberMutationVariables
+  > = (props) => {
+    const { boardPublicId, data } = props ?? {};
+
+    return addBoardMember(boardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddBoardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addBoardMember>>
+>;
+export type AddBoardMemberMutationBody = AddBoardMemberDto;
+export type AddBoardMemberMutationError = unknown;
+export type AddBoardMemberMutationVariables = {
+  boardPublicId: string;
+  data: AddBoardMemberDto;
+};
+
+/** @summary Add a workspace member to a board */
+export const useAddBoardMember = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addBoardMember>>,
+      TError,
+      AddBoardMemberMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof addBoardMember>>,
+  TError,
+  AddBoardMemberMutationVariables,
+  TContext
+> => {
+  return useMutation(getAddBoardMemberMutationOptions(options), queryClient);
+};
+
+export type updateBoardMemberRoleResponse200 = {
+  data: BoardMemberRoleResultDtoOutput;
+  status: 200;
+};
+
+export type updateBoardMemberRoleResponseSuccess =
+  updateBoardMemberRoleResponse200 & {
+    headers: Headers;
+  };
+export type updateBoardMemberRoleResponse =
+  updateBoardMemberRoleResponseSuccess;
+
+export const getUpdateBoardMemberRoleUrl = (
+  boardPublicId: string,
+  workspaceMemberPublicId: string,
+) => {
+  return `/boards/${boardPublicId}/members/${workspaceMemberPublicId}`;
+};
+
+/**
+ * @summary Update a board member's role
+ */
+export const updateBoardMemberRole = async (
+  boardPublicId: string,
+  workspaceMemberPublicId: string,
+  updateBoardMemberRoleDto: UpdateBoardMemberRoleDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateBoardMemberRoleResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateBoardMemberRoleResponse>(
+    getUpdateBoardMemberRoleUrl(boardPublicId, workspaceMemberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateBoardMemberRoleDto),
+    },
+  );
+};
+
+export const getUpdateBoardMemberRoleMutationKey = () =>
+  ["updateBoardMemberRole"] as const;
+
+export const getUpdateBoardMemberRoleMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateBoardMemberRole>>,
+    TError,
+    UpdateBoardMemberRoleMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateBoardMemberRole>>,
+  TError,
+  UpdateBoardMemberRoleMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateBoardMemberRoleMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateBoardMemberRole>>,
+    UpdateBoardMemberRoleMutationVariables
+  > = (props) => {
+    const { boardPublicId, workspaceMemberPublicId, data } = props ?? {};
+
+    return updateBoardMemberRole(
+      boardPublicId,
+      workspaceMemberPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateBoardMemberRoleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateBoardMemberRole>>
+>;
+export type UpdateBoardMemberRoleMutationBody = UpdateBoardMemberRoleDto;
+export type UpdateBoardMemberRoleMutationError = unknown;
+export type UpdateBoardMemberRoleMutationVariables = {
+  boardPublicId: string;
+  workspaceMemberPublicId: string;
+  data: UpdateBoardMemberRoleDto;
+};
+
+/** @summary Update a board member's role */
+export const useUpdateBoardMemberRole = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateBoardMemberRole>>,
+      TError,
+      UpdateBoardMemberRoleMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateBoardMemberRole>>,
+  TError,
+  UpdateBoardMemberRoleMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getUpdateBoardMemberRoleMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type removeBoardMemberResponse200 = {
+  data: BoardMemberRemoveResponseDtoOutput;
+  status: 200;
+};
+
+export type removeBoardMemberResponseSuccess = removeBoardMemberResponse200 & {
+  headers: Headers;
+};
+export type removeBoardMemberResponse = removeBoardMemberResponseSuccess;
+
+export const getRemoveBoardMemberUrl = (
+  boardPublicId: string,
+  workspaceMemberPublicId: string,
+) => {
+  return `/boards/${boardPublicId}/members/${workspaceMemberPublicId}`;
+};
+
+/**
+ * @summary Remove a member from a board
+ */
+export const removeBoardMember = async (
+  boardPublicId: string,
+  workspaceMemberPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<removeBoardMemberResponse> => {
+  return customFetch<removeBoardMemberResponse>(
+    getRemoveBoardMemberUrl(boardPublicId, workspaceMemberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getRemoveBoardMemberMutationKey = () =>
+  ["removeBoardMember"] as const;
+
+export const getRemoveBoardMemberMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof removeBoardMember>>,
+    TError,
+    RemoveBoardMemberMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof removeBoardMember>>,
+  TError,
+  RemoveBoardMemberMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRemoveBoardMemberMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof removeBoardMember>>,
+    RemoveBoardMemberMutationVariables
+  > = (props) => {
+    const { boardPublicId, workspaceMemberPublicId } = props ?? {};
+
+    return removeBoardMember(
+      boardPublicId,
+      workspaceMemberPublicId,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RemoveBoardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof removeBoardMember>>
+>;
+
+export type RemoveBoardMemberMutationError = unknown;
+export type RemoveBoardMemberMutationVariables = {
+  boardPublicId: string;
+  workspaceMemberPublicId: string;
+};
+
+/** @summary Remove a member from a board */
+export const useRemoveBoardMember = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof removeBoardMember>>,
+      TError,
+      RemoveBoardMemberMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof removeBoardMember>>,
+  TError,
+  RemoveBoardMemberMutationVariables,
+  TContext
+> => {
+  return useMutation(getRemoveBoardMemberMutationOptions(options), queryClient);
+};
+
+export type createCardResponse201 = {
+  data: PublicIdResponseDtoOutput;
+  status: 201;
+};
+
+export type createCardResponseSuccess = createCardResponse201 & {
+  headers: Headers;
+};
+export type createCardResponse = createCardResponseSuccess;
+
+export const getCreateCardUrl = () => {
+  return `/cards`;
+};
+
+/**
+ * @summary Create a card
+ */
+export const createCard = async (
+  createCardDto: CreateCardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createCardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createCardResponse>(getCreateCardUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(createCardDto),
+  });
+};
+
+export const getCreateCardMutationKey = () => ["createCard"] as const;
+
+export const getCreateCardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCard>>,
+    TError,
+    CreateCardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCard>>,
+  TError,
+  CreateCardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCard>>,
+    CreateCardMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCard(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCard>>
+>;
+export type CreateCardMutationBody = CreateCardDto;
+export type CreateCardMutationError = unknown;
+export type CreateCardMutationVariables = { data: CreateCardDto };
+
+/** @summary Create a card */
+export const useCreateCard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createCard>>,
+      TError,
+      CreateCardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createCard>>,
+  TError,
+  CreateCardMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateCardMutationOptions(options), queryClient);
+};
+
+export type updateCardResponse200 = {
+  data: CardUpdateResponseDtoOutput;
+  status: 200;
+};
+
+export type updateCardResponseSuccess = updateCardResponse200 & {
+  headers: Headers;
+};
+export type updateCardResponse = updateCardResponseSuccess;
+
+export const getUpdateCardUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}`;
+};
+
+/**
+ * @summary Update a card
+ */
+export const updateCard = async (
+  cardPublicId: string,
+  updateCardDto: UpdateCardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateCardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateCardResponse>(getUpdateCardUrl(cardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(updateCardDto),
+  });
+};
+
+export const getUpdateCardMutationKey = () => ["updateCard"] as const;
+
+export const getUpdateCardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCard>>,
+    TError,
+    UpdateCardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCard>>,
+  TError,
+  UpdateCardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCard>>,
+    UpdateCardMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return updateCard(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCard>>
+>;
+export type UpdateCardMutationBody = UpdateCardDto;
+export type UpdateCardMutationError = unknown;
+export type UpdateCardMutationVariables = {
+  cardPublicId: string;
+  data: UpdateCardDto;
+};
+
+/** @summary Update a card */
+export const useUpdateCard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateCard>>,
+      TError,
+      UpdateCardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateCard>>,
+  TError,
+  UpdateCardMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateCardMutationOptions(options), queryClient);
+};
+
+export type deleteCardResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteCardResponseSuccess = deleteCardResponse200 & {
+  headers: Headers;
+};
+export type deleteCardResponse = deleteCardResponseSuccess;
+
+export const getDeleteCardUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}`;
+};
+
+/**
+ * @summary Delete a card
+ */
+export const deleteCard = async (
+  cardPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteCardResponse> => {
+  return customFetch<deleteCardResponse>(getDeleteCardUrl(cardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCardMutationKey = () => ["deleteCard"] as const;
+
+export const getDeleteCardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCard>>,
+    TError,
+    DeleteCardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCard>>,
+  TError,
+  DeleteCardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCard>>,
+    DeleteCardMutationVariables
+  > = (props) => {
+    const { cardPublicId } = props ?? {};
+
+    return deleteCard(cardPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCard>>
+>;
+
+export type DeleteCardMutationError = unknown;
+export type DeleteCardMutationVariables = { cardPublicId: string };
+
+/** @summary Delete a card */
+export const useDeleteCard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteCard>>,
+      TError,
+      DeleteCardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCard>>,
+  TError,
+  DeleteCardMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteCardMutationOptions(options), queryClient);
+};
+
+export type getCardResponse200 = {
+  data: CardDetailDtoOutput;
+  status: 200;
+};
+
+export type getCardResponseSuccess = getCardResponse200 & {
+  headers: Headers;
+};
+export type getCardResponse = getCardResponseSuccess;
+
+export const getGetCardUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}`;
+};
+
+/**
+ * @summary Get a card by public ID
+ */
+export const getCard = async (
+  cardPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getCardResponse> => {
+  return customFetch<getCardResponse>(getGetCardUrl(cardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetCardQueryKey = (cardPublicId: string) => {
+  return [`/cards/${cardPublicId}`] as const;
+};
+
+export const getGetCardQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetCardQueryKey(cardPublicId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getCard>>> = ({
+    signal,
+  }) => getCard(cardPublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: cardPublicId !== null && cardPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>;
+  };
+};
+
+export type GetCardQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCard>>
+>;
+export type GetCardQueryError = unknown;
+
+/** @summary Get a card by public ID */
+export function useGetCard<
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCard>>,
+          TError,
+          Awaited<ReturnType<typeof getCard>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card by public ID */
+export function useGetCard<
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCard>>,
+          TError,
+          Awaited<ReturnType<typeof getCard>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card by public ID */
+export function useGetCard<
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card by public ID */
+export function useGetCard<
+  TData = Awaited<ReturnType<typeof getCard>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getCard>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetCardQueryOptions(cardPublicId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type duplicateCardResponse201 = {
+  data: PublicIdResponseDtoOutput;
+  status: 201;
+};
+
+export type duplicateCardResponseSuccess = duplicateCardResponse201 & {
+  headers: Headers;
+};
+export type duplicateCardResponse = duplicateCardResponseSuccess;
+
+export const getDuplicateCardUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/duplicate`;
+};
+
+/**
+ * @summary Duplicate a card
+ */
+export const duplicateCard = async (
+  cardPublicId: string,
+  duplicateCardDto: DuplicateCardDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<duplicateCardResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<duplicateCardResponse>(getDuplicateCardUrl(cardPublicId), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(duplicateCardDto),
+  });
+};
+
+export const getDuplicateCardMutationKey = () => ["duplicateCard"] as const;
+
+export const getDuplicateCardMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof duplicateCard>>,
+    TError,
+    DuplicateCardMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof duplicateCard>>,
+  TError,
+  DuplicateCardMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDuplicateCardMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof duplicateCard>>,
+    DuplicateCardMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return duplicateCard(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DuplicateCardMutationResult = NonNullable<
+  Awaited<ReturnType<typeof duplicateCard>>
+>;
+export type DuplicateCardMutationBody = DuplicateCardDto;
+export type DuplicateCardMutationError = unknown;
+export type DuplicateCardMutationVariables = {
+  cardPublicId: string;
+  data: DuplicateCardDto;
+};
+
+/** @summary Duplicate a card */
+export const useDuplicateCard = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof duplicateCard>>,
+      TError,
+      DuplicateCardMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof duplicateCard>>,
+  TError,
+  DuplicateCardMutationVariables,
+  TContext
+> => {
+  return useMutation(getDuplicateCardMutationOptions(options), queryClient);
+};
+
+export type addCardCommentResponse201 = {
+  data: CommentResponseDtoOutput;
+  status: 201;
+};
+
+export type addCardCommentResponseSuccess = addCardCommentResponse201 & {
+  headers: Headers;
+};
+export type addCardCommentResponse = addCardCommentResponseSuccess;
+
+export const getAddCardCommentUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/comments`;
+};
+
+/**
+ * @summary Add a comment
+ */
+export const addCardComment = async (
+  cardPublicId: string,
+  commentDto: CommentDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<addCardCommentResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<addCardCommentResponse>(
+    getAddCardCommentUrl(cardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(commentDto),
+    },
+  );
+};
+
+export const getAddCardCommentMutationKey = () => ["addCardComment"] as const;
+
+export const getAddCardCommentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof addCardComment>>,
+    TError,
+    AddCardCommentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof addCardComment>>,
+  TError,
+  AddCardCommentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAddCardCommentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof addCardComment>>,
+    AddCardCommentMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return addCardComment(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AddCardCommentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof addCardComment>>
+>;
+export type AddCardCommentMutationBody = CommentDto;
+export type AddCardCommentMutationError = unknown;
+export type AddCardCommentMutationVariables = {
+  cardPublicId: string;
+  data: CommentDto;
+};
+
+/** @summary Add a comment */
+export const useAddCardComment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof addCardComment>>,
+      TError,
+      AddCardCommentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof addCardComment>>,
+  TError,
+  AddCardCommentMutationVariables,
+  TContext
+> => {
+  return useMutation(getAddCardCommentMutationOptions(options), queryClient);
+};
+
+export type updateCardCommentResponse200 = {
+  data: CommentResponseDtoOutput;
+  status: 200;
+};
+
+export type updateCardCommentResponseSuccess = updateCardCommentResponse200 & {
+  headers: Headers;
+};
+export type updateCardCommentResponse = updateCardCommentResponseSuccess;
+
+export const getUpdateCardCommentUrl = (
+  cardPublicId: string,
+  commentPublicId: string,
+) => {
+  return `/cards/${cardPublicId}/comments/${commentPublicId}`;
+};
+
+/**
+ * @summary Update a comment
+ */
+export const updateCardComment = async (
+  cardPublicId: string,
+  commentPublicId: string,
+  commentDto: CommentDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateCardCommentResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateCardCommentResponse>(
+    getUpdateCardCommentUrl(cardPublicId, commentPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(commentDto),
+    },
+  );
+};
+
+export const getUpdateCardCommentMutationKey = () =>
+  ["updateCardComment"] as const;
+
+export const getUpdateCardCommentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCardComment>>,
+    TError,
+    UpdateCardCommentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCardComment>>,
+  TError,
+  UpdateCardCommentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateCardCommentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCardComment>>,
+    UpdateCardCommentMutationVariables
+  > = (props) => {
+    const { cardPublicId, commentPublicId, data } = props ?? {};
+
+    return updateCardComment(
+      cardPublicId,
+      commentPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCardCommentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCardComment>>
+>;
+export type UpdateCardCommentMutationBody = CommentDto;
+export type UpdateCardCommentMutationError = unknown;
+export type UpdateCardCommentMutationVariables = {
+  cardPublicId: string;
+  commentPublicId: string;
+  data: CommentDto;
+};
+
+/** @summary Update a comment */
+export const useUpdateCardComment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateCardComment>>,
+      TError,
+      UpdateCardCommentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateCardComment>>,
+  TError,
+  UpdateCardCommentMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateCardCommentMutationOptions(options), queryClient);
+};
+
+export type deleteCardCommentResponse200 = {
+  data: PublicIdResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteCardCommentResponseSuccess = deleteCardCommentResponse200 & {
+  headers: Headers;
+};
+export type deleteCardCommentResponse = deleteCardCommentResponseSuccess;
+
+export const getDeleteCardCommentUrl = (
+  cardPublicId: string,
+  commentPublicId: string,
+) => {
+  return `/cards/${cardPublicId}/comments/${commentPublicId}`;
+};
+
+/**
+ * @summary Delete a comment
+ */
+export const deleteCardComment = async (
+  cardPublicId: string,
+  commentPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteCardCommentResponse> => {
+  return customFetch<deleteCardCommentResponse>(
+    getDeleteCardCommentUrl(cardPublicId, commentPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteCardCommentMutationKey = () =>
+  ["deleteCardComment"] as const;
+
+export const getDeleteCardCommentMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCardComment>>,
+    TError,
+    DeleteCardCommentMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCardComment>>,
+  TError,
+  DeleteCardCommentMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteCardCommentMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCardComment>>,
+    DeleteCardCommentMutationVariables
+  > = (props) => {
+    const { cardPublicId, commentPublicId } = props ?? {};
+
+    return deleteCardComment(cardPublicId, commentPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCardCommentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCardComment>>
+>;
+
+export type DeleteCardCommentMutationError = unknown;
+export type DeleteCardCommentMutationVariables = {
+  cardPublicId: string;
+  commentPublicId: string;
+};
+
+/** @summary Delete a comment */
+export const useDeleteCardComment = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteCardComment>>,
+      TError,
+      DeleteCardCommentMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCardComment>>,
+  TError,
+  DeleteCardCommentMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteCardCommentMutationOptions(options), queryClient);
+};
+
+export type toggleCardLabelResponse200 = {
+  data: ToggleLabelResponseDtoOutput;
+  status: 200;
+};
+
+export type toggleCardLabelResponseSuccess = toggleCardLabelResponse200 & {
+  headers: Headers;
+};
+export type toggleCardLabelResponse = toggleCardLabelResponseSuccess;
+
+export const getToggleCardLabelUrl = (
+  cardPublicId: string,
+  labelPublicId: string,
+) => {
+  return `/cards/${cardPublicId}/labels/${labelPublicId}`;
+};
+
+/**
+ * @summary Add or remove a label on a card
+ */
+export const toggleCardLabel = async (
+  cardPublicId: string,
+  labelPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<toggleCardLabelResponse> => {
+  return customFetch<toggleCardLabelResponse>(
+    getToggleCardLabelUrl(cardPublicId, labelPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+    },
+  );
+};
+
+export const getToggleCardLabelMutationKey = () => ["toggleCardLabel"] as const;
+
+export const getToggleCardLabelMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleCardLabel>>,
+    TError,
+    ToggleCardLabelMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleCardLabel>>,
+  TError,
+  ToggleCardLabelMutationVariables,
+  TContext
+> => {
+  const mutationKey = getToggleCardLabelMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleCardLabel>>,
+    ToggleCardLabelMutationVariables
+  > = (props) => {
+    const { cardPublicId, labelPublicId } = props ?? {};
+
+    return toggleCardLabel(cardPublicId, labelPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleCardLabelMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleCardLabel>>
+>;
+
+export type ToggleCardLabelMutationError = unknown;
+export type ToggleCardLabelMutationVariables = {
+  cardPublicId: string;
+  labelPublicId: string;
+};
+
+/** @summary Add or remove a label on a card */
+export const useToggleCardLabel = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof toggleCardLabel>>,
+      TError,
+      ToggleCardLabelMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof toggleCardLabel>>,
+  TError,
+  ToggleCardLabelMutationVariables,
+  TContext
+> => {
+  return useMutation(getToggleCardLabelMutationOptions(options), queryClient);
+};
+
+export type toggleCardMemberResponse200 = {
+  data: ToggleMemberResponseDtoOutput;
+  status: 200;
+};
+
+export type toggleCardMemberResponseSuccess = toggleCardMemberResponse200 & {
+  headers: Headers;
+};
+export type toggleCardMemberResponse = toggleCardMemberResponseSuccess;
+
+export const getToggleCardMemberUrl = (
+  cardPublicId: string,
+  workspaceMemberPublicId: string,
+) => {
+  return `/cards/${cardPublicId}/members/${workspaceMemberPublicId}`;
+};
+
+/**
+ * @summary Add or remove a member on a card
+ */
+export const toggleCardMember = async (
+  cardPublicId: string,
+  workspaceMemberPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<toggleCardMemberResponse> => {
+  return customFetch<toggleCardMemberResponse>(
+    getToggleCardMemberUrl(cardPublicId, workspaceMemberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+    },
+  );
+};
+
+export const getToggleCardMemberMutationKey = () =>
+  ["toggleCardMember"] as const;
+
+export const getToggleCardMemberMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof toggleCardMember>>,
+    TError,
+    ToggleCardMemberMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof toggleCardMember>>,
+  TError,
+  ToggleCardMemberMutationVariables,
+  TContext
+> => {
+  const mutationKey = getToggleCardMemberMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof toggleCardMember>>,
+    ToggleCardMemberMutationVariables
+  > = (props) => {
+    const { cardPublicId, workspaceMemberPublicId } = props ?? {};
+
+    return toggleCardMember(
+      cardPublicId,
+      workspaceMemberPublicId,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ToggleCardMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof toggleCardMember>>
+>;
+
+export type ToggleCardMemberMutationError = unknown;
+export type ToggleCardMemberMutationVariables = {
+  cardPublicId: string;
+  workspaceMemberPublicId: string;
+};
+
+/** @summary Add or remove a member on a card */
+export const useToggleCardMember = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof toggleCardMember>>,
+      TError,
+      ToggleCardMemberMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof toggleCardMember>>,
+  TError,
+  ToggleCardMemberMutationVariables,
+  TContext
+> => {
+  return useMutation(getToggleCardMemberMutationOptions(options), queryClient);
+};
+
+export type getCardActivitiesResponse200 = {
+  data: ActivitiesResponseDtoOutput;
+  status: 200;
+};
+
+export type getCardActivitiesResponseSuccess = getCardActivitiesResponse200 & {
+  headers: Headers;
+};
+export type getCardActivitiesResponse = getCardActivitiesResponseSuccess;
+
+export const getGetCardActivitiesUrl = (
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/cards/${cardPublicId}/activities?${stringifiedParams}`
+    : `/cards/${cardPublicId}/activities`;
+};
+
+/**
+ * @summary Get a card's activities, paginated
+ */
+export const getCardActivities = async (
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getCardActivitiesResponse> => {
+  return customFetch<getCardActivitiesResponse>(
+    getGetCardActivitiesUrl(cardPublicId, params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetCardActivitiesQueryKey = (
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+) => {
+  return [
+    `/cards/${cardPublicId}/activities`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getGetCardActivitiesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getCardActivities>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCardActivities>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetCardActivitiesQueryKey(cardPublicId, params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getCardActivities>>
+  > = ({ signal }) =>
+    getCardActivities(cardPublicId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: cardPublicId !== null && cardPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getCardActivities>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetCardActivitiesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getCardActivities>>
+>;
+export type GetCardActivitiesQueryError = unknown;
+
+/** @summary Get a card's activities, paginated */
+export function useGetCardActivities<
+  TData = Awaited<ReturnType<typeof getCardActivities>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  params: undefined | GetCardActivitiesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCardActivities>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCardActivities>>,
+          TError,
+          Awaited<ReturnType<typeof getCardActivities>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card's activities, paginated */
+export function useGetCardActivities<
+  TData = Awaited<ReturnType<typeof getCardActivities>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCardActivities>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getCardActivities>>,
+          TError,
+          Awaited<ReturnType<typeof getCardActivities>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card's activities, paginated */
+export function useGetCardActivities<
+  TData = Awaited<ReturnType<typeof getCardActivities>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCardActivities>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a card's activities, paginated */
+export function useGetCardActivities<
+  TData = Awaited<ReturnType<typeof getCardActivities>>,
+  TError = unknown,
+>(
+  cardPublicId: string,
+  params?: GetCardActivitiesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getCardActivities>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetCardActivitiesQueryOptions(
+    cardPublicId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type updateChecklistResponse200 = {
+  data: ChecklistResponseDtoOutput;
+  status: 200;
+};
+
+export type updateChecklistResponseSuccess = updateChecklistResponse200 & {
+  headers: Headers;
+};
+export type updateChecklistResponse = updateChecklistResponseSuccess;
+
+export const getUpdateChecklistUrl = (checklistPublicId: string) => {
+  return `/checklists/${checklistPublicId}`;
+};
+
+/**
+ * @summary Update a checklist
+ */
+export const updateChecklist = async (
+  checklistPublicId: string,
+  updateChecklistDto: UpdateChecklistDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateChecklistResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateChecklistResponse>(
+    getUpdateChecklistUrl(checklistPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateChecklistDto),
+    },
+  );
+};
+
+export const getUpdateChecklistMutationKey = () => ["updateChecklist"] as const;
+
+export const getUpdateChecklistMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateChecklist>>,
+    TError,
+    UpdateChecklistMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateChecklist>>,
+  TError,
+  UpdateChecklistMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateChecklistMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateChecklist>>,
+    UpdateChecklistMutationVariables
+  > = (props) => {
+    const { checklistPublicId, data } = props ?? {};
+
+    return updateChecklist(checklistPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateChecklistMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateChecklist>>
+>;
+export type UpdateChecklistMutationBody = UpdateChecklistDto;
+export type UpdateChecklistMutationError = unknown;
+export type UpdateChecklistMutationVariables = {
+  checklistPublicId: string;
+  data: UpdateChecklistDto;
+};
+
+/** @summary Update a checklist */
+export const useUpdateChecklist = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateChecklist>>,
+      TError,
+      UpdateChecklistMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateChecklist>>,
+  TError,
+  UpdateChecklistMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateChecklistMutationOptions(options), queryClient);
+};
+
+export type deleteChecklistResponse200 = {
+  data: DeleteChecklistResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteChecklistResponseSuccess = deleteChecklistResponse200 & {
+  headers: Headers;
+};
+export type deleteChecklistResponse = deleteChecklistResponseSuccess;
+
+export const getDeleteChecklistUrl = (checklistPublicId: string) => {
+  return `/checklists/${checklistPublicId}`;
+};
+
+/**
+ * @summary Delete a checklist
+ */
+export const deleteChecklist = async (
+  checklistPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteChecklistResponse> => {
+  return customFetch<deleteChecklistResponse>(
+    getDeleteChecklistUrl(checklistPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteChecklistMutationKey = () => ["deleteChecklist"] as const;
+
+export const getDeleteChecklistMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteChecklist>>,
+    TError,
+    DeleteChecklistMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteChecklist>>,
+  TError,
+  DeleteChecklistMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteChecklistMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteChecklist>>,
+    DeleteChecklistMutationVariables
+  > = (props) => {
+    const { checklistPublicId } = props ?? {};
+
+    return deleteChecklist(checklistPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteChecklistMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteChecklist>>
+>;
+
+export type DeleteChecklistMutationError = unknown;
+export type DeleteChecklistMutationVariables = { checklistPublicId: string };
+
+/** @summary Delete a checklist */
+export const useDeleteChecklist = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteChecklist>>,
+      TError,
+      DeleteChecklistMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteChecklist>>,
+  TError,
+  DeleteChecklistMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteChecklistMutationOptions(options), queryClient);
+};
+
+export type createChecklistItemResponse201 = {
+  data: ChecklistItemResponseDtoOutput;
+  status: 201;
+};
+
+export type createChecklistItemResponseSuccess =
+  createChecklistItemResponse201 & {
+    headers: Headers;
+  };
+export type createChecklistItemResponse = createChecklistItemResponseSuccess;
+
+export const getCreateChecklistItemUrl = (checklistPublicId: string) => {
+  return `/checklists/${checklistPublicId}/items`;
+};
+
+/**
+ * @summary Add an item to a checklist
+ */
+export const createChecklistItem = async (
+  checklistPublicId: string,
+  createChecklistItemDto: CreateChecklistItemDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createChecklistItemResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createChecklistItemResponse>(
+    getCreateChecklistItemUrl(checklistPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(createChecklistItemDto),
+    },
+  );
+};
+
+export const getCreateChecklistItemMutationKey = () =>
+  ["createChecklistItem"] as const;
+
+export const getCreateChecklistItemMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createChecklistItem>>,
+    TError,
+    CreateChecklistItemMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createChecklistItem>>,
+  TError,
+  CreateChecklistItemMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateChecklistItemMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createChecklistItem>>,
+    CreateChecklistItemMutationVariables
+  > = (props) => {
+    const { checklistPublicId, data } = props ?? {};
+
+    return createChecklistItem(checklistPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createChecklistItem>>
+>;
+export type CreateChecklistItemMutationBody = CreateChecklistItemDto;
+export type CreateChecklistItemMutationError = unknown;
+export type CreateChecklistItemMutationVariables = {
+  checklistPublicId: string;
+  data: CreateChecklistItemDto;
+};
+
+/** @summary Add an item to a checklist */
+export const useCreateChecklistItem = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createChecklistItem>>,
+      TError,
+      CreateChecklistItemMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createChecklistItem>>,
+  TError,
+  CreateChecklistItemMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getCreateChecklistItemMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type updateChecklistItemResponse200 = {
+  data: ChecklistItemResponseDtoOutput;
+  status: 200;
+};
+
+export type updateChecklistItemResponseSuccess =
+  updateChecklistItemResponse200 & {
+    headers: Headers;
+  };
+export type updateChecklistItemResponse = updateChecklistItemResponseSuccess;
+
+export const getUpdateChecklistItemUrl = (checklistItemPublicId: string) => {
+  return `/checklists/items/${checklistItemPublicId}`;
+};
+
+/**
+ * @summary Update a checklist item
+ */
+export const updateChecklistItem = async (
+  checklistItemPublicId: string,
+  updateChecklistItemDto: UpdateChecklistItemDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateChecklistItemResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateChecklistItemResponse>(
+    getUpdateChecklistItemUrl(checklistItemPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateChecklistItemDto),
+    },
+  );
+};
+
+export const getUpdateChecklistItemMutationKey = () =>
+  ["updateChecklistItem"] as const;
+
+export const getUpdateChecklistItemMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateChecklistItem>>,
+    TError,
+    UpdateChecklistItemMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateChecklistItem>>,
+  TError,
+  UpdateChecklistItemMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateChecklistItemMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateChecklistItem>>,
+    UpdateChecklistItemMutationVariables
+  > = (props) => {
+    const { checklistItemPublicId, data } = props ?? {};
+
+    return updateChecklistItem(checklistItemPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateChecklistItem>>
+>;
+export type UpdateChecklistItemMutationBody = UpdateChecklistItemDto;
+export type UpdateChecklistItemMutationError = unknown;
+export type UpdateChecklistItemMutationVariables = {
+  checklistItemPublicId: string;
+  data: UpdateChecklistItemDto;
+};
+
+/** @summary Update a checklist item */
+export const useUpdateChecklistItem = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateChecklistItem>>,
+      TError,
+      UpdateChecklistItemMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateChecklistItem>>,
+  TError,
+  UpdateChecklistItemMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getUpdateChecklistItemMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type deleteChecklistItemResponse200 = {
+  data: DeleteChecklistResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteChecklistItemResponseSuccess =
+  deleteChecklistItemResponse200 & {
+    headers: Headers;
+  };
+export type deleteChecklistItemResponse = deleteChecklistItemResponseSuccess;
+
+export const getDeleteChecklistItemUrl = (checklistItemPublicId: string) => {
+  return `/checklists/items/${checklistItemPublicId}`;
+};
+
+/**
+ * @summary Delete a checklist item
+ */
+export const deleteChecklistItem = async (
+  checklistItemPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteChecklistItemResponse> => {
+  return customFetch<deleteChecklistItemResponse>(
+    getDeleteChecklistItemUrl(checklistItemPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteChecklistItemMutationKey = () =>
+  ["deleteChecklistItem"] as const;
+
+export const getDeleteChecklistItemMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteChecklistItem>>,
+    TError,
+    DeleteChecklistItemMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteChecklistItem>>,
+  TError,
+  DeleteChecklistItemMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteChecklistItemMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteChecklistItem>>,
+    DeleteChecklistItemMutationVariables
+  > = (props) => {
+    const { checklistItemPublicId } = props ?? {};
+
+    return deleteChecklistItem(checklistItemPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteChecklistItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteChecklistItem>>
+>;
+
+export type DeleteChecklistItemMutationError = unknown;
+export type DeleteChecklistItemMutationVariables = {
+  checklistItemPublicId: string;
+};
+
+/** @summary Delete a checklist item */
+export const useDeleteChecklistItem = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteChecklistItem>>,
+      TError,
+      DeleteChecklistItemMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteChecklistItem>>,
+  TError,
+  DeleteChecklistItemMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getDeleteChecklistItemMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type createChecklistResponse201 = {
+  data: ChecklistResponseDtoOutput;
+  status: 201;
+};
+
+export type createChecklistResponseSuccess = createChecklistResponse201 & {
+  headers: Headers;
+};
+export type createChecklistResponse = createChecklistResponseSuccess;
+
+export const getCreateChecklistUrl = (cardPublicId: string) => {
+  return `/cards/${cardPublicId}/checklists`;
+};
+
+/**
+ * @summary Add a checklist to a card
+ */
+export const createChecklist = async (
+  cardPublicId: string,
+  createChecklistDto: CreateChecklistDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createChecklistResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createChecklistResponse>(
+    getCreateChecklistUrl(cardPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(createChecklistDto),
+    },
+  );
+};
+
+export const getCreateChecklistMutationKey = () => ["createChecklist"] as const;
+
+export const getCreateChecklistMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createChecklist>>,
+    TError,
+    CreateChecklistMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createChecklist>>,
+  TError,
+  CreateChecklistMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateChecklistMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createChecklist>>,
+    CreateChecklistMutationVariables
+  > = (props) => {
+    const { cardPublicId, data } = props ?? {};
+
+    return createChecklist(cardPublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateChecklistMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createChecklist>>
+>;
+export type CreateChecklistMutationBody = CreateChecklistDto;
+export type CreateChecklistMutationError = unknown;
+export type CreateChecklistMutationVariables = {
+  cardPublicId: string;
+  data: CreateChecklistDto;
+};
+
+/** @summary Add a checklist to a card */
+export const useCreateChecklist = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createChecklist>>,
+      TError,
+      CreateChecklistMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createChecklist>>,
+  TError,
+  CreateChecklistMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateChecklistMutationOptions(options), queryClient);
+};
+
 export type createFeedbackResponse201 = {
-  data: CreateFeedbackResponseDto;
+  data: CreateFeedbackResponseDtoOutput;
   status: 201;
 };
 
@@ -237,8 +6771,1601 @@ export const useCreateFeedback = <TError = unknown, TContext = unknown>(
   return useMutation(getCreateFeedbackMutationOptions(options), queryClient);
 };
 
+export type getTrelloBoardsResponse200 = {
+  data: ExternalSourceItemDtoOutput[];
+  status: 200;
+};
+
+export type getTrelloBoardsResponseSuccess = getTrelloBoardsResponse200 & {
+  headers: Headers;
+};
+export type getTrelloBoardsResponse = getTrelloBoardsResponseSuccess;
+
+export const getGetTrelloBoardsUrl = () => {
+  return `/integrations/trello/boards`;
+};
+
+/**
+ * @summary List the current user's Trello boards
+ */
+export const getTrelloBoards = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getTrelloBoardsResponse> => {
+  return customFetch<getTrelloBoardsResponse>(getGetTrelloBoardsUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetTrelloBoardsQueryKey = () => {
+  return [`/integrations/trello/boards`] as const;
+};
+
+export const getGetTrelloBoardsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getTrelloBoards>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getTrelloBoards>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetTrelloBoardsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrelloBoards>>> = ({
+    signal,
+  }) => getTrelloBoards({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getTrelloBoards>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetTrelloBoardsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getTrelloBoards>>
+>;
+export type GetTrelloBoardsQueryError = unknown;
+
+/** @summary List the current user's Trello boards */
+export function useGetTrelloBoards<
+  TData = Awaited<ReturnType<typeof getTrelloBoards>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTrelloBoards>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTrelloBoards>>,
+          TError,
+          Awaited<ReturnType<typeof getTrelloBoards>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's Trello boards */
+export function useGetTrelloBoards<
+  TData = Awaited<ReturnType<typeof getTrelloBoards>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTrelloBoards>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getTrelloBoards>>,
+          TError,
+          Awaited<ReturnType<typeof getTrelloBoards>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's Trello boards */
+export function useGetTrelloBoards<
+  TData = Awaited<ReturnType<typeof getTrelloBoards>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTrelloBoards>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's Trello boards */
+export function useGetTrelloBoards<
+  TData = Awaited<ReturnType<typeof getTrelloBoards>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getTrelloBoards>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetTrelloBoardsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getGitHubProjectsResponse200 = {
+  data: ExternalSourceItemDtoOutput[];
+  status: 200;
+};
+
+export type getGitHubProjectsResponseSuccess = getGitHubProjectsResponse200 & {
+  headers: Headers;
+};
+export type getGitHubProjectsResponse = getGitHubProjectsResponseSuccess;
+
+export const getGetGitHubProjectsUrl = () => {
+  return `/integrations/github/projects`;
+};
+
+/**
+ * @summary List the current user's GitHub projects
+ */
+export const getGitHubProjects = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getGitHubProjectsResponse> => {
+  return customFetch<getGitHubProjectsResponse>(getGetGitHubProjectsUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetGitHubProjectsQueryKey = () => {
+  return [`/integrations/github/projects`] as const;
+};
+
+export const getGetGitHubProjectsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGitHubProjects>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getGitHubProjects>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetGitHubProjectsQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getGitHubProjects>>
+  > = ({ signal }) => getGitHubProjects({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getGitHubProjects>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetGitHubProjectsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getGitHubProjects>>
+>;
+export type GetGitHubProjectsQueryError = unknown;
+
+/** @summary List the current user's GitHub projects */
+export function useGetGitHubProjects<
+  TData = Awaited<ReturnType<typeof getGitHubProjects>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubProjects>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGitHubProjects>>,
+          TError,
+          Awaited<ReturnType<typeof getGitHubProjects>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's GitHub projects */
+export function useGetGitHubProjects<
+  TData = Awaited<ReturnType<typeof getGitHubProjects>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubProjects>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGitHubProjects>>,
+          TError,
+          Awaited<ReturnType<typeof getGitHubProjects>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's GitHub projects */
+export function useGetGitHubProjects<
+  TData = Awaited<ReturnType<typeof getGitHubProjects>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubProjects>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List the current user's GitHub projects */
+export function useGetGitHubProjects<
+  TData = Awaited<ReturnType<typeof getGitHubProjects>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubProjects>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetGitHubProjectsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type importTrelloBoardsResponse201 = {
+  data: ImportTrelloBoardsResponseDtoOutput;
+  status: 201;
+};
+
+export type importTrelloBoardsResponseSuccess =
+  importTrelloBoardsResponse201 & {
+    headers: Headers;
+  };
+export type importTrelloBoardsResponse = importTrelloBoardsResponseSuccess;
+
+export const getImportTrelloBoardsUrl = () => {
+  return `/imports/trello/boards`;
+};
+
+/**
+ * @summary Import boards from Trello into a workspace
+ */
+export const importTrelloBoards = async (
+  importTrelloBoardsDto: ImportTrelloBoardsDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<importTrelloBoardsResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<importTrelloBoardsResponse>(getImportTrelloBoardsUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(importTrelloBoardsDto),
+  });
+};
+
+export const getImportTrelloBoardsMutationKey = () =>
+  ["importTrelloBoards"] as const;
+
+export const getImportTrelloBoardsMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof importTrelloBoards>>,
+    TError,
+    ImportTrelloBoardsMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof importTrelloBoards>>,
+  TError,
+  ImportTrelloBoardsMutationVariables,
+  TContext
+> => {
+  const mutationKey = getImportTrelloBoardsMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof importTrelloBoards>>,
+    ImportTrelloBoardsMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return importTrelloBoards(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ImportTrelloBoardsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof importTrelloBoards>>
+>;
+export type ImportTrelloBoardsMutationBody = ImportTrelloBoardsDto;
+export type ImportTrelloBoardsMutationError = unknown;
+export type ImportTrelloBoardsMutationVariables = {
+  data: ImportTrelloBoardsDto;
+};
+
+/** @summary Import boards from Trello into a workspace */
+export const useImportTrelloBoards = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof importTrelloBoards>>,
+      TError,
+      ImportTrelloBoardsMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof importTrelloBoards>>,
+  TError,
+  ImportTrelloBoardsMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getImportTrelloBoardsMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type importGitHubProjectsResponse201 = {
+  data: ImportGitHubProjectsResponseDtoOutput;
+  status: 201;
+};
+
+export type importGitHubProjectsResponseSuccess =
+  importGitHubProjectsResponse201 & {
+    headers: Headers;
+  };
+export type importGitHubProjectsResponse = importGitHubProjectsResponseSuccess;
+
+export const getImportGitHubProjectsUrl = () => {
+  return `/imports/github/projects`;
+};
+
+/**
+ * @summary Import projects from GitHub into a workspace
+ */
+export const importGitHubProjects = async (
+  importGitHubProjectsDto: ImportGitHubProjectsDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<importGitHubProjectsResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<importGitHubProjectsResponse>(
+    getImportGitHubProjectsUrl(),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(importGitHubProjectsDto),
+    },
+  );
+};
+
+export const getImportGitHubProjectsMutationKey = () =>
+  ["importGitHubProjects"] as const;
+
+export const getImportGitHubProjectsMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof importGitHubProjects>>,
+    TError,
+    ImportGitHubProjectsMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof importGitHubProjects>>,
+  TError,
+  ImportGitHubProjectsMutationVariables,
+  TContext
+> => {
+  const mutationKey = getImportGitHubProjectsMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof importGitHubProjects>>,
+    ImportGitHubProjectsMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return importGitHubProjects(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ImportGitHubProjectsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof importGitHubProjects>>
+>;
+export type ImportGitHubProjectsMutationBody = ImportGitHubProjectsDto;
+export type ImportGitHubProjectsMutationError = unknown;
+export type ImportGitHubProjectsMutationVariables = {
+  data: ImportGitHubProjectsDto;
+};
+
+/** @summary Import projects from GitHub into a workspace */
+export const useImportGitHubProjects = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof importGitHubProjects>>,
+      TError,
+      ImportGitHubProjectsMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof importGitHubProjects>>,
+  TError,
+  ImportGitHubProjectsMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getImportGitHubProjectsMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type getIntegrationProvidersResponse200 = {
+  data: IntegrationProviderDtoOutput[];
+  status: 200;
+};
+
+export type getIntegrationProvidersResponseSuccess =
+  getIntegrationProvidersResponse200 & {
+    headers: Headers;
+  };
+export type getIntegrationProvidersResponse =
+  getIntegrationProvidersResponseSuccess;
+
+export const getGetIntegrationProvidersUrl = () => {
+  return `/integration/providers`;
+};
+
+/**
+ * @summary Get the current user's integration providers
+ */
+export const getIntegrationProviders = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getIntegrationProvidersResponse> => {
+  return customFetch<getIntegrationProvidersResponse>(
+    getGetIntegrationProvidersUrl(),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetIntegrationProvidersQueryKey = () => {
+  return [`/integration/providers`] as const;
+};
+
+export const getGetIntegrationProvidersQueryOptions = <
+  TData = Awaited<ReturnType<typeof getIntegrationProviders>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getIntegrationProviders>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetIntegrationProvidersQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getIntegrationProviders>>
+  > = ({ signal }) => getIntegrationProviders({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getIntegrationProviders>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetIntegrationProvidersQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getIntegrationProviders>>
+>;
+export type GetIntegrationProvidersQueryError = unknown;
+
+/** @summary Get the current user's integration providers */
+export function useGetIntegrationProviders<
+  TData = Awaited<ReturnType<typeof getIntegrationProviders>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationProviders>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationProviders>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationProviders>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user's integration providers */
+export function useGetIntegrationProviders<
+  TData = Awaited<ReturnType<typeof getIntegrationProviders>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationProviders>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationProviders>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationProviders>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user's integration providers */
+export function useGetIntegrationProviders<
+  TData = Awaited<ReturnType<typeof getIntegrationProviders>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationProviders>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user's integration providers */
+export function useGetIntegrationProviders<
+  TData = Awaited<ReturnType<typeof getIntegrationProviders>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationProviders>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetIntegrationProvidersQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type disconnectIntegrationResponse201 = {
+  data: EmptyResponseDtoOutput;
+  status: 201;
+};
+
+export type disconnectIntegrationResponseSuccess =
+  disconnectIntegrationResponse201 & {
+    headers: Headers;
+  };
+export type disconnectIntegrationResponse =
+  disconnectIntegrationResponseSuccess;
+
+export const getDisconnectIntegrationUrl = () => {
+  return `/integration/disconnect`;
+};
+
+/**
+ * @summary Disconnect an integration
+ */
+export const disconnectIntegration = async (
+  disconnectIntegrationDto: DisconnectIntegrationDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<disconnectIntegrationResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<disconnectIntegrationResponse>(
+    getDisconnectIntegrationUrl(),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(disconnectIntegrationDto),
+    },
+  );
+};
+
+export const getDisconnectIntegrationMutationKey = () =>
+  ["disconnectIntegration"] as const;
+
+export const getDisconnectIntegrationMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectIntegration>>,
+    TError,
+    DisconnectIntegrationMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disconnectIntegration>>,
+  TError,
+  DisconnectIntegrationMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDisconnectIntegrationMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disconnectIntegration>>,
+    DisconnectIntegrationMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return disconnectIntegration(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DisconnectIntegrationMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disconnectIntegration>>
+>;
+export type DisconnectIntegrationMutationBody = DisconnectIntegrationDto;
+export type DisconnectIntegrationMutationError = unknown;
+export type DisconnectIntegrationMutationVariables = {
+  data: DisconnectIntegrationDto;
+};
+
+/** @summary Disconnect an integration */
+export const useDisconnectIntegration = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof disconnectIntegration>>,
+      TError,
+      DisconnectIntegrationMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof disconnectIntegration>>,
+  TError,
+  DisconnectIntegrationMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getDisconnectIntegrationMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type getIntegrationAuthorizationUrlResponse200 = {
+  data: AuthorizationUrlResponseDtoOutput;
+  status: 200;
+};
+
+export type getIntegrationAuthorizationUrlResponseSuccess =
+  getIntegrationAuthorizationUrlResponse200 & {
+    headers: Headers;
+  };
+export type getIntegrationAuthorizationUrlResponse =
+  getIntegrationAuthorizationUrlResponseSuccess;
+
+export const getGetIntegrationAuthorizationUrlUrl = (
+  params: GetIntegrationAuthorizationUrlParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/integration/authorize?${stringifiedParams}`
+    : `/integration/authorize`;
+};
+
+/**
+ * @summary Get the authorization URL for an integration
+ */
+export const getIntegrationAuthorizationUrl = async (
+  params: GetIntegrationAuthorizationUrlParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getIntegrationAuthorizationUrlResponse> => {
+  return customFetch<getIntegrationAuthorizationUrlResponse>(
+    getGetIntegrationAuthorizationUrlUrl(params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetIntegrationAuthorizationUrlQueryKey = (
+  params?: GetIntegrationAuthorizationUrlParams,
+) => {
+  return [`/integration/authorize`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetIntegrationAuthorizationUrlQueryOptions = <
+  TData = Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+  TError = unknown,
+>(
+  params: GetIntegrationAuthorizationUrlParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetIntegrationAuthorizationUrlQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>
+  > = ({ signal }) =>
+    getIntegrationAuthorizationUrl(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetIntegrationAuthorizationUrlQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>
+>;
+export type GetIntegrationAuthorizationUrlQueryError = unknown;
+
+/** @summary Get the authorization URL for an integration */
+export function useGetIntegrationAuthorizationUrl<
+  TData = Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+  TError = unknown,
+>(
+  params: GetIntegrationAuthorizationUrlParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the authorization URL for an integration */
+export function useGetIntegrationAuthorizationUrl<
+  TData = Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+  TError = unknown,
+>(
+  params: GetIntegrationAuthorizationUrlParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+          TError,
+          Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the authorization URL for an integration */
+export function useGetIntegrationAuthorizationUrl<
+  TData = Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+  TError = unknown,
+>(
+  params: GetIntegrationAuthorizationUrlParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the authorization URL for an integration */
+export function useGetIntegrationAuthorizationUrl<
+  TData = Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+  TError = unknown,
+>(
+  params: GetIntegrationAuthorizationUrlParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getIntegrationAuthorizationUrl>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetIntegrationAuthorizationUrlQueryOptions(
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type saveGitHubTokenResponse201 = {
+  data: SuccessResponseDtoOutput;
+  status: 201;
+};
+
+export type saveGitHubTokenResponseSuccess = saveGitHubTokenResponse201 & {
+  headers: Headers;
+};
+export type saveGitHubTokenResponse = saveGitHubTokenResponseSuccess;
+
+export const getSaveGitHubTokenUrl = () => {
+  return `/integration/github/token`;
+};
+
+/**
+ * @summary Save a GitHub access token for the current user
+ */
+export const saveGitHubToken = async (
+  saveGitHubTokenDto: SaveGitHubTokenDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<saveGitHubTokenResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<saveGitHubTokenResponse>(getSaveGitHubTokenUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(saveGitHubTokenDto),
+  });
+};
+
+export const getSaveGitHubTokenMutationKey = () => ["saveGitHubToken"] as const;
+
+export const getSaveGitHubTokenMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveGitHubToken>>,
+    TError,
+    SaveGitHubTokenMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveGitHubToken>>,
+  TError,
+  SaveGitHubTokenMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSaveGitHubTokenMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveGitHubToken>>,
+    SaveGitHubTokenMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return saveGitHubToken(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveGitHubTokenMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveGitHubToken>>
+>;
+export type SaveGitHubTokenMutationBody = SaveGitHubTokenDto;
+export type SaveGitHubTokenMutationError = unknown;
+export type SaveGitHubTokenMutationVariables = { data: SaveGitHubTokenDto };
+
+/** @summary Save a GitHub access token for the current user */
+export const useSaveGitHubToken = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof saveGitHubToken>>,
+      TError,
+      SaveGitHubTokenMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof saveGitHubToken>>,
+  TError,
+  SaveGitHubTokenMutationVariables,
+  TContext
+> => {
+  return useMutation(getSaveGitHubTokenMutationOptions(options), queryClient);
+};
+
+export type saveTrelloTokenResponse201 = {
+  data: SuccessResponseDtoOutput;
+  status: 201;
+};
+
+export type saveTrelloTokenResponseSuccess = saveTrelloTokenResponse201 & {
+  headers: Headers;
+};
+export type saveTrelloTokenResponse = saveTrelloTokenResponseSuccess;
+
+export const getSaveTrelloTokenUrl = () => {
+  return `/integration/trello/token`;
+};
+
+/**
+ * @summary Save a Trello access token for the current user
+ */
+export const saveTrelloToken = async (
+  saveTrelloTokenDto: SaveTrelloTokenDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<saveTrelloTokenResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<saveTrelloTokenResponse>(getSaveTrelloTokenUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(saveTrelloTokenDto),
+  });
+};
+
+export const getSaveTrelloTokenMutationKey = () => ["saveTrelloToken"] as const;
+
+export const getSaveTrelloTokenMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof saveTrelloToken>>,
+    TError,
+    SaveTrelloTokenMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof saveTrelloToken>>,
+  TError,
+  SaveTrelloTokenMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSaveTrelloTokenMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof saveTrelloToken>>,
+    SaveTrelloTokenMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return saveTrelloToken(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SaveTrelloTokenMutationResult = NonNullable<
+  Awaited<ReturnType<typeof saveTrelloToken>>
+>;
+export type SaveTrelloTokenMutationBody = SaveTrelloTokenDto;
+export type SaveTrelloTokenMutationError = unknown;
+export type SaveTrelloTokenMutationVariables = { data: SaveTrelloTokenDto };
+
+/** @summary Save a Trello access token for the current user */
+export const useSaveTrelloToken = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof saveTrelloToken>>,
+      TError,
+      SaveTrelloTokenMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof saveTrelloToken>>,
+  TError,
+  SaveTrelloTokenMutationVariables,
+  TContext
+> => {
+  return useMutation(getSaveTrelloTokenMutationOptions(options), queryClient);
+};
+
+export type disconnectGitHubResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type disconnectGitHubResponseSuccess = disconnectGitHubResponse200 & {
+  headers: Headers;
+};
+export type disconnectGitHubResponse = disconnectGitHubResponseSuccess;
+
+export const getDisconnectGitHubUrl = () => {
+  return `/integration/github`;
+};
+
+/**
+ * @summary Disconnect the current user's GitHub integration
+ */
+export const disconnectGitHub = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<disconnectGitHubResponse> => {
+  return customFetch<disconnectGitHubResponse>(getDisconnectGitHubUrl(), {
+    credentials: "include",
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDisconnectGitHubMutationKey = () =>
+  ["disconnectGitHub"] as const;
+
+export const getDisconnectGitHubMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof disconnectGitHub>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof disconnectGitHub>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = getDisconnectGitHubMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof disconnectGitHub>>,
+    void
+  > = () => {
+    return disconnectGitHub(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DisconnectGitHubMutationResult = NonNullable<
+  Awaited<ReturnType<typeof disconnectGitHub>>
+>;
+
+export type DisconnectGitHubMutationError = unknown;
+
+/** @summary Disconnect the current user's GitHub integration */
+export const useDisconnectGitHub = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof disconnectGitHub>>,
+      TError,
+      void,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof disconnectGitHub>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getDisconnectGitHubMutationOptions(options), queryClient);
+};
+
+export type getGitHubStatusResponse200 = {
+  data: GitHubStatusResponseDtoOutput;
+  status: 200;
+};
+
+export type getGitHubStatusResponseSuccess = getGitHubStatusResponse200 & {
+  headers: Headers;
+};
+export type getGitHubStatusResponse = getGitHubStatusResponseSuccess;
+
+export const getGetGitHubStatusUrl = () => {
+  return `/integration/github/status`;
+};
+
+/**
+ * @summary Check whether the current user has connected GitHub
+ */
+export const getGitHubStatus = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getGitHubStatusResponse> => {
+  return customFetch<getGitHubStatusResponse>(getGetGitHubStatusUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetGitHubStatusQueryKey = () => {
+  return [`/integration/github/status`] as const;
+};
+
+export const getGetGitHubStatusQueryOptions = <
+  TData = Awaited<ReturnType<typeof getGitHubStatus>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getGitHubStatus>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetGitHubStatusQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getGitHubStatus>>> = ({
+    signal,
+  }) => getGitHubStatus({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getGitHubStatus>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetGitHubStatusQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getGitHubStatus>>
+>;
+export type GetGitHubStatusQueryError = unknown;
+
+/** @summary Check whether the current user has connected GitHub */
+export function useGetGitHubStatus<
+  TData = Awaited<ReturnType<typeof getGitHubStatus>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubStatus>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGitHubStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getGitHubStatus>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether the current user has connected GitHub */
+export function useGetGitHubStatus<
+  TData = Awaited<ReturnType<typeof getGitHubStatus>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubStatus>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getGitHubStatus>>,
+          TError,
+          Awaited<ReturnType<typeof getGitHubStatus>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether the current user has connected GitHub */
+export function useGetGitHubStatus<
+  TData = Awaited<ReturnType<typeof getGitHubStatus>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubStatus>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether the current user has connected GitHub */
+export function useGetGitHubStatus<
+  TData = Awaited<ReturnType<typeof getGitHubStatus>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getGitHubStatus>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetGitHubStatusQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
 export type getLabelResponse200 = {
-  data: LabelResponseDto;
+  data: LabelResponseDtoOutput;
   status: 200;
 };
 
@@ -395,7 +8522,7 @@ export function useGetLabel<
 }
 
 export type updateLabelResponse200 = {
-  data: LabelResponseDto;
+  data: LabelResponseDtoOutput;
   status: 200;
 };
 
@@ -521,7 +8648,7 @@ export const useUpdateLabel = <TError = unknown, TContext = unknown>(
 };
 
 export type deleteLabelResponse200 = {
-  data: DeleteLabelResponseDto;
+  data: DeleteLabelResponseDtoOutput;
   status: 200;
 };
 
@@ -617,7 +8744,7 @@ export const useDeleteLabel = <TError = unknown, TContext = unknown>(
 };
 
 export type createLabelResponse201 = {
-  data: LabelResponseDto;
+  data: LabelResponseDtoOutput;
   status: 201;
 };
 
@@ -739,7 +8866,7 @@ export const useCreateLabel = <TError = unknown, TContext = unknown>(
 };
 
 export type createListResponse201 = {
-  data: ListResponseDto;
+  data: ListResponseDtoOutput;
   status: 201;
 };
 
@@ -861,7 +8988,7 @@ export const useCreateList = <TError = unknown, TContext = unknown>(
 };
 
 export type deleteListResponse200 = {
-  data: DeleteListResponseDto;
+  data: DeleteListResponseDtoOutput;
   status: 200;
 };
 
@@ -957,7 +9084,7 @@ export const useDeleteList = <TError = unknown, TContext = unknown>(
 };
 
 export type updateListResponse200 = {
-  data: ListResponseDto;
+  data: ListResponseDtoOutput;
   status: 200;
 };
 
@@ -1082,56 +9209,84 @@ export const useUpdateList = <TError = unknown, TContext = unknown>(
   return useMutation(getUpdateListMutationOptions(options), queryClient);
 };
 
-export type streamableHttpControllerHandlePostRequestResponse201 = {
-  data: void;
+export type inviteMemberResponse201 = {
+  data: MemberInviteResponseDtoOutput;
   status: 201;
 };
 
-export type streamableHttpControllerHandlePostRequestResponseSuccess =
-  streamableHttpControllerHandlePostRequestResponse201 & {
-    headers: Headers;
-  };
-export type streamableHttpControllerHandlePostRequestResponse =
-  streamableHttpControllerHandlePostRequestResponseSuccess;
+export type inviteMemberResponseSuccess = inviteMemberResponse201 & {
+  headers: Headers;
+};
+export type inviteMemberResponse = inviteMemberResponseSuccess;
 
-export const getStreamableHttpControllerHandlePostRequestUrl = () => {
-  return `/mcp`;
+export const getInviteMemberUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/members/invite`;
 };
 
-export const streamableHttpControllerHandlePostRequest = async (
+/**
+ * @summary Invite a member to a workspace
+ */
+export const inviteMember = async (
+  workspacePublicId: string,
+  inviteMemberDto: InviteMemberDto,
   options?: Parameters<typeof customFetch>[1],
-): Promise<streamableHttpControllerHandlePostRequestResponse> => {
-  return customFetch<streamableHttpControllerHandlePostRequestResponse>(
-    getStreamableHttpControllerHandlePostRequestUrl(),
+): Promise<inviteMemberResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<inviteMemberResponse>(
+    getInviteMemberUrl(workspacePublicId),
     {
       credentials: "include",
       ...options,
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(inviteMemberDto),
     },
   );
 };
 
-export const getStreamableHttpControllerHandlePostRequestMutationKey = () =>
-  ["streamableHttpControllerHandlePostRequest"] as const;
+export const getInviteMemberMutationKey = () => ["inviteMember"] as const;
 
-export const getStreamableHttpControllerHandlePostRequestMutationOptions = <
+export const getInviteMemberMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>,
+    Awaited<ReturnType<typeof inviteMember>>,
     TError,
-    void,
+    InviteMemberMutationVariables,
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>,
+  Awaited<ReturnType<typeof inviteMember>>,
   TError,
-  void,
+  InviteMemberMutationVariables,
   TContext
 > => {
-  const mutationKey = getStreamableHttpControllerHandlePostRequestMutationKey();
+  const mutationKey = getInviteMemberMutationKey();
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -1141,69 +9296,318 @@ export const getStreamableHttpControllerHandlePostRequestMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>,
-    void
-  > = () => {
-    return streamableHttpControllerHandlePostRequest(requestOptions);
+    Awaited<ReturnType<typeof inviteMember>>,
+    InviteMemberMutationVariables
+  > = (props) => {
+    const { workspacePublicId, data } = props ?? {};
+
+    return inviteMember(workspacePublicId, data, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type StreamableHttpControllerHandlePostRequestMutationResult =
-  NonNullable<
-    Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>
-  >;
+export type InviteMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof inviteMember>>
+>;
+export type InviteMemberMutationBody = InviteMemberDto;
+export type InviteMemberMutationError = unknown;
+export type InviteMemberMutationVariables = {
+  workspacePublicId: string;
+  data: InviteMemberDto;
+};
 
-export type StreamableHttpControllerHandlePostRequestMutationError = unknown;
-
-export const useStreamableHttpControllerHandlePostRequest = <
-  TError = unknown,
-  TContext = unknown,
->(
+/** @summary Invite a member to a workspace */
+export const useInviteMember = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>,
+      Awaited<ReturnType<typeof inviteMember>>,
       TError,
-      void,
+      InviteMemberMutationVariables,
       TContext
     >;
     request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof streamableHttpControllerHandlePostRequest>>,
+  Awaited<ReturnType<typeof inviteMember>>,
   TError,
-  void,
+  InviteMemberMutationVariables,
   TContext
 > => {
-  return useMutation(
-    getStreamableHttpControllerHandlePostRequestMutationOptions(options),
-    queryClient,
-  );
+  return useMutation(getInviteMemberMutationOptions(options), queryClient);
 };
 
-export type streamableHttpControllerHandleGetRequestResponse200 = {
-  data: void;
+export type deleteMemberResponse200 = {
+  data: DeleteMemberResponseDtoOutput;
   status: 200;
 };
 
-export type streamableHttpControllerHandleGetRequestResponseSuccess =
-  streamableHttpControllerHandleGetRequestResponse200 & {
-    headers: Headers;
-  };
-export type streamableHttpControllerHandleGetRequestResponse =
-  streamableHttpControllerHandleGetRequestResponseSuccess;
+export type deleteMemberResponseSuccess = deleteMemberResponse200 & {
+  headers: Headers;
+};
+export type deleteMemberResponse = deleteMemberResponseSuccess;
 
-export const getStreamableHttpControllerHandleGetRequestUrl = () => {
-  return `/mcp`;
+export const getDeleteMemberUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}`;
 };
 
-export const streamableHttpControllerHandleGetRequest = async (
+/**
+ * @summary Delete a member from a workspace
+ */
+export const deleteMember = async (
+  workspacePublicId: string,
+  memberPublicId: string,
   options?: Parameters<typeof customFetch>[1],
-): Promise<streamableHttpControllerHandleGetRequestResponse> => {
-  return customFetch<streamableHttpControllerHandleGetRequestResponse>(
-    getStreamableHttpControllerHandleGetRequestUrl(),
+): Promise<deleteMemberResponse> => {
+  return customFetch<deleteMemberResponse>(
+    getDeleteMemberUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteMemberMutationKey = () => ["deleteMember"] as const;
+
+export const getDeleteMemberMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteMember>>,
+    TError,
+    DeleteMemberMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteMember>>,
+  TError,
+  DeleteMemberMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteMemberMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteMember>>,
+    DeleteMemberMutationVariables
+  > = (props) => {
+    const { workspacePublicId, memberPublicId } = props ?? {};
+
+    return deleteMember(workspacePublicId, memberPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMemberMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteMember>>
+>;
+
+export type DeleteMemberMutationError = unknown;
+export type DeleteMemberMutationVariables = {
+  workspacePublicId: string;
+  memberPublicId: string;
+};
+
+/** @summary Delete a member from a workspace */
+export const useDeleteMember = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteMember>>,
+      TError,
+      DeleteMemberMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteMember>>,
+  TError,
+  DeleteMemberMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteMemberMutationOptions(options), queryClient);
+};
+
+export type updateMemberRoleResponse200 = {
+  data: UpdateMemberRoleResponseDtoOutput;
+  status: 200;
+};
+
+export type updateMemberRoleResponseSuccess = updateMemberRoleResponse200 & {
+  headers: Headers;
+};
+export type updateMemberRoleResponse = updateMemberRoleResponseSuccess;
+
+export const getUpdateMemberRoleUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}/role`;
+};
+
+/**
+ * @summary Update member role
+ */
+export const updateMemberRole = async (
+  workspacePublicId: string,
+  memberPublicId: string,
+  updateMemberRoleDto: UpdateMemberRoleDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateMemberRoleResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateMemberRoleResponse>(
+    getUpdateMemberRoleUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateMemberRoleDto),
+    },
+  );
+};
+
+export const getUpdateMemberRoleMutationKey = () =>
+  ["updateMemberRole"] as const;
+
+export const getUpdateMemberRoleMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateMemberRole>>,
+    TError,
+    UpdateMemberRoleMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateMemberRole>>,
+  TError,
+  UpdateMemberRoleMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateMemberRoleMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateMemberRole>>,
+    UpdateMemberRoleMutationVariables
+  > = (props) => {
+    const { workspacePublicId, memberPublicId, data } = props ?? {};
+
+    return updateMemberRole(
+      workspacePublicId,
+      memberPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateMemberRoleMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateMemberRole>>
+>;
+export type UpdateMemberRoleMutationBody = UpdateMemberRoleDto;
+export type UpdateMemberRoleMutationError = unknown;
+export type UpdateMemberRoleMutationVariables = {
+  workspacePublicId: string;
+  memberPublicId: string;
+  data: UpdateMemberRoleDto;
+};
+
+/** @summary Update member role */
+export const useUpdateMemberRole = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateMemberRole>>,
+      TError,
+      UpdateMemberRoleMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateMemberRole>>,
+  TError,
+  UpdateMemberRoleMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateMemberRoleMutationOptions(options), queryClient);
+};
+
+export type getActiveInviteLinkResponse200 = {
+  data: ActiveInviteLinkResponseDtoOutput;
+  status: 200;
+};
+
+export type getActiveInviteLinkResponseSuccess =
+  getActiveInviteLinkResponse200 & {
+    headers: Headers;
+  };
+export type getActiveInviteLinkResponse = getActiveInviteLinkResponseSuccess;
+
+export const getGetActiveInviteLinkUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/invite`;
+};
+
+/**
+ * @summary Get active invite link for workspace
+ */
+export const getActiveInviteLink = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getActiveInviteLinkResponse> => {
+  return customFetch<getActiveInviteLinkResponse>(
+    getGetActiveInviteLinkUrl(workspacePublicId),
     {
       credentials: "include",
       ...options,
@@ -1212,63 +9616,72 @@ export const streamableHttpControllerHandleGetRequest = async (
   );
 };
 
-export const getStreamableHttpControllerHandleGetRequestQueryKey = () => {
-  return [`/mcp`] as const;
+export const getGetActiveInviteLinkQueryKey = (workspacePublicId: string) => {
+  return [`/workspaces/${workspacePublicId}/invite`] as const;
 };
 
-export const getStreamableHttpControllerHandleGetRequestQueryOptions = <
-  TData = Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+export const getGetActiveInviteLinkQueryOptions = <
+  TData = Awaited<ReturnType<typeof getActiveInviteLink>>,
   TError = unknown,
->(options?: {
-  query?: Partial<
-    UseQueryOptions<
-      Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
-      TError,
-      TData
-    >
-  >;
-  request?: SecondParameter<typeof customFetch>;
-}) => {
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getActiveInviteLink>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
   const { query: queryOptions, request: requestOptions } = options ?? {};
 
   const queryKey =
-    queryOptions?.queryKey ??
-    getStreamableHttpControllerHandleGetRequestQueryKey();
+    queryOptions?.queryKey ?? getGetActiveInviteLinkQueryKey(workspacePublicId);
 
   const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>
+    Awaited<ReturnType<typeof getActiveInviteLink>>
   > = ({ signal }) =>
-    streamableHttpControllerHandleGetRequest({ signal, ...requestOptions });
+    getActiveInviteLink(workspacePublicId, { signal, ...requestOptions });
 
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getActiveInviteLink>>,
     TError,
     TData
   > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type StreamableHttpControllerHandleGetRequestQueryResult = NonNullable<
-  Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>
+export type GetActiveInviteLinkQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getActiveInviteLink>>
 >;
-export type StreamableHttpControllerHandleGetRequestQueryError = unknown;
+export type GetActiveInviteLinkQueryError = unknown;
 
-export function useStreamableHttpControllerHandleGetRequest<
-  TData = Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+/** @summary Get active invite link for workspace */
+export function useGetActiveInviteLink<
+  TData = Awaited<ReturnType<typeof getActiveInviteLink>>,
   TError = unknown,
 >(
+  workspacePublicId: string,
   options: {
     query: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+        Awaited<ReturnType<typeof getActiveInviteLink>>,
         TError,
         TData
       >
     > &
       Pick<
         DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+          Awaited<ReturnType<typeof getActiveInviteLink>>,
           TError,
-          Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>
+          Awaited<ReturnType<typeof getActiveInviteLink>>
         >,
         "initialData"
       >;
@@ -1278,23 +9691,25 @@ export function useStreamableHttpControllerHandleGetRequest<
 ): DefinedUseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useStreamableHttpControllerHandleGetRequest<
-  TData = Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+/** @summary Get active invite link for workspace */
+export function useGetActiveInviteLink<
+  TData = Awaited<ReturnType<typeof getActiveInviteLink>>,
   TError = unknown,
 >(
+  workspacePublicId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+        Awaited<ReturnType<typeof getActiveInviteLink>>,
         TError,
         TData
       >
     > &
       Pick<
         UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+          Awaited<ReturnType<typeof getActiveInviteLink>>,
           TError,
-          Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>
+          Awaited<ReturnType<typeof getActiveInviteLink>>
         >,
         "initialData"
       >;
@@ -1304,14 +9719,16 @@ export function useStreamableHttpControllerHandleGetRequest<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useStreamableHttpControllerHandleGetRequest<
-  TData = Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+/** @summary Get active invite link for workspace */
+export function useGetActiveInviteLink<
+  TData = Awaited<ReturnType<typeof getActiveInviteLink>>,
   TError = unknown,
 >(
+  workspacePublicId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+        Awaited<ReturnType<typeof getActiveInviteLink>>,
         TError,
         TData
       >
@@ -1322,14 +9739,16 @@ export function useStreamableHttpControllerHandleGetRequest<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 };
-export function useStreamableHttpControllerHandleGetRequest<
-  TData = Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+/** @summary Get active invite link for workspace */
+export function useGetActiveInviteLink<
+  TData = Awaited<ReturnType<typeof getActiveInviteLink>>,
   TError = unknown,
 >(
+  workspacePublicId: string,
   options?: {
     query?: Partial<
       UseQueryOptions<
-        Awaited<ReturnType<typeof streamableHttpControllerHandleGetRequest>>,
+        Awaited<ReturnType<typeof getActiveInviteLink>>,
         TError,
         TData
       >
@@ -1340,8 +9759,10 @@ export function useStreamableHttpControllerHandleGetRequest<
 ): UseQueryResult<TData, TError> & {
   queryKey: DataTag<QueryKey, TData, TError>;
 } {
-  const queryOptions =
-    getStreamableHttpControllerHandleGetRequestQueryOptions(options);
+  const queryOptions = getGetActiveInviteLinkQueryOptions(
+    workspacePublicId,
+    options,
+  );
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<
     TData,
@@ -1351,57 +9772,58 @@ export function useStreamableHttpControllerHandleGetRequest<
   return withQueryKey(query, queryOptions.queryKey);
 }
 
-export type streamableHttpControllerHandleDeleteRequestResponse200 = {
-  data: void;
-  status: 200;
+export type createInviteLinkResponse201 = {
+  data: CreateInviteLinkResponseDtoOutput;
+  status: 201;
 };
 
-export type streamableHttpControllerHandleDeleteRequestResponseSuccess =
-  streamableHttpControllerHandleDeleteRequestResponse200 & {
-    headers: Headers;
-  };
-export type streamableHttpControllerHandleDeleteRequestResponse =
-  streamableHttpControllerHandleDeleteRequestResponseSuccess;
+export type createInviteLinkResponseSuccess = createInviteLinkResponse201 & {
+  headers: Headers;
+};
+export type createInviteLinkResponse = createInviteLinkResponseSuccess;
 
-export const getStreamableHttpControllerHandleDeleteRequestUrl = () => {
-  return `/mcp`;
+export const getCreateInviteLinkUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/invites`;
 };
 
-export const streamableHttpControllerHandleDeleteRequest = async (
+/**
+ * @summary Create invite link for workspace
+ */
+export const createInviteLink = async (
+  workspacePublicId: string,
   options?: Parameters<typeof customFetch>[1],
-): Promise<streamableHttpControllerHandleDeleteRequestResponse> => {
-  return customFetch<streamableHttpControllerHandleDeleteRequestResponse>(
-    getStreamableHttpControllerHandleDeleteRequestUrl(),
+): Promise<createInviteLinkResponse> => {
+  return customFetch<createInviteLinkResponse>(
+    getCreateInviteLinkUrl(workspacePublicId),
     {
       credentials: "include",
       ...options,
-      method: "DELETE",
+      method: "POST",
     },
   );
 };
 
-export const getStreamableHttpControllerHandleDeleteRequestMutationKey = () =>
-  ["streamableHttpControllerHandleDeleteRequest"] as const;
+export const getCreateInviteLinkMutationKey = () =>
+  ["createInviteLink"] as const;
 
-export const getStreamableHttpControllerHandleDeleteRequestMutationOptions = <
+export const getCreateInviteLinkMutationOptions = <
   TError = unknown,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>,
+    Awaited<ReturnType<typeof createInviteLink>>,
     TError,
-    void,
+    CreateInviteLinkMutationVariables,
     TContext
   >;
   request?: SecondParameter<typeof customFetch>;
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>,
+  Awaited<ReturnType<typeof createInviteLink>>,
   TError,
-  void,
+  CreateInviteLinkMutationVariables,
   TContext
 > => {
-  const mutationKey =
-    getStreamableHttpControllerHandleDeleteRequestMutationKey();
+  const mutationKey = getCreateInviteLinkMutationKey();
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation &&
       "mutationKey" in options.mutation &&
@@ -1411,44 +9833,5167 @@ export const getStreamableHttpControllerHandleDeleteRequestMutationOptions = <
     : { mutation: { mutationKey }, request: undefined };
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>,
-    void
-  > = () => {
-    return streamableHttpControllerHandleDeleteRequest(requestOptions);
+    Awaited<ReturnType<typeof createInviteLink>>,
+    CreateInviteLinkMutationVariables
+  > = (props) => {
+    const { workspacePublicId } = props ?? {};
+
+    return createInviteLink(workspacePublicId, requestOptions);
   };
 
   return { mutationFn, ...mutationOptions };
 };
 
-export type StreamableHttpControllerHandleDeleteRequestMutationResult =
-  NonNullable<
-    Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>
-  >;
+export type CreateInviteLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createInviteLink>>
+>;
 
-export type StreamableHttpControllerHandleDeleteRequestMutationError = unknown;
+export type CreateInviteLinkMutationError = unknown;
+export type CreateInviteLinkMutationVariables = { workspacePublicId: string };
 
-export const useStreamableHttpControllerHandleDeleteRequest = <
-  TError = unknown,
-  TContext = unknown,
->(
+/** @summary Create invite link for workspace */
+export const useCreateInviteLink = <TError = unknown, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>,
+      Awaited<ReturnType<typeof createInviteLink>>,
       TError,
-      void,
+      CreateInviteLinkMutationVariables,
       TContext
     >;
     request?: SecondParameter<typeof customFetch>;
   },
   queryClient?: QueryClient,
 ): UseMutationResult<
-  Awaited<ReturnType<typeof streamableHttpControllerHandleDeleteRequest>>,
+  Awaited<ReturnType<typeof createInviteLink>>,
   TError,
-  void,
+  CreateInviteLinkMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateInviteLinkMutationOptions(options), queryClient);
+};
+
+export type deactivateInviteLinkResponse200 = {
+  data: DeactivateInviteLinkResponseDtoOutput;
+  status: 200;
+};
+
+export type deactivateInviteLinkResponseSuccess =
+  deactivateInviteLinkResponse200 & {
+    headers: Headers;
+  };
+export type deactivateInviteLinkResponse = deactivateInviteLinkResponseSuccess;
+
+export const getDeactivateInviteLinkUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/invites`;
+};
+
+/**
+ * @summary Deactivate invite link for workspace
+ */
+export const deactivateInviteLink = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deactivateInviteLinkResponse> => {
+  return customFetch<deactivateInviteLinkResponse>(
+    getDeactivateInviteLinkUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeactivateInviteLinkMutationKey = () =>
+  ["deactivateInviteLink"] as const;
+
+export const getDeactivateInviteLinkMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deactivateInviteLink>>,
+    TError,
+    DeactivateInviteLinkMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deactivateInviteLink>>,
+  TError,
+  DeactivateInviteLinkMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeactivateInviteLinkMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deactivateInviteLink>>,
+    DeactivateInviteLinkMutationVariables
+  > = (props) => {
+    const { workspacePublicId } = props ?? {};
+
+    return deactivateInviteLink(workspacePublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeactivateInviteLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deactivateInviteLink>>
+>;
+
+export type DeactivateInviteLinkMutationError = unknown;
+export type DeactivateInviteLinkMutationVariables = {
+  workspacePublicId: string;
+};
+
+/** @summary Deactivate invite link for workspace */
+export const useDeactivateInviteLink = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deactivateInviteLink>>,
+      TError,
+      DeactivateInviteLinkMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deactivateInviteLink>>,
+  TError,
+  DeactivateInviteLinkMutationVariables,
   TContext
 > => {
   return useMutation(
-    getStreamableHttpControllerHandleDeleteRequestMutationOptions(options),
+    getDeactivateInviteLinkMutationOptions(options),
     queryClient,
   );
 };
+
+export type getInviteByCodeResponse200 = {
+  data: InviteByCodeResponseDtoOutput;
+  status: 200;
+};
+
+export type getInviteByCodeResponseSuccess = getInviteByCodeResponse200 & {
+  headers: Headers;
+};
+export type getInviteByCodeResponse = getInviteByCodeResponseSuccess;
+
+export const getGetInviteByCodeUrl = (inviteCode: string) => {
+  return `/invites/${inviteCode}`;
+};
+
+/**
+ * @summary Get invite information by code
+ */
+export const getInviteByCode = async (
+  inviteCode: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getInviteByCodeResponse> => {
+  return customFetch<getInviteByCodeResponse>(
+    getGetInviteByCodeUrl(inviteCode),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetInviteByCodeQueryKey = (inviteCode: string) => {
+  return [`/invites/${inviteCode}`] as const;
+};
+
+export const getGetInviteByCodeQueryOptions = <
+  TData = Awaited<ReturnType<typeof getInviteByCode>>,
+  TError = unknown,
+>(
+  inviteCode: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getInviteByCode>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetInviteByCodeQueryKey(inviteCode);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getInviteByCode>>> = ({
+    signal,
+  }) => getInviteByCode(inviteCode, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: inviteCode !== null && inviteCode !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getInviteByCode>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetInviteByCodeQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getInviteByCode>>
+>;
+export type GetInviteByCodeQueryError = unknown;
+
+/** @summary Get invite information by code */
+export function useGetInviteByCode<
+  TData = Awaited<ReturnType<typeof getInviteByCode>>,
+  TError = unknown,
+>(
+  inviteCode: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getInviteByCode>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInviteByCode>>,
+          TError,
+          Awaited<ReturnType<typeof getInviteByCode>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get invite information by code */
+export function useGetInviteByCode<
+  TData = Awaited<ReturnType<typeof getInviteByCode>>,
+  TError = unknown,
+>(
+  inviteCode: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getInviteByCode>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getInviteByCode>>,
+          TError,
+          Awaited<ReturnType<typeof getInviteByCode>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get invite information by code */
+export function useGetInviteByCode<
+  TData = Awaited<ReturnType<typeof getInviteByCode>>,
+  TError = unknown,
+>(
+  inviteCode: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getInviteByCode>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get invite information by code */
+export function useGetInviteByCode<
+  TData = Awaited<ReturnType<typeof getInviteByCode>>,
+  TError = unknown,
+>(
+  inviteCode: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getInviteByCode>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetInviteByCodeQueryOptions(inviteCode, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type acceptInviteLinkResponse200 = {
+  data: AcceptInviteLinkResponseDtoOutput;
+  status: 200;
+};
+
+export type acceptInviteLinkResponseSuccess = acceptInviteLinkResponse200 & {
+  headers: Headers;
+};
+export type acceptInviteLinkResponse = acceptInviteLinkResponseSuccess;
+
+export const getAcceptInviteLinkUrl = () => {
+  return `/invites/accept`;
+};
+
+/**
+ * @summary Accept an invite link
+ */
+export const acceptInviteLink = async (
+  acceptInviteLinkDto: AcceptInviteLinkDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<acceptInviteLinkResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<acceptInviteLinkResponse>(getAcceptInviteLinkUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(acceptInviteLinkDto),
+  });
+};
+
+export const getAcceptInviteLinkMutationKey = () =>
+  ["acceptInviteLink"] as const;
+
+export const getAcceptInviteLinkMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof acceptInviteLink>>,
+    TError,
+    AcceptInviteLinkMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof acceptInviteLink>>,
+  TError,
+  AcceptInviteLinkMutationVariables,
+  TContext
+> => {
+  const mutationKey = getAcceptInviteLinkMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof acceptInviteLink>>,
+    AcceptInviteLinkMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return acceptInviteLink(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type AcceptInviteLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof acceptInviteLink>>
+>;
+export type AcceptInviteLinkMutationBody = AcceptInviteLinkDto;
+export type AcceptInviteLinkMutationError = unknown;
+export type AcceptInviteLinkMutationVariables = { data: AcceptInviteLinkDto };
+
+/** @summary Accept an invite link */
+export const useAcceptInviteLink = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof acceptInviteLink>>,
+      TError,
+      AcceptInviteLinkMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof acceptInviteLink>>,
+  TError,
+  AcceptInviteLinkMutationVariables,
+  TContext
+> => {
+  return useMutation(getAcceptInviteLinkMutationOptions(options), queryClient);
+};
+
+export type getMyPermissionsResponse200 = {
+  data: GetMyPermissionsResponseDtoOutput;
+  status: 200;
+};
+
+export type getMyPermissionsResponseSuccess = getMyPermissionsResponse200 & {
+  headers: Headers;
+};
+export type getMyPermissionsResponse = getMyPermissionsResponseSuccess;
+
+export const getGetMyPermissionsUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/permissions/me`;
+};
+
+/**
+ * @summary Get my permissions
+ */
+export const getMyPermissions = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getMyPermissionsResponse> => {
+  return customFetch<getMyPermissionsResponse>(
+    getGetMyPermissionsUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetMyPermissionsQueryKey = (workspacePublicId: string) => {
+  return [`/workspaces/${workspacePublicId}/permissions/me`] as const;
+};
+
+export const getGetMyPermissionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMyPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetMyPermissionsQueryKey(workspacePublicId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMyPermissions>>
+  > = ({ signal }) =>
+    getMyPermissions(workspacePublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyPermissions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMyPermissionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyPermissions>>
+>;
+export type GetMyPermissionsQueryError = unknown;
+
+/** @summary Get my permissions */
+export function useGetMyPermissions<
+  TData = Awaited<ReturnType<typeof getMyPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMyPermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyPermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMyPermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get my permissions */
+export function useGetMyPermissions<
+  TData = Awaited<ReturnType<typeof getMyPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMyPermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMyPermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMyPermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get my permissions */
+export function useGetMyPermissions<
+  TData = Awaited<ReturnType<typeof getMyPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMyPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get my permissions */
+export function useGetMyPermissions<
+  TData = Awaited<ReturnType<typeof getMyPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMyPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetMyPermissionsQueryOptions(
+    workspacePublicId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getMemberPermissionsResponse200 = {
+  data: GetMemberPermissionsResponseDtoOutput;
+  status: 200;
+};
+
+export type getMemberPermissionsResponseSuccess =
+  getMemberPermissionsResponse200 & {
+    headers: Headers;
+  };
+export type getMemberPermissionsResponse = getMemberPermissionsResponseSuccess;
+
+export const getGetMemberPermissionsUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}/permissions`;
+};
+
+/**
+ * @summary Get member permissions
+ */
+export const getMemberPermissions = async (
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getMemberPermissionsResponse> => {
+  return customFetch<getMemberPermissionsResponse>(
+    getGetMemberPermissionsUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetMemberPermissionsQueryKey = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return [
+    `/workspaces/${workspacePublicId}/members/${memberPublicId}/permissions`,
+  ] as const;
+};
+
+export const getGetMemberPermissionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMemberPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMemberPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetMemberPermissionsQueryKey(workspacePublicId, memberPublicId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getMemberPermissions>>
+  > = ({ signal }) =>
+    getMemberPermissions(workspacePublicId, memberPublicId, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      workspacePublicId !== null &&
+      workspacePublicId !== undefined &&
+      memberPublicId !== null &&
+      memberPublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMemberPermissions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetMemberPermissionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMemberPermissions>>
+>;
+export type GetMemberPermissionsQueryError = unknown;
+
+/** @summary Get member permissions */
+export function useGetMemberPermissions<
+  TData = Awaited<ReturnType<typeof getMemberPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  memberPublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMemberPermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMemberPermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMemberPermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get member permissions */
+export function useGetMemberPermissions<
+  TData = Awaited<ReturnType<typeof getMemberPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMemberPermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getMemberPermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getMemberPermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get member permissions */
+export function useGetMemberPermissions<
+  TData = Awaited<ReturnType<typeof getMemberPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMemberPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get member permissions */
+export function useGetMemberPermissions<
+  TData = Awaited<ReturnType<typeof getMemberPermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getMemberPermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetMemberPermissionsQueryOptions(
+    workspacePublicId,
+    memberPublicId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type grantPermissionResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type grantPermissionResponseSuccess = grantPermissionResponse200 & {
+  headers: Headers;
+};
+export type grantPermissionResponse = grantPermissionResponseSuccess;
+
+export const getGrantPermissionUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}/permissions/grant`;
+};
+
+/**
+ * @summary Grant permission to member
+ */
+export const grantPermission = async (
+  workspacePublicId: string,
+  memberPublicId: string,
+  permissionActionDto: PermissionActionDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<grantPermissionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<grantPermissionResponse>(
+    getGrantPermissionUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(permissionActionDto),
+    },
+  );
+};
+
+export const getGrantPermissionMutationKey = () => ["grantPermission"] as const;
+
+export const getGrantPermissionMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof grantPermission>>,
+    TError,
+    GrantPermissionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof grantPermission>>,
+  TError,
+  GrantPermissionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getGrantPermissionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof grantPermission>>,
+    GrantPermissionMutationVariables
+  > = (props) => {
+    const { workspacePublicId, memberPublicId, data } = props ?? {};
+
+    return grantPermission(
+      workspacePublicId,
+      memberPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GrantPermissionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof grantPermission>>
+>;
+export type GrantPermissionMutationBody = PermissionActionDto;
+export type GrantPermissionMutationError = unknown;
+export type GrantPermissionMutationVariables = {
+  workspacePublicId: string;
+  memberPublicId: string;
+  data: PermissionActionDto;
+};
+
+/** @summary Grant permission to member */
+export const useGrantPermission = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof grantPermission>>,
+      TError,
+      GrantPermissionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof grantPermission>>,
+  TError,
+  GrantPermissionMutationVariables,
+  TContext
+> => {
+  return useMutation(getGrantPermissionMutationOptions(options), queryClient);
+};
+
+export type revokePermissionResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type revokePermissionResponseSuccess = revokePermissionResponse200 & {
+  headers: Headers;
+};
+export type revokePermissionResponse = revokePermissionResponseSuccess;
+
+export const getRevokePermissionUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}/permissions/revoke`;
+};
+
+/**
+ * @summary Revoke permission from member
+ */
+export const revokePermission = async (
+  workspacePublicId: string,
+  memberPublicId: string,
+  permissionActionDto: PermissionActionDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<revokePermissionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<revokePermissionResponse>(
+    getRevokePermissionUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(permissionActionDto),
+    },
+  );
+};
+
+export const getRevokePermissionMutationKey = () =>
+  ["revokePermission"] as const;
+
+export const getRevokePermissionMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokePermission>>,
+    TError,
+    RevokePermissionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokePermission>>,
+  TError,
+  RevokePermissionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRevokePermissionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokePermission>>,
+    RevokePermissionMutationVariables
+  > = (props) => {
+    const { workspacePublicId, memberPublicId, data } = props ?? {};
+
+    return revokePermission(
+      workspacePublicId,
+      memberPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokePermissionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokePermission>>
+>;
+export type RevokePermissionMutationBody = PermissionActionDto;
+export type RevokePermissionMutationError = unknown;
+export type RevokePermissionMutationVariables = {
+  workspacePublicId: string;
+  memberPublicId: string;
+  data: PermissionActionDto;
+};
+
+/** @summary Revoke permission from member */
+export const useRevokePermission = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof revokePermission>>,
+      TError,
+      RevokePermissionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof revokePermission>>,
+  TError,
+  RevokePermissionMutationVariables,
+  TContext
+> => {
+  return useMutation(getRevokePermissionMutationOptions(options), queryClient);
+};
+
+export type resetMemberPermissionsResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type resetMemberPermissionsResponseSuccess =
+  resetMemberPermissionsResponse200 & {
+    headers: Headers;
+  };
+export type resetMemberPermissionsResponse =
+  resetMemberPermissionsResponseSuccess;
+
+export const getResetMemberPermissionsUrl = (
+  workspacePublicId: string,
+  memberPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/${memberPublicId}/permissions/reset`;
+};
+
+/**
+ * @summary Reset member permissions to role defaults
+ */
+export const resetMemberPermissions = async (
+  workspacePublicId: string,
+  memberPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<resetMemberPermissionsResponse> => {
+  return customFetch<resetMemberPermissionsResponse>(
+    getResetMemberPermissionsUrl(workspacePublicId, memberPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getResetMemberPermissionsMutationKey = () =>
+  ["resetMemberPermissions"] as const;
+
+export const getResetMemberPermissionsMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetMemberPermissions>>,
+    TError,
+    ResetMemberPermissionsMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetMemberPermissions>>,
+  TError,
+  ResetMemberPermissionsMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetMemberPermissionsMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetMemberPermissions>>,
+    ResetMemberPermissionsMutationVariables
+  > = (props) => {
+    const { workspacePublicId, memberPublicId } = props ?? {};
+
+    return resetMemberPermissions(
+      workspacePublicId,
+      memberPublicId,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetMemberPermissionsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetMemberPermissions>>
+>;
+
+export type ResetMemberPermissionsMutationError = unknown;
+export type ResetMemberPermissionsMutationVariables = {
+  workspacePublicId: string;
+  memberPublicId: string;
+};
+
+/** @summary Reset member permissions to role defaults */
+export const useResetMemberPermissions = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetMemberPermissions>>,
+      TError,
+      ResetMemberPermissionsMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetMemberPermissions>>,
+  TError,
+  ResetMemberPermissionsMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getResetMemberPermissionsMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type resetWorkspaceMemberPermissionsResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type resetWorkspaceMemberPermissionsResponseSuccess =
+  resetWorkspaceMemberPermissionsResponse200 & {
+    headers: Headers;
+  };
+export type resetWorkspaceMemberPermissionsResponse =
+  resetWorkspaceMemberPermissionsResponseSuccess;
+
+export const getResetWorkspaceMemberPermissionsUrl = (
+  workspacePublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/members/permissions/reset`;
+};
+
+/**
+ * @summary Reset all member permission overrides in a workspace
+ */
+export const resetWorkspaceMemberPermissions = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<resetWorkspaceMemberPermissionsResponse> => {
+  return customFetch<resetWorkspaceMemberPermissionsResponse>(
+    getResetWorkspaceMemberPermissionsUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getResetWorkspaceMemberPermissionsMutationKey = () =>
+  ["resetWorkspaceMemberPermissions"] as const;
+
+export const getResetWorkspaceMemberPermissionsMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>,
+    TError,
+    ResetWorkspaceMemberPermissionsMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>,
+  TError,
+  ResetWorkspaceMemberPermissionsMutationVariables,
+  TContext
+> => {
+  const mutationKey = getResetWorkspaceMemberPermissionsMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>,
+    ResetWorkspaceMemberPermissionsMutationVariables
+  > = (props) => {
+    const { workspacePublicId } = props ?? {};
+
+    return resetWorkspaceMemberPermissions(workspacePublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type ResetWorkspaceMemberPermissionsMutationResult = NonNullable<
+  Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>
+>;
+
+export type ResetWorkspaceMemberPermissionsMutationError = unknown;
+export type ResetWorkspaceMemberPermissionsMutationVariables = {
+  workspacePublicId: string;
+};
+
+/** @summary Reset all member permission overrides in a workspace */
+export const useResetWorkspaceMemberPermissions = <
+  TError = unknown,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>,
+      TError,
+      ResetWorkspaceMemberPermissionsMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof resetWorkspaceMemberPermissions>>,
+  TError,
+  ResetWorkspaceMemberPermissionsMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getResetWorkspaceMemberPermissionsMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type getWorkspaceRolesResponse200 = {
+  data: GetWorkspaceRolesResponseDtoOutput;
+  status: 200;
+};
+
+export type getWorkspaceRolesResponseSuccess = getWorkspaceRolesResponse200 & {
+  headers: Headers;
+};
+export type getWorkspaceRolesResponse = getWorkspaceRolesResponseSuccess;
+
+export const getGetWorkspaceRolesUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/roles`;
+};
+
+/**
+ * @summary Get workspace roles
+ */
+export const getWorkspaceRoles = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWorkspaceRolesResponse> => {
+  return customFetch<getWorkspaceRolesResponse>(
+    getGetWorkspaceRolesUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkspaceRolesQueryKey = (workspacePublicId: string) => {
+  return [`/workspaces/${workspacePublicId}/roles`] as const;
+};
+
+export const getGetWorkspaceRolesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspaceRoles>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRoles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkspaceRolesQueryKey(workspacePublicId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkspaceRoles>>
+  > = ({ signal }) =>
+    getWorkspaceRoles(workspacePublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspaceRoles>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWorkspaceRolesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspaceRoles>>
+>;
+export type GetWorkspaceRolesQueryError = unknown;
+
+/** @summary Get workspace roles */
+export function useGetWorkspaceRoles<
+  TData = Awaited<ReturnType<typeof getWorkspaceRoles>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRoles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceRoles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace roles */
+export function useGetWorkspaceRoles<
+  TData = Awaited<ReturnType<typeof getWorkspaceRoles>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRoles>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceRoles>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceRoles>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace roles */
+export function useGetWorkspaceRoles<
+  TData = Awaited<ReturnType<typeof getWorkspaceRoles>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRoles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace roles */
+export function useGetWorkspaceRoles<
+  TData = Awaited<ReturnType<typeof getWorkspaceRoles>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRoles>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWorkspaceRolesQueryOptions(
+    workspacePublicId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getWorkspaceRolePermissionsResponse200 = {
+  data: GetWorkspaceRolePermissionsResponseDtoOutput;
+  status: 200;
+};
+
+export type getWorkspaceRolePermissionsResponseSuccess =
+  getWorkspaceRolePermissionsResponse200 & {
+    headers: Headers;
+  };
+export type getWorkspaceRolePermissionsResponse =
+  getWorkspaceRolePermissionsResponseSuccess;
+
+export const getGetWorkspaceRolePermissionsUrl = (
+  workspacePublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/roles/permissions`;
+};
+
+/**
+ * @summary Get workspace role permissions
+ */
+export const getWorkspaceRolePermissions = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWorkspaceRolePermissionsResponse> => {
+  return customFetch<getWorkspaceRolePermissionsResponse>(
+    getGetWorkspaceRolePermissionsUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkspaceRolePermissionsQueryKey = (
+  workspacePublicId: string,
+) => {
+  return [`/workspaces/${workspacePublicId}/roles/permissions`] as const;
+};
+
+export const getGetWorkspaceRolePermissionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetWorkspaceRolePermissionsQueryKey(workspacePublicId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkspaceRolePermissions>>
+  > = ({ signal }) =>
+    getWorkspaceRolePermissions(workspacePublicId, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWorkspaceRolePermissionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspaceRolePermissions>>
+>;
+export type GetWorkspaceRolePermissionsQueryError = unknown;
+
+/** @summary Get workspace role permissions */
+export function useGetWorkspaceRolePermissions<
+  TData = Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceRolePermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace role permissions */
+export function useGetWorkspaceRolePermissions<
+  TData = Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceRolePermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace role permissions */
+export function useGetWorkspaceRolePermissions<
+  TData = Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get workspace role permissions */
+export function useGetWorkspaceRolePermissions<
+  TData = Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWorkspaceRolePermissionsQueryOptions(
+    workspacePublicId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getRolePermissionsResponse200 = {
+  data: GetRolePermissionsResponseDtoOutput;
+  status: 200;
+};
+
+export type getRolePermissionsResponseSuccess =
+  getRolePermissionsResponse200 & {
+    headers: Headers;
+  };
+export type getRolePermissionsResponse = getRolePermissionsResponseSuccess;
+
+export const getGetRolePermissionsUrl = (
+  workspacePublicId: string,
+  rolePublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/roles/${rolePublicId}/permissions`;
+};
+
+/**
+ * @summary Get role permissions
+ */
+export const getRolePermissions = async (
+  workspacePublicId: string,
+  rolePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getRolePermissionsResponse> => {
+  return customFetch<getRolePermissionsResponse>(
+    getGetRolePermissionsUrl(workspacePublicId, rolePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetRolePermissionsQueryKey = (
+  workspacePublicId: string,
+  rolePublicId: string,
+) => {
+  return [
+    `/workspaces/${workspacePublicId}/roles/${rolePublicId}/permissions`,
+  ] as const;
+};
+
+export const getGetRolePermissionsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  rolePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetRolePermissionsQueryKey(workspacePublicId, rolePublicId);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getRolePermissions>>
+  > = ({ signal }) =>
+    getRolePermissions(workspacePublicId, rolePublicId, {
+      signal,
+      ...requestOptions,
+    });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled:
+      workspacePublicId !== null &&
+      workspacePublicId !== undefined &&
+      rolePublicId !== null &&
+      rolePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getRolePermissions>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetRolePermissionsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getRolePermissions>>
+>;
+export type GetRolePermissionsQueryError = unknown;
+
+/** @summary Get role permissions */
+export function useGetRolePermissions<
+  TData = Awaited<ReturnType<typeof getRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  rolePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRolePermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRolePermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getRolePermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get role permissions */
+export function useGetRolePermissions<
+  TData = Awaited<ReturnType<typeof getRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  rolePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRolePermissions>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getRolePermissions>>,
+          TError,
+          Awaited<ReturnType<typeof getRolePermissions>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get role permissions */
+export function useGetRolePermissions<
+  TData = Awaited<ReturnType<typeof getRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  rolePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get role permissions */
+export function useGetRolePermissions<
+  TData = Awaited<ReturnType<typeof getRolePermissions>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  rolePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getRolePermissions>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetRolePermissionsQueryOptions(
+    workspacePublicId,
+    rolePublicId,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type grantRolePermissionResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type grantRolePermissionResponseSuccess =
+  grantRolePermissionResponse200 & {
+    headers: Headers;
+  };
+export type grantRolePermissionResponse = grantRolePermissionResponseSuccess;
+
+export const getGrantRolePermissionUrl = (
+  workspacePublicId: string,
+  rolePublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/roles/${rolePublicId}/permissions/grant`;
+};
+
+/**
+ * @summary Grant permission to role
+ */
+export const grantRolePermission = async (
+  workspacePublicId: string,
+  rolePublicId: string,
+  permissionActionDto: PermissionActionDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<grantRolePermissionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<grantRolePermissionResponse>(
+    getGrantRolePermissionUrl(workspacePublicId, rolePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(permissionActionDto),
+    },
+  );
+};
+
+export const getGrantRolePermissionMutationKey = () =>
+  ["grantRolePermission"] as const;
+
+export const getGrantRolePermissionMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof grantRolePermission>>,
+    TError,
+    GrantRolePermissionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof grantRolePermission>>,
+  TError,
+  GrantRolePermissionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getGrantRolePermissionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof grantRolePermission>>,
+    GrantRolePermissionMutationVariables
+  > = (props) => {
+    const { workspacePublicId, rolePublicId, data } = props ?? {};
+
+    return grantRolePermission(
+      workspacePublicId,
+      rolePublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type GrantRolePermissionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof grantRolePermission>>
+>;
+export type GrantRolePermissionMutationBody = PermissionActionDto;
+export type GrantRolePermissionMutationError = unknown;
+export type GrantRolePermissionMutationVariables = {
+  workspacePublicId: string;
+  rolePublicId: string;
+  data: PermissionActionDto;
+};
+
+/** @summary Grant permission to role */
+export const useGrantRolePermission = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof grantRolePermission>>,
+      TError,
+      GrantRolePermissionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof grantRolePermission>>,
+  TError,
+  GrantRolePermissionMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getGrantRolePermissionMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type revokeRolePermissionResponse200 = {
+  data: SuccessResponseDtoOutput;
+  status: 200;
+};
+
+export type revokeRolePermissionResponseSuccess =
+  revokeRolePermissionResponse200 & {
+    headers: Headers;
+  };
+export type revokeRolePermissionResponse = revokeRolePermissionResponseSuccess;
+
+export const getRevokeRolePermissionUrl = (
+  workspacePublicId: string,
+  rolePublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/roles/${rolePublicId}/permissions/revoke`;
+};
+
+/**
+ * @summary Revoke permission from role
+ */
+export const revokeRolePermission = async (
+  workspacePublicId: string,
+  rolePublicId: string,
+  permissionActionDto: PermissionActionDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<revokeRolePermissionResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<revokeRolePermissionResponse>(
+    getRevokeRolePermissionUrl(workspacePublicId, rolePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(permissionActionDto),
+    },
+  );
+};
+
+export const getRevokeRolePermissionMutationKey = () =>
+  ["revokeRolePermission"] as const;
+
+export const getRevokeRolePermissionMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof revokeRolePermission>>,
+    TError,
+    RevokeRolePermissionMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof revokeRolePermission>>,
+  TError,
+  RevokeRolePermissionMutationVariables,
+  TContext
+> => {
+  const mutationKey = getRevokeRolePermissionMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof revokeRolePermission>>,
+    RevokeRolePermissionMutationVariables
+  > = (props) => {
+    const { workspacePublicId, rolePublicId, data } = props ?? {};
+
+    return revokeRolePermission(
+      workspacePublicId,
+      rolePublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RevokeRolePermissionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof revokeRolePermission>>
+>;
+export type RevokeRolePermissionMutationBody = PermissionActionDto;
+export type RevokeRolePermissionMutationError = unknown;
+export type RevokeRolePermissionMutationVariables = {
+  workspacePublicId: string;
+  rolePublicId: string;
+  data: PermissionActionDto;
+};
+
+/** @summary Revoke permission from role */
+export const useRevokeRolePermission = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof revokeRolePermission>>,
+      TError,
+      RevokeRolePermissionMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof revokeRolePermission>>,
+  TError,
+  RevokeRolePermissionMutationVariables,
+  TContext
+> => {
+  return useMutation(
+    getRevokeRolePermissionMutationOptions(options),
+    queryClient,
+  );
+};
+
+export type getUserResponse200 = {
+  data: UserResponseDtoOutput;
+  status: 200;
+};
+
+export type getUserResponseSuccess = getUserResponse200 & {
+  headers: Headers;
+};
+export type getUserResponse = getUserResponseSuccess;
+
+export const getGetUserUrl = () => {
+  return `/users/me`;
+};
+
+/**
+ * @summary Get the current user
+ */
+export const getUser = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getUserResponse> => {
+  return customFetch<getUserResponse>(getGetUserUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetUserQueryKey = () => {
+  return [`/users/me`] as const;
+};
+
+export const getGetUserQueryOptions = <
+  TData = Awaited<ReturnType<typeof getUser>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetUserQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getUser>>> = ({
+    signal,
+  }) => getUser({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getUser>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetUserQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getUser>>
+>;
+export type GetUserQueryError = unknown;
+
+/** @summary Get the current user */
+export function useGetUser<
+  TData = Awaited<ReturnType<typeof getUser>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUser>>,
+          TError,
+          Awaited<ReturnType<typeof getUser>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user */
+export function useGetUser<
+  TData = Awaited<ReturnType<typeof getUser>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getUser>>,
+          TError,
+          Awaited<ReturnType<typeof getUser>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user */
+export function useGetUser<
+  TData = Awaited<ReturnType<typeof getUser>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get the current user */
+export function useGetUser<
+  TData = Awaited<ReturnType<typeof getUser>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getUser>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetUserQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type updateUserResponse200 = {
+  data: UpdateUserResponseDtoOutput;
+  status: 200;
+};
+
+export type updateUserResponseSuccess = updateUserResponse200 & {
+  headers: Headers;
+};
+export type updateUserResponse = updateUserResponseSuccess;
+
+export const getUpdateUserUrl = () => {
+  return `/users`;
+};
+
+/**
+ * @summary Update the current user
+ */
+export const updateUser = async (
+  updateUserDto: UpdateUserDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateUserResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateUserResponse>(getUpdateUserUrl(), {
+    credentials: "include",
+    ...options,
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(updateUserDto),
+  });
+};
+
+export const getUpdateUserMutationKey = () => ["updateUser"] as const;
+
+export const getUpdateUserMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateUser>>,
+    TError,
+    UpdateUserMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateUser>>,
+  TError,
+  UpdateUserMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateUserMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateUser>>,
+    UpdateUserMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return updateUser(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateUserMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateUser>>
+>;
+export type UpdateUserMutationBody = UpdateUserDto;
+export type UpdateUserMutationError = unknown;
+export type UpdateUserMutationVariables = { data: UpdateUserDto };
+
+/** @summary Update the current user */
+export const useUpdateUser = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateUser>>,
+      TError,
+      UpdateUserMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateUser>>,
+  TError,
+  UpdateUserMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateUserMutationOptions(options), queryClient);
+};
+
+export type setPasswordResponse201 = {
+  data: SuccessResponseDtoOutput;
+  status: 201;
+};
+
+export type setPasswordResponseSuccess = setPasswordResponse201 & {
+  headers: Headers;
+};
+export type setPasswordResponse = setPasswordResponseSuccess;
+
+export const getSetPasswordUrl = () => {
+  return `/users/me/password`;
+};
+
+/**
+ * @summary Set a password for a user who has none yet
+ */
+export const setPassword = async (
+  setPasswordDto: SetPasswordDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<setPasswordResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<setPasswordResponse>(getSetPasswordUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(setPasswordDto),
+  });
+};
+
+export const getSetPasswordMutationKey = () => ["setPassword"] as const;
+
+export const getSetPasswordMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof setPassword>>,
+    TError,
+    SetPasswordMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof setPassword>>,
+  TError,
+  SetPasswordMutationVariables,
+  TContext
+> => {
+  const mutationKey = getSetPasswordMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof setPassword>>,
+    SetPasswordMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return setPassword(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type SetPasswordMutationResult = NonNullable<
+  Awaited<ReturnType<typeof setPassword>>
+>;
+export type SetPasswordMutationBody = SetPasswordDto;
+export type SetPasswordMutationError = unknown;
+export type SetPasswordMutationVariables = { data: SetPasswordDto };
+
+/** @summary Set a password for a user who has none yet */
+export const useSetPassword = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof setPassword>>,
+      TError,
+      SetPasswordMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof setPassword>>,
+  TError,
+  SetPasswordMutationVariables,
+  TContext
+> => {
+  return useMutation(getSetPasswordMutationOptions(options), queryClient);
+};
+
+export type uploadAvatarResponse201 = {
+  data: SuccessResponseDtoOutput;
+  status: 201;
+};
+
+export type uploadAvatarResponseSuccess = uploadAvatarResponse201 & {
+  headers: Headers;
+};
+export type uploadAvatarResponse = uploadAvatarResponseSuccess;
+
+export const getUploadAvatarUrl = () => {
+  return `/users/me/avatar`;
+};
+
+/**
+ * @summary Upload a new profile image for the current user
+ */
+export const uploadAvatar = async (
+  uploadAvatarBody: Blob,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<uploadAvatarResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<uploadAvatarResponse>(getUploadAvatarUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/octet-stream",
+      ...getHeaders(options?.headers),
+    },
+    body: uploadAvatarBody,
+  });
+};
+
+export const getUploadAvatarMutationKey = () => ["uploadAvatar"] as const;
+
+export const getUploadAvatarMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof uploadAvatar>>,
+    TError,
+    UploadAvatarMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof uploadAvatar>>,
+  TError,
+  UploadAvatarMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUploadAvatarMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof uploadAvatar>>,
+    UploadAvatarMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return uploadAvatar(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UploadAvatarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof uploadAvatar>>
+>;
+export type UploadAvatarMutationBody = Blob;
+export type UploadAvatarMutationError = unknown;
+export type UploadAvatarMutationVariables = { data: Blob };
+
+/** @summary Upload a new profile image for the current user */
+export const useUploadAvatar = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof uploadAvatar>>,
+      TError,
+      UploadAvatarMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof uploadAvatar>>,
+  TError,
+  UploadAvatarMutationVariables,
+  TContext
+> => {
+  return useMutation(getUploadAvatarMutationOptions(options), queryClient);
+};
+
+export type getWebhooksResponse200 = {
+  data: WebhookResponseDtoOutput[];
+  status: 200;
+};
+
+export type getWebhooksResponseSuccess = getWebhooksResponse200 & {
+  headers: Headers;
+};
+export type getWebhooksResponse = getWebhooksResponseSuccess;
+
+export const getGetWebhooksUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/webhooks`;
+};
+
+/**
+ * @summary List a workspace's webhooks
+ */
+export const getWebhooks = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWebhooksResponse> => {
+  return customFetch<getWebhooksResponse>(
+    getGetWebhooksUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWebhooksQueryKey = (workspacePublicId: string) => {
+  return [`/workspaces/${workspacePublicId}/webhooks`] as const;
+};
+
+export const getGetWebhooksQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWebhooks>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWebhooks>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWebhooksQueryKey(workspacePublicId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWebhooks>>> = ({
+    signal,
+  }) => getWebhooks(workspacePublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWebhooks>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWebhooksQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWebhooks>>
+>;
+export type GetWebhooksQueryError = unknown;
+
+/** @summary List a workspace's webhooks */
+export function useGetWebhooks<
+  TData = Awaited<ReturnType<typeof getWebhooks>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWebhooks>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWebhooks>>,
+          TError,
+          Awaited<ReturnType<typeof getWebhooks>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's webhooks */
+export function useGetWebhooks<
+  TData = Awaited<ReturnType<typeof getWebhooks>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWebhooks>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWebhooks>>,
+          TError,
+          Awaited<ReturnType<typeof getWebhooks>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's webhooks */
+export function useGetWebhooks<
+  TData = Awaited<ReturnType<typeof getWebhooks>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWebhooks>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary List a workspace's webhooks */
+export function useGetWebhooks<
+  TData = Awaited<ReturnType<typeof getWebhooks>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWebhooks>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWebhooksQueryOptions(workspacePublicId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type createWebhookResponse201 = {
+  data: WebhookResponseDtoOutput;
+  status: 201;
+};
+
+export type createWebhookResponseSuccess = createWebhookResponse201 & {
+  headers: Headers;
+};
+export type createWebhookResponse = createWebhookResponseSuccess;
+
+export const getCreateWebhookUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}/webhooks`;
+};
+
+/**
+ * @summary Create a webhook
+ */
+export const createWebhook = async (
+  workspacePublicId: string,
+  createWebhookDto: CreateWebhookDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createWebhookResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createWebhookResponse>(
+    getCreateWebhookUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(createWebhookDto),
+    },
+  );
+};
+
+export const getCreateWebhookMutationKey = () => ["createWebhook"] as const;
+
+export const getCreateWebhookMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createWebhook>>,
+    TError,
+    CreateWebhookMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createWebhook>>,
+  TError,
+  CreateWebhookMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateWebhookMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createWebhook>>,
+    CreateWebhookMutationVariables
+  > = (props) => {
+    const { workspacePublicId, data } = props ?? {};
+
+    return createWebhook(workspacePublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createWebhook>>
+>;
+export type CreateWebhookMutationBody = CreateWebhookDto;
+export type CreateWebhookMutationError = unknown;
+export type CreateWebhookMutationVariables = {
+  workspacePublicId: string;
+  data: CreateWebhookDto;
+};
+
+/** @summary Create a webhook */
+export const useCreateWebhook = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createWebhook>>,
+      TError,
+      CreateWebhookMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createWebhook>>,
+  TError,
+  CreateWebhookMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateWebhookMutationOptions(options), queryClient);
+};
+
+export type updateWebhookResponse200 = {
+  data: WebhookResponseDtoOutput;
+  status: 200;
+};
+
+export type updateWebhookResponseSuccess = updateWebhookResponse200 & {
+  headers: Headers;
+};
+export type updateWebhookResponse = updateWebhookResponseSuccess;
+
+export const getUpdateWebhookUrl = (
+  workspacePublicId: string,
+  webhookPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/webhooks/${webhookPublicId}`;
+};
+
+/**
+ * @summary Update a webhook
+ */
+export const updateWebhook = async (
+  workspacePublicId: string,
+  webhookPublicId: string,
+  updateWebhookDto: UpdateWebhookDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateWebhookResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateWebhookResponse>(
+    getUpdateWebhookUrl(workspacePublicId, webhookPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateWebhookDto),
+    },
+  );
+};
+
+export const getUpdateWebhookMutationKey = () => ["updateWebhook"] as const;
+
+export const getUpdateWebhookMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateWebhook>>,
+    TError,
+    UpdateWebhookMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateWebhook>>,
+  TError,
+  UpdateWebhookMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateWebhookMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateWebhook>>,
+    UpdateWebhookMutationVariables
+  > = (props) => {
+    const { workspacePublicId, webhookPublicId, data } = props ?? {};
+
+    return updateWebhook(
+      workspacePublicId,
+      webhookPublicId,
+      data,
+      requestOptions,
+    );
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateWebhook>>
+>;
+export type UpdateWebhookMutationBody = UpdateWebhookDto;
+export type UpdateWebhookMutationError = unknown;
+export type UpdateWebhookMutationVariables = {
+  workspacePublicId: string;
+  webhookPublicId: string;
+  data: UpdateWebhookDto;
+};
+
+/** @summary Update a webhook */
+export const useUpdateWebhook = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateWebhook>>,
+      TError,
+      UpdateWebhookMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateWebhook>>,
+  TError,
+  UpdateWebhookMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateWebhookMutationOptions(options), queryClient);
+};
+
+export type deleteWebhookResponse200 = {
+  data: DeleteWebhookResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteWebhookResponseSuccess = deleteWebhookResponse200 & {
+  headers: Headers;
+};
+export type deleteWebhookResponse = deleteWebhookResponseSuccess;
+
+export const getDeleteWebhookUrl = (
+  workspacePublicId: string,
+  webhookPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/webhooks/${webhookPublicId}`;
+};
+
+/**
+ * @summary Delete a webhook
+ */
+export const deleteWebhook = async (
+  workspacePublicId: string,
+  webhookPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteWebhookResponse> => {
+  return customFetch<deleteWebhookResponse>(
+    getDeleteWebhookUrl(workspacePublicId, webhookPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteWebhookMutationKey = () => ["deleteWebhook"] as const;
+
+export const getDeleteWebhookMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWebhook>>,
+    TError,
+    DeleteWebhookMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteWebhook>>,
+  TError,
+  DeleteWebhookMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteWebhookMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteWebhook>>,
+    DeleteWebhookMutationVariables
+  > = (props) => {
+    const { workspacePublicId, webhookPublicId } = props ?? {};
+
+    return deleteWebhook(workspacePublicId, webhookPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteWebhook>>
+>;
+
+export type DeleteWebhookMutationError = unknown;
+export type DeleteWebhookMutationVariables = {
+  workspacePublicId: string;
+  webhookPublicId: string;
+};
+
+/** @summary Delete a webhook */
+export const useDeleteWebhook = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteWebhook>>,
+      TError,
+      DeleteWebhookMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteWebhook>>,
+  TError,
+  DeleteWebhookMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteWebhookMutationOptions(options), queryClient);
+};
+
+export type testWebhookResponse201 = {
+  data: TestWebhookResponseDtoOutput;
+  status: 201;
+};
+
+export type testWebhookResponseSuccess = testWebhookResponse201 & {
+  headers: Headers;
+};
+export type testWebhookResponse = testWebhookResponseSuccess;
+
+export const getTestWebhookUrl = (
+  workspacePublicId: string,
+  webhookPublicId: string,
+) => {
+  return `/workspaces/${workspacePublicId}/webhooks/${webhookPublicId}/test`;
+};
+
+/**
+ * @summary Send a test payload to a webhook
+ */
+export const testWebhook = async (
+  workspacePublicId: string,
+  webhookPublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<testWebhookResponse> => {
+  return customFetch<testWebhookResponse>(
+    getTestWebhookUrl(workspacePublicId, webhookPublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "POST",
+    },
+  );
+};
+
+export const getTestWebhookMutationKey = () => ["testWebhook"] as const;
+
+export const getTestWebhookMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof testWebhook>>,
+    TError,
+    TestWebhookMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof testWebhook>>,
+  TError,
+  TestWebhookMutationVariables,
+  TContext
+> => {
+  const mutationKey = getTestWebhookMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof testWebhook>>,
+    TestWebhookMutationVariables
+  > = (props) => {
+    const { workspacePublicId, webhookPublicId } = props ?? {};
+
+    return testWebhook(workspacePublicId, webhookPublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type TestWebhookMutationResult = NonNullable<
+  Awaited<ReturnType<typeof testWebhook>>
+>;
+
+export type TestWebhookMutationError = unknown;
+export type TestWebhookMutationVariables = {
+  workspacePublicId: string;
+  webhookPublicId: string;
+};
+
+/** @summary Send a test payload to a webhook */
+export const useTestWebhook = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof testWebhook>>,
+      TError,
+      TestWebhookMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof testWebhook>>,
+  TError,
+  TestWebhookMutationVariables,
+  TContext
+> => {
+  return useMutation(getTestWebhookMutationOptions(options), queryClient);
+};
+
+export type getWorkspacesResponse200 = {
+  data: WorkspaceListItemDtoOutput[];
+  status: 200;
+};
+
+export type getWorkspacesResponseSuccess = getWorkspacesResponse200 & {
+  headers: Headers;
+};
+export type getWorkspacesResponse = getWorkspacesResponseSuccess;
+
+export const getGetWorkspacesUrl = () => {
+  return `/workspaces`;
+};
+
+/**
+ * @summary Get all workspaces
+ */
+export const getWorkspaces = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWorkspacesResponse> => {
+  return customFetch<getWorkspacesResponse>(getGetWorkspacesUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetWorkspacesQueryKey = () => {
+  return [`/workspaces`] as const;
+};
+
+export const getGetWorkspacesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspaces>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getWorkspaces>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetWorkspacesQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspaces>>> = ({
+    signal,
+  }) => getWorkspaces({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspaces>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWorkspacesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspaces>>
+>;
+export type GetWorkspacesQueryError = unknown;
+
+/** @summary Get all workspaces */
+export function useGetWorkspaces<
+  TData = Awaited<ReturnType<typeof getWorkspaces>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspaces>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaces>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaces>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get all workspaces */
+export function useGetWorkspaces<
+  TData = Awaited<ReturnType<typeof getWorkspaces>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspaces>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaces>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaces>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get all workspaces */
+export function useGetWorkspaces<
+  TData = Awaited<ReturnType<typeof getWorkspaces>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspaces>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get all workspaces */
+export function useGetWorkspaces<
+  TData = Awaited<ReturnType<typeof getWorkspaces>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspaces>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWorkspacesQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type createWorkspaceResponse201 = {
+  data: WorkspaceCreateResponseDtoOutput;
+  status: 201;
+};
+
+export type createWorkspaceResponseSuccess = createWorkspaceResponse201 & {
+  headers: Headers;
+};
+export type createWorkspaceResponse = createWorkspaceResponseSuccess;
+
+export const getCreateWorkspaceUrl = () => {
+  return `/workspaces`;
+};
+
+/**
+ * @summary Create a workspace
+ */
+export const createWorkspace = async (
+  createWorkspaceDto: CreateWorkspaceDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<createWorkspaceResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<createWorkspaceResponse>(getCreateWorkspaceUrl(), {
+    credentials: "include",
+    ...options,
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...getHeaders(options?.headers),
+    },
+    body: JSON.stringify(createWorkspaceDto),
+  });
+};
+
+export const getCreateWorkspaceMutationKey = () => ["createWorkspace"] as const;
+
+export const getCreateWorkspaceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createWorkspace>>,
+    TError,
+    CreateWorkspaceMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createWorkspace>>,
+  TError,
+  CreateWorkspaceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getCreateWorkspaceMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createWorkspace>>,
+    CreateWorkspaceMutationVariables
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createWorkspace(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateWorkspaceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createWorkspace>>
+>;
+export type CreateWorkspaceMutationBody = CreateWorkspaceDto;
+export type CreateWorkspaceMutationError = unknown;
+export type CreateWorkspaceMutationVariables = { data: CreateWorkspaceDto };
+
+/** @summary Create a workspace */
+export const useCreateWorkspace = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createWorkspace>>,
+      TError,
+      CreateWorkspaceMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof createWorkspace>>,
+  TError,
+  CreateWorkspaceMutationVariables,
+  TContext
+> => {
+  return useMutation(getCreateWorkspaceMutationOptions(options), queryClient);
+};
+
+export type checkSlugAvailabilityResponse200 = {
+  data: CheckSlugAvailabilityResponseDtoOutput;
+  status: 200;
+};
+
+export type checkSlugAvailabilityResponseSuccess =
+  checkSlugAvailabilityResponse200 & {
+    headers: Headers;
+  };
+export type checkSlugAvailabilityResponse =
+  checkSlugAvailabilityResponseSuccess;
+
+export const getCheckSlugAvailabilityUrl = (
+  params: CheckSlugAvailabilityParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/workspaces/check-slug-availability?${stringifiedParams}`
+    : `/workspaces/check-slug-availability`;
+};
+
+/**
+ * @summary Check if a workspace slug is available
+ */
+export const checkSlugAvailability = async (
+  params: CheckSlugAvailabilityParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<checkSlugAvailabilityResponse> => {
+  return customFetch<checkSlugAvailabilityResponse>(
+    getCheckSlugAvailabilityUrl(params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getCheckSlugAvailabilityQueryKey = (
+  params?: CheckSlugAvailabilityParams,
+) => {
+  return [
+    `/workspaces/check-slug-availability`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getCheckSlugAvailabilityQueryOptions = <
+  TData = Awaited<ReturnType<typeof checkSlugAvailability>>,
+  TError = unknown,
+>(
+  params: CheckSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getCheckSlugAvailabilityQueryKey(params);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof checkSlugAvailability>>
+  > = ({ signal }) =>
+    checkSlugAvailability(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof checkSlugAvailability>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CheckSlugAvailabilityQueryResult = NonNullable<
+  Awaited<ReturnType<typeof checkSlugAvailability>>
+>;
+export type CheckSlugAvailabilityQueryError = unknown;
+
+/** @summary Check if a workspace slug is available */
+export function useCheckSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkSlugAvailability>>,
+  TError = unknown,
+>(
+  params: CheckSlugAvailabilityParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkSlugAvailability>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkSlugAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkSlugAvailability>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a workspace slug is available */
+export function useCheckSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkSlugAvailability>>,
+  TError = unknown,
+>(
+  params: CheckSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkSlugAvailability>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkSlugAvailability>>,
+          TError,
+          Awaited<ReturnType<typeof checkSlugAvailability>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a workspace slug is available */
+export function useCheckSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkSlugAvailability>>,
+  TError = unknown,
+>(
+  params: CheckSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if a workspace slug is available */
+export function useCheckSlugAvailability<
+  TData = Awaited<ReturnType<typeof checkSlugAvailability>>,
+  TError = unknown,
+>(
+  params: CheckSlugAvailabilityParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkSlugAvailability>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCheckSlugAvailabilityQueryOptions(params, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type hasAvailablePartnerSlotResponse200 = {
+  data: boolean;
+  status: 200;
+};
+
+export type hasAvailablePartnerSlotResponseSuccess =
+  hasAvailablePartnerSlotResponse200 & {
+    headers: Headers;
+  };
+export type hasAvailablePartnerSlotResponse =
+  hasAvailablePartnerSlotResponseSuccess;
+
+export const getHasAvailablePartnerSlotUrl = () => {
+  return `/workspaces/has-available-partner-slot`;
+};
+
+/**
+ * @summary Check if the user has an available partner license slot
+ */
+export const hasAvailablePartnerSlot = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<hasAvailablePartnerSlotResponse> => {
+  return customFetch<hasAvailablePartnerSlotResponse>(
+    getHasAvailablePartnerSlotUrl(),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getHasAvailablePartnerSlotQueryKey = () => {
+  return [`/workspaces/has-available-partner-slot`] as const;
+};
+
+export const getHasAvailablePartnerSlotQueryOptions = <
+  TData = Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getHasAvailablePartnerSlotQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof hasAvailablePartnerSlot>>
+  > = ({ signal }) => hasAvailablePartnerSlot({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type HasAvailablePartnerSlotQueryResult = NonNullable<
+  Awaited<ReturnType<typeof hasAvailablePartnerSlot>>
+>;
+export type HasAvailablePartnerSlotQueryError = unknown;
+
+/** @summary Check if the user has an available partner license slot */
+export function useHasAvailablePartnerSlot<
+  TData = Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+          TError,
+          Awaited<ReturnType<typeof hasAvailablePartnerSlot>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if the user has an available partner license slot */
+export function useHasAvailablePartnerSlot<
+  TData = Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+          TError,
+          Awaited<ReturnType<typeof hasAvailablePartnerSlot>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if the user has an available partner license slot */
+export function useHasAvailablePartnerSlot<
+  TData = Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check if the user has an available partner license slot */
+export function useHasAvailablePartnerSlot<
+  TData = Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof hasAvailablePartnerSlot>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getHasAvailablePartnerSlotQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getWorkspaceBySlugResponse200 = {
+  data: WorkspaceWithBoardsResponseDtoOutput;
+  status: 200;
+};
+
+export type getWorkspaceBySlugResponseSuccess =
+  getWorkspaceBySlugResponse200 & {
+    headers: Headers;
+  };
+export type getWorkspaceBySlugResponse = getWorkspaceBySlugResponseSuccess;
+
+export const getGetWorkspaceBySlugUrl = (workspaceSlug: string) => {
+  return `/workspaces/slug/${workspaceSlug}`;
+};
+
+/**
+ * @summary Get a workspace by slug
+ */
+export const getWorkspaceBySlug = async (
+  workspaceSlug: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWorkspaceBySlugResponse> => {
+  return customFetch<getWorkspaceBySlugResponse>(
+    getGetWorkspaceBySlugUrl(workspaceSlug),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkspaceBySlugQueryKey = (workspaceSlug: string) => {
+  return [`/workspaces/slug/${workspaceSlug}`] as const;
+};
+
+export const getGetWorkspaceBySlugQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkspaceBySlugQueryKey(workspaceSlug);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getWorkspaceBySlug>>
+  > = ({ signal }) =>
+    getWorkspaceBySlug(workspaceSlug, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspaceSlug !== null && workspaceSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWorkspaceBySlugQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspaceBySlug>>
+>;
+export type GetWorkspaceBySlugQueryError = unknown;
+
+/** @summary Get a workspace by slug */
+export function useGetWorkspaceBySlug<
+  TData = Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceBySlug>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by slug */
+export function useGetWorkspaceBySlug<
+  TData = Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspaceBySlug>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by slug */
+export function useGetWorkspaceBySlug<
+  TData = Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by slug */
+export function useGetWorkspaceBySlug<
+  TData = Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getWorkspaceBySlug>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWorkspaceBySlugQueryOptions(
+    workspaceSlug,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getWorkspaceResponse200 = {
+  data: WorkspaceDetailResponseDtoOutput;
+  status: 200;
+};
+
+export type getWorkspaceResponseSuccess = getWorkspaceResponse200 & {
+  headers: Headers;
+};
+export type getWorkspaceResponse = getWorkspaceResponseSuccess;
+
+export const getGetWorkspaceUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}`;
+};
+
+/**
+ * @summary Get a workspace by public ID
+ */
+export const getWorkspace = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getWorkspaceResponse> => {
+  return customFetch<getWorkspaceResponse>(
+    getGetWorkspaceUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getGetWorkspaceQueryKey = (workspacePublicId: string) => {
+  return [`/workspaces/${workspacePublicId}`] as const;
+};
+
+export const getGetWorkspaceQueryOptions = <
+  TData = Awaited<ReturnType<typeof getWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspace>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetWorkspaceQueryKey(workspacePublicId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getWorkspace>>> = ({
+    signal,
+  }) => getWorkspace(workspacePublicId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getWorkspace>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetWorkspaceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getWorkspace>>
+>;
+export type GetWorkspaceQueryError = unknown;
+
+/** @summary Get a workspace by public ID */
+export function useGetWorkspace<
+  TData = Awaited<ReturnType<typeof getWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspace>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspace>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspace>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by public ID */
+export function useGetWorkspace<
+  TData = Awaited<ReturnType<typeof getWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspace>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getWorkspace>>,
+          TError,
+          Awaited<ReturnType<typeof getWorkspace>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by public ID */
+export function useGetWorkspace<
+  TData = Awaited<ReturnType<typeof getWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspace>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Get a workspace by public ID */
+export function useGetWorkspace<
+  TData = Awaited<ReturnType<typeof getWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getWorkspace>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetWorkspaceQueryOptions(workspacePublicId, options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type updateWorkspaceResponse200 = {
+  data: WorkspaceUpdateResponseDtoOutput;
+  status: 200;
+};
+
+export type updateWorkspaceResponseSuccess = updateWorkspaceResponse200 & {
+  headers: Headers;
+};
+export type updateWorkspaceResponse = updateWorkspaceResponseSuccess;
+
+export const getUpdateWorkspaceUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}`;
+};
+
+/**
+ * @summary Update a workspace
+ */
+export const updateWorkspace = async (
+  workspacePublicId: string,
+  updateWorkspaceDto: UpdateWorkspaceDto,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<updateWorkspaceResponse> => {
+  const getHeaders = (
+    h?: NonNullable<RequestInit["headers"]>,
+  ): Record<string, string | readonly string[]> => {
+    if (!h) return {};
+    if (h instanceof Headers) return Object.fromEntries(h.entries());
+    if (Symbol.iterator in h) {
+      return Object.fromEntries(
+        Array.from(
+          h as Iterable<Iterable<string>>,
+          (entry) => Array.from(entry) as [string, string],
+        ),
+      );
+    }
+    const headers: Record<string, string | readonly string[]> = {};
+    for (const [name, value] of Object.entries<
+      string | readonly string[] | undefined
+    >(h)) {
+      if (value !== undefined) headers[name] = value;
+    }
+    return headers;
+  };
+  return customFetch<updateWorkspaceResponse>(
+    getUpdateWorkspaceUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        ...getHeaders(options?.headers),
+      },
+      body: JSON.stringify(updateWorkspaceDto),
+    },
+  );
+};
+
+export const getUpdateWorkspaceMutationKey = () => ["updateWorkspace"] as const;
+
+export const getUpdateWorkspaceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateWorkspace>>,
+    TError,
+    UpdateWorkspaceMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateWorkspace>>,
+  TError,
+  UpdateWorkspaceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getUpdateWorkspaceMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateWorkspace>>,
+    UpdateWorkspaceMutationVariables
+  > = (props) => {
+    const { workspacePublicId, data } = props ?? {};
+
+    return updateWorkspace(workspacePublicId, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateWorkspaceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateWorkspace>>
+>;
+export type UpdateWorkspaceMutationBody = UpdateWorkspaceDto;
+export type UpdateWorkspaceMutationError = unknown;
+export type UpdateWorkspaceMutationVariables = {
+  workspacePublicId: string;
+  data: UpdateWorkspaceDto;
+};
+
+/** @summary Update a workspace */
+export const useUpdateWorkspace = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateWorkspace>>,
+      TError,
+      UpdateWorkspaceMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateWorkspace>>,
+  TError,
+  UpdateWorkspaceMutationVariables,
+  TContext
+> => {
+  return useMutation(getUpdateWorkspaceMutationOptions(options), queryClient);
+};
+
+export type deleteWorkspaceResponse200 = {
+  data: WorkspaceDeleteResponseDtoOutput;
+  status: 200;
+};
+
+export type deleteWorkspaceResponseSuccess = deleteWorkspaceResponse200 & {
+  headers: Headers;
+};
+export type deleteWorkspaceResponse = deleteWorkspaceResponseSuccess;
+
+export const getDeleteWorkspaceUrl = (workspacePublicId: string) => {
+  return `/workspaces/${workspacePublicId}`;
+};
+
+/**
+ * @summary Delete a workspace
+ */
+export const deleteWorkspace = async (
+  workspacePublicId: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<deleteWorkspaceResponse> => {
+  return customFetch<deleteWorkspaceResponse>(
+    getDeleteWorkspaceUrl(workspacePublicId),
+    {
+      credentials: "include",
+      ...options,
+      method: "DELETE",
+    },
+  );
+};
+
+export const getDeleteWorkspaceMutationKey = () => ["deleteWorkspace"] as const;
+
+export const getDeleteWorkspaceMutationOptions = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteWorkspace>>,
+    TError,
+    DeleteWorkspaceMutationVariables,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteWorkspace>>,
+  TError,
+  DeleteWorkspaceMutationVariables,
+  TContext
+> => {
+  const mutationKey = getDeleteWorkspaceMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteWorkspace>>,
+    DeleteWorkspaceMutationVariables
+  > = (props) => {
+    const { workspacePublicId } = props ?? {};
+
+    return deleteWorkspace(workspacePublicId, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteWorkspaceMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteWorkspace>>
+>;
+
+export type DeleteWorkspaceMutationError = unknown;
+export type DeleteWorkspaceMutationVariables = { workspacePublicId: string };
+
+/** @summary Delete a workspace */
+export const useDeleteWorkspace = <TError = unknown, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteWorkspace>>,
+      TError,
+      DeleteWorkspaceMutationVariables,
+      TContext
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteWorkspace>>,
+  TError,
+  DeleteWorkspaceMutationVariables,
+  TContext
+> => {
+  return useMutation(getDeleteWorkspaceMutationOptions(options), queryClient);
+};
+
+export type searchWorkspaceResponse200 = {
+  data: (SearchBoardResultDto | SearchCardResultDto)[];
+  status: 200;
+};
+
+export type searchWorkspaceResponseSuccess = searchWorkspaceResponse200 & {
+  headers: Headers;
+};
+export type searchWorkspaceResponse = searchWorkspaceResponseSuccess;
+
+export const getSearchWorkspaceUrl = (
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : String(value));
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/workspaces/${workspacePublicId}/search?${stringifiedParams}`
+    : `/workspaces/${workspacePublicId}/search`;
+};
+
+/**
+ * @summary Search boards and cards in a workspace
+ */
+export const searchWorkspace = async (
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<searchWorkspaceResponse> => {
+  return customFetch<searchWorkspaceResponse>(
+    getSearchWorkspaceUrl(workspacePublicId, params),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getSearchWorkspaceQueryKey = (
+  workspacePublicId: string,
+  params?: SearchWorkspaceParams,
+) => {
+  return [
+    `/workspaces/${workspacePublicId}/search`,
+    ...(params ? [params] : []),
+  ] as const;
+};
+
+export const getSearchWorkspaceQueryOptions = <
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchWorkspace>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getSearchWorkspaceQueryKey(workspacePublicId, params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof searchWorkspace>>> = ({
+    signal,
+  }) =>
+    searchWorkspace(workspacePublicId, params, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspacePublicId !== null && workspacePublicId !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof searchWorkspace>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type SearchWorkspaceQueryResult = NonNullable<
+  Awaited<ReturnType<typeof searchWorkspace>>
+>;
+export type SearchWorkspaceQueryError = unknown;
+
+/** @summary Search boards and cards in a workspace */
+export function useSearchWorkspace<
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchWorkspace>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchWorkspace>>,
+          TError,
+          Awaited<ReturnType<typeof searchWorkspace>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Search boards and cards in a workspace */
+export function useSearchWorkspace<
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchWorkspace>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof searchWorkspace>>,
+          TError,
+          Awaited<ReturnType<typeof searchWorkspace>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Search boards and cards in a workspace */
+export function useSearchWorkspace<
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchWorkspace>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Search boards and cards in a workspace */
+export function useSearchWorkspace<
+  TData = Awaited<ReturnType<typeof searchWorkspace>>,
+  TError = unknown,
+>(
+  workspacePublicId: string,
+  params: SearchWorkspaceParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof searchWorkspace>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getSearchWorkspaceQueryOptions(
+    workspacePublicId,
+    params,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type checkWorkspaceSlugExistsResponse200 = {
+  data: WorkspaceSlugExistsResponseDtoOutput;
+  status: 200;
+};
+
+export type checkWorkspaceSlugExistsResponseSuccess =
+  checkWorkspaceSlugExistsResponse200 & {
+    headers: Headers;
+  };
+export type checkWorkspaceSlugExistsResponse =
+  checkWorkspaceSlugExistsResponseSuccess;
+
+export const getCheckWorkspaceSlugExistsUrl = (workspaceSlug: string) => {
+  return `/workspaces/${workspaceSlug}/exists`;
+};
+
+/**
+ * @summary Check whether a workspace slug exists
+ */
+export const checkWorkspaceSlugExists = async (
+  workspaceSlug: string,
+  options?: Parameters<typeof customFetch>[1],
+): Promise<checkWorkspaceSlugExistsResponse> => {
+  return customFetch<checkWorkspaceSlugExistsResponse>(
+    getCheckWorkspaceSlugExistsUrl(workspaceSlug),
+    {
+      credentials: "include",
+      ...options,
+      method: "GET",
+    },
+  );
+};
+
+export const getCheckWorkspaceSlugExistsQueryKey = (workspaceSlug: string) => {
+  return [`/workspaces/${workspaceSlug}/exists`] as const;
+};
+
+export const getCheckWorkspaceSlugExistsQueryOptions = <
+  TData = Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ??
+    getCheckWorkspaceSlugExistsQueryKey(workspaceSlug);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof checkWorkspaceSlugExists>>
+  > = ({ signal }) =>
+    checkWorkspaceSlugExists(workspaceSlug, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: workspaceSlug !== null && workspaceSlug !== undefined,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CheckWorkspaceSlugExistsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof checkWorkspaceSlugExists>>
+>;
+export type CheckWorkspaceSlugExistsQueryError = unknown;
+
+/** @summary Check whether a workspace slug exists */
+export function useCheckWorkspaceSlugExists<
+  TData = Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+          TError,
+          Awaited<ReturnType<typeof checkWorkspaceSlugExists>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether a workspace slug exists */
+export function useCheckWorkspaceSlugExists<
+  TData = Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+          TError,
+          Awaited<ReturnType<typeof checkWorkspaceSlugExists>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether a workspace slug exists */
+export function useCheckWorkspaceSlugExists<
+  TData = Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Check whether a workspace slug exists */
+export function useCheckWorkspaceSlugExists<
+  TData = Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+  TError = unknown,
+>(
+  workspaceSlug: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof checkWorkspaceSlugExists>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getCheckWorkspaceSlugExistsQueryOptions(
+    workspaceSlug,
+    options,
+  );
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}
+
+export type getStatsResponse200 = {
+  data: StatsDtoOutput;
+  status: 200;
+};
+
+export type getStatsResponseSuccess = getStatsResponse200 & {
+  headers: Headers;
+};
+export type getStatsResponse = getStatsResponseSuccess;
+
+export const getGetStatsUrl = () => {
+  return `/stats`;
+};
+
+/**
+ * @summary Instance-wide counts of users, workspaces, boards, cards, etc.
+ */
+export const getStats = async (
+  options?: Parameters<typeof customFetch>[1],
+): Promise<getStatsResponse> => {
+  return customFetch<getStatsResponse>(getGetStatsUrl(), {
+    credentials: "include",
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetStatsQueryKey = () => {
+  return [`/stats`] as const;
+};
+
+export const getGetStatsQueryOptions = <
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = unknown,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetStatsQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getStats>>> = ({
+    signal,
+  }) => getStats({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getStats>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetStatsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getStats>>
+>;
+export type GetStatsQueryError = unknown;
+
+/** @summary Instance-wide counts of users, workspaces, boards, cards, etc. */
+export function useGetStats<
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = unknown,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStats>>,
+          TError,
+          Awaited<ReturnType<typeof getStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Instance-wide counts of users, workspaces, boards, cards, etc. */
+export function useGetStats<
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getStats>>,
+          TError,
+          Awaited<ReturnType<typeof getStats>>
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Instance-wide counts of users, workspaces, boards, cards, etc. */
+export function useGetStats<
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+/** @summary Instance-wide counts of users, workspaces, boards, cards, etc. */
+export function useGetStats<
+  TData = Awaited<ReturnType<typeof getStats>>,
+  TError = unknown,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getStats>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetStatsQueryOptions(options);
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+
+  return withQueryKey(query, queryOptions.queryKey);
+}

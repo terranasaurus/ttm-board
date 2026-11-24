@@ -10,7 +10,7 @@ let client: Stripe | undefined;
 
 export function getStripeClient() {
   client ??= new Stripe(requireEnv("STRIPE_SECRET_KEY"), {
-    apiVersion: "2025-08-27.basil",
+    apiVersion: "2026-10-28.endive",
   });
   return client;
 }
@@ -49,9 +49,7 @@ export async function advanceTrialToEnd(customerId: string) {
     frozen_time: now,
     customer: customerId,
   };
-  const clock = await stripe.testHelpers.testClocks.create(
-    createParams as Stripe.TestHelpers.TestClockCreateParams,
-  );
+  const clock = await stripe.testHelpers.testClocks.create(createParams);
   await waitForTestClockReady(clock.id);
 
   await stripe.testHelpers.testClocks.advance(clock.id, {

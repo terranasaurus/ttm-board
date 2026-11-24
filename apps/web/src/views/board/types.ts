@@ -1,7 +1,5 @@
-import type { RouterOutputs } from "~/utils/api";
+import type { BoardDetail } from "~/utils/boardCache";
 
-export type BoardData = RouterOutputs["board"]["byId"];
-
-export type BoardList = BoardData["lists"][number];
+export type BoardList = BoardDetail["lists"][number];
 
 export type BoardCard = BoardList["cards"][number];

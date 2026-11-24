@@ -2,10 +2,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
-import { env } from "next-runtime-env";
 import { useState } from "react";
 
 import { authClient } from "@kan/auth/client";
+import { env } from "@kan/shared/env";
 
 import { Auth } from "~/components/AuthForm";
 import { PageHead } from "~/components/PageHead";
@@ -29,12 +29,47 @@ export default function SignUpPage() {
     setMagicLinkRecipient(recipient);
   };
 
+<<<<<<< HEAD
   // TTM: sign-up stays reachable when it's invite-only, because people added
   // under Members create their account here; the server refuses anyone else.
   return (
     <>
       <PageHead title={t`Sign up | TTM Portal`} />
       <main className="h-screen bg-light-100 pt-20 dark:bg-dark-50 sm:pt-0">
+=======
+  const isInviteFlow = redirect?.startsWith("/invite/");
+
+  if (isSignUpDisabled && !isInviteFlow) {
+    return (
+      <>
+        <PageHead title={t`Sign up | kan.bn`} />
+        <main className="h-screen bg-light-100 pt-20 sm:pt-0 dark:bg-dark-50">
+          <div className="justify-top flex h-full flex-col items-center px-4 sm:justify-center">
+            <div className="z-10 flex w-full flex-col items-center">
+              <Link href="/">
+                <h1 className="mb-6 text-lg font-bold tracking-tight text-light-1000 dark:text-dark-1000">
+                  kan.bn
+                </h1>
+              </Link>
+              <p className="mb-10 text-3xl font-bold tracking-tight text-light-1000 dark:text-dark-1000">
+                {t`Sign up disabled`}
+              </p>
+              <p className="text-md text-center text-light-1000 dark:text-dark-1000">
+                {t`Sign up is currently disabled. Please try again later.`}
+              </p>
+            </div>
+            <PatternedBackground />
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <PageHead title={t`Sign up | kan.bn`} />
+      <main className="h-screen bg-light-100 pt-20 sm:pt-0 dark:bg-dark-50">
+>>>>>>> upstream/main
         <div className="justify-top flex h-full flex-col items-center px-4 sm:justify-center">
           <div className="z-10 flex w-full flex-col items-center">
             <Link href="/">
@@ -58,7 +93,7 @@ export default function SignUpPage() {
                 </p>
               </div>
             ) : (
-              <div className="w-full rounded-lg border border-light-500 bg-light-300 px-4 py-10 dark:border-dark-400 dark:bg-dark-200 sm:max-w-md lg:px-10">
+              <div className="w-full rounded-lg border border-light-500 bg-light-300 px-4 py-10 sm:max-w-md lg:px-10 dark:border-dark-400 dark:bg-dark-200">
                 <div className="sm:mx-auto sm:w-full sm:max-w-sm">
                   <Auth setIsMagicLinkSent={handleMagicLinkSent} isSignUp />
                 </div>

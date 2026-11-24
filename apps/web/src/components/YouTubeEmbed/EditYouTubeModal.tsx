@@ -24,10 +24,8 @@ export function EditYouTubeModal() {
   const [isValidating, setIsValidating] = useState(false);
   const [urlError, setUrlError] = useState<string | null>(null);
 
-  // Get initial values and callback from modal state
   const modalState = getModalState("EDIT_YOUTUBE") as
-    | EditYouTubeModalState
-    | undefined;
+    EditYouTubeModalState | undefined;
   const initialUrl = modalState?.url ?? "";
   const initialTitle = modalState?.title ?? "";
   const onSave = modalState?.onSave;
@@ -40,7 +38,6 @@ export function EditYouTubeModal() {
       },
     });
 
-  // Reset form when modal state changes (when modal opens with new values)
   useEffect(() => {
     if (modalState) {
       reset({
@@ -53,7 +50,6 @@ export function EditYouTubeModal() {
   const currentUrl = watch("url");
 
   const onSubmit = async (values: EditYouTubeFormInput) => {
-    // Validate URL
     if (!isYouTubeUrl(values.url)) {
       setUrlError(t`Please enter a valid YouTube URL`);
       return;
@@ -63,13 +59,11 @@ export function EditYouTubeModal() {
     setIsValidating(true);
 
     try {
-      // If title is empty and URL changed, fetch new title
       let finalTitle = values.title;
       if (!finalTitle.trim() && values.url !== initialUrl) {
         const metadata = await fetchYouTubeMetadata(values.url);
         finalTitle = metadata?.title ?? "YouTube Video";
       } else if (!finalTitle.trim()) {
-        // Keep existing title if no new title provided and URL unchanged
         finalTitle = initialTitle || "YouTube Video";
       }
 
@@ -85,14 +79,12 @@ export function EditYouTubeModal() {
     }
   };
 
-  // Auto-focus on title input (more useful for editing)
   useEffect(() => {
     const titleElement: HTMLElement | null =
       document.querySelector<HTMLElement>("#youtube-title");
     if (titleElement) titleElement.focus();
   }, []);
 
-  // Validate URL on change
   useEffect(() => {
     if (currentUrl && !isYouTubeUrl(currentUrl)) {
       setUrlError(t`Please enter a valid YouTube URL`);
@@ -108,7 +100,7 @@ export function EditYouTubeModal() {
           <h2 className="text-sm font-medium">{t`Edit YouTube Video`}</h2>
           <button
             type="button"
-            className="rounded p-1 hover:bg-light-300 focus:outline-none dark:hover:bg-dark-300"
+            className="rounded-sm p-1 hover:bg-light-300 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -166,7 +158,7 @@ export function EditYouTubeModal() {
         </div>
       </div>
 
-      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div className="space-x-2">
           <Button
             type="button"

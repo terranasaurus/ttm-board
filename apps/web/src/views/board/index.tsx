@@ -22,8 +22,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { t } from "@lingui/core/macro";
-import { keepPreviousData } from "@tanstack/react-query";
-import { env } from "next-runtime-env";
+import { keepPreviousData, useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -32,8 +31,12 @@ import {
   HiOutlineSquare3Stack3D,
 } from "react-icons/hi2";
 
-import type { UpdateBoardInput } from "@kan/api/types";
-import { useUpdateList } from "@kan/api-client/hooks";
+import {
+  useGetBoard,
+  useUpdateBoard,
+  useUpdateList,
+} from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 
 import type { CardContextMenuAction } from "./components/CardContextMenu";
 import type { BoardView } from "./components/ViewToggle";
@@ -55,7 +58,9 @@ import { useKeyboardShortcut } from "~/providers/keyboard-shortcuts";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
+import { getApiErrorStatus } from "~/utils/apiError";
+import { useBoardCache } from "~/utils/boardCache";
+import { updateCardFromInput } from "~/utils/cardMutations";
 import { formatToArray, isPlaceholderPublicId } from "~/utils/helpers";
 import { DeleteCardConfirmation } from "~/views/card/components/DeleteCardConfirmation";
 import BoardDropdown from "./components/BoardDropdown";
@@ -81,6 +86,11 @@ import ViewToggle from "./components/ViewToggle";
 import VisibilityButton from "./components/VisibilityButton";
 import { createBoardCollisionDetection } from "./dnd/collision";
 
+interface UpdateBoardInput {
+  boardPublicId: string;
+  name: string;
+}
+
 type PublicListId = string;
 
 function getEventData(
@@ -92,11 +102,10 @@ function getEventData(
 export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const params = useParams() as { boardId: string | string[] } | null;
   const router = useRouter();
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
   const { showPopup } = usePopup();
   const { workspace, selectWorkspaceById } = useWorkspace();
-  const { openModal, modalContentType, entityId, isOpen, setModalState } =
-    useModal();
+  const { openModal, modalContentType, entityId, isOpen } = useModal();
   const [selectedPublicListId, setSelectedPublicListId] =
     useState<PublicListId>("");
   const [newCardInitialDueDate, setNewCardInitialDueDate] =
@@ -131,6 +140,14 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     ? `?returnUrl=${encodeURIComponent(router.asPath)}`
     : "";
 
+  const openNewListForm = useCallback(
+    (publicBoardId: string) => {
+      openModal("NEW_LIST");
+      setSelectedPublicListId(publicBoardId);
+    },
+    [openModal],
+  );
+
   const createListShortcut = useMemo(
     () => ({
       type: "PRESS" as const,
@@ -139,13 +156,13 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       description: t`Create new list`,
       group: "ACTIONS" as const,
     }),
-    [boardId, canCreateList],
+    [boardId, canCreateList, openNewListForm],
   );
 
   const { tooltipContent: createListShortcutTooltipContent } =
     useKeyboardShortcut(createListShortcut);
 
-  const updateBoard = api.board.update.useMutation();
+  const updateBoard = useUpdateBoard();
 
   const { register, handleSubmit, setValue } = useForm<UpdateBoardInput>({
     values: {
@@ -157,7 +174,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const onSubmit = (values: UpdateBoardInput) => {
     updateBoard.mutate({
       boardPublicId: values.boardPublicId,
-      name: values.name,
+      data: { name: values.name },
     });
   };
 
@@ -204,25 +221,26 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
     type: boardType,
     cardView: "summary" as const,
   };
+  const { boardPublicId: _boardPublicId, ...boardQueryParams } = queryParams;
 
   const {
     data: boardData,
     isSuccess,
     isLoading: isQueryLoading,
     error,
-  } = api.board.byId.useQuery(queryParams, {
-    enabled: !!boardId,
-    placeholderData: keepPreviousData,
+  } = useGetBoard(queryParams.boardPublicId, boardQueryParams, {
+    query: {
+      enabled: !!boardId,
+      placeholderData: keepPreviousData,
+      retry: false,
+      select: (res) => res.data,
+    },
   });
 
-  // Redirect to 404 if board doesn't exist
   useEffect(() => {
     if (router.isReady && boardId && !isQueryLoading) {
-      if (
-        error?.data?.code === "NOT_FOUND" ||
-        (!boardData && !isQueryLoading)
-      ) {
-        router.replace("/404");
+      if (getApiErrorStatus(error) === 404 || !boardData) {
+        void router.replace("/404");
       }
     }
   }, [router, boardId, isQueryLoading, error, boardData]);
@@ -233,7 +251,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   }, [boardWorkspacePublicId, selectWorkspaceById]);
 
   const refetchBoard = async () => {
-    if (boardId) await utils.board.byId.refetch(queryParams);
+    if (boardId) await boardCache.refetch(queryParams.boardPublicId);
   };
 
   useEffect(() => {
@@ -254,11 +272,11 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   const updateListMutation = useUpdateList({
     mutation: {
       onMutate: async (args) => {
-        await utils.board.byId.cancel();
+        await boardCache.cancel();
 
-        const currentState = utils.board.byId.getData(queryParams);
+        const currentState = boardCache.getData(queryParams);
 
-        utils.board.byId.setData(queryParams, (oldBoard) => {
+        boardCache.setData(queryParams, (oldBoard) => {
           if (!oldBoard) return oldBoard;
 
           const updatedLists = Array.from(oldBoard.lists);
@@ -286,7 +304,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         return { previousState: currentState };
       },
       onError: (_error, _newList, context) => {
-        utils.board.byId.setData(queryParams, context?.previousState);
+        boardCache.setData(queryParams, context?.previousState);
         showPopup({
           header: t`Unable to update list`,
           message: t`Please try again later, or contact customer support.`,
@@ -294,18 +312,19 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
         });
       },
       onSettled: async () => {
-        await utils.board.byId.invalidate(queryParams);
+        await boardCache.invalidate(queryParams.boardPublicId);
       },
     },
   });
 
-  const updateCardMutation = api.card.update.useMutation({
+  const updateCardMutation = useMutation({
+    mutationFn: updateCardFromInput,
     onMutate: async (args) => {
-      await utils.board.byId.cancel();
+      await boardCache.cancel();
 
-      const currentState = utils.board.byId.getData(queryParams);
+      const currentState = boardCache.getData(queryParams);
 
-      utils.board.byId.setData(queryParams, (oldBoard) => {
+      boardCache.setData(queryParams, (oldBoard) => {
         if (!oldBoard) return oldBoard;
 
         const updatedLists = Array.from(oldBoard.lists);
@@ -343,7 +362,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       return { previousState: currentState };
     },
     onError: (_error, _newList, context) => {
-      utils.board.byId.setData(queryParams, context?.previousState);
+      boardCache.setData(queryParams, context?.previousState);
       showPopup({
         header: t`Unable to update card`,
         message: t`Please try again later, or contact customer support.`,
@@ -351,17 +370,18 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       });
     },
     onSettled: async () => {
-      await utils.board.byId.invalidate(queryParams);
+      await boardCache.invalidate(queryParams.boardPublicId);
     },
   });
 
-  const updateCardDueDateMutation = api.card.update.useMutation({
+  const updateCardDueDateMutation = useMutation({
+    mutationFn: updateCardFromInput,
     onMutate: async (args) => {
-      await utils.board.byId.cancel();
+      await boardCache.cancel();
 
-      const currentState = utils.board.byId.getData(queryParams);
+      const currentState = boardCache.getData(queryParams);
 
-      utils.board.byId.setData(queryParams, (oldBoard) => {
+      boardCache.setData(queryParams, (oldBoard) => {
         if (!oldBoard) return oldBoard;
 
         return {
@@ -370,7 +390,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
             ...list,
             cards: list.cards.map((card) =>
               card.publicId === args.cardPublicId
-                ? { ...card, dueDate: args.dueDate ?? null }
+                ? { ...card, dueDate: args.dueDate?.toISOString() ?? null }
                 : card,
             ),
           })),
@@ -380,7 +400,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       return { previousState: currentState };
     },
     onError: (_error, _args, context) => {
-      utils.board.byId.setData(queryParams, context?.previousState);
+      boardCache.setData(queryParams, context?.previousState);
       showPopup({
         header: t`Unable to update due date`,
         message: t`Please try again later, or contact customer support.`,
@@ -388,20 +408,15 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
       });
     },
     onSettled: async () => {
-      await utils.board.byId.invalidate(queryParams);
+      await boardCache.invalidate(queryParams.boardPublicId);
     },
   });
 
   useEffect(() => {
-    if (isSuccess && boardData) {
+    if (isSuccess) {
       setValue("name", boardData.name || "");
     }
   }, [isSuccess, boardData, setValue]);
-
-  const openNewListForm = (publicBoardId: string) => {
-    openModal("NEW_LIST");
-    setSelectedPublicListId(publicBoardId);
-  };
 
   const openNewCardForDate = (date: Date) => {
     const targetListPublicId = boardData?.lists[0]?.publicId;
@@ -799,7 +814,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           isVisible={isOpen && modalContentType === "CREATE_TEMPLATE"}
         >
           <NewTemplateForm
-            workspacePublicId={workspace.publicId ?? ""}
+            workspacePublicId={workspace.publicId}
             sourceBoardPublicId={boardId ?? ""}
             sourceBoardName={boardData?.name ?? ""}
           />
@@ -849,6 +864,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           <DeleteCardConfirmation
             cardPublicId={entityId}
             boardPublicId={boardId ?? ""}
+            returnUrl={router.asPath}
           />
         </Modal>
       </>
@@ -858,7 +874,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
   return (
     <>
       <PageHead
-        title={`${boardData?.name ?? (isTemplate ? t`Template` : t`Board`)} | ${workspace.name ?? t`Workspace`}`}
+        title={`${boardData?.name ?? (isTemplate ? t`Template` : t`Board`)} | ${workspace.name}`}
       />
       <div className="relative flex h-full flex-col">
         <PatternedBackground />
@@ -871,7 +887,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           {boardData && (
             <form
               onSubmit={handleSubmit(onSubmit)}
-              className="order-2 focus-visible:outline-none md:order-1"
+              className="order-2 focus-visible:outline-hidden md:order-1"
             >
               <input
                 id="name"
@@ -880,18 +896,18 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                 {...register("name")}
                 onBlur={canEditBoard ? handleSubmit(onSubmit) : undefined}
                 readOnly={!canEditBoard}
-                className="block border-0 bg-transparent p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 focus:ring-0 focus-visible:outline-none disabled:cursor-not-allowed dark:text-dark-1000 sm:text-[1.2rem]"
+                className="block border-0 bg-transparent p-0 py-0 leading-[2.3rem] font-bold tracking-tight text-neutral-900 focus:ring-0 focus-visible:outline-hidden disabled:cursor-not-allowed sm:text-[1.2rem] dark:text-dark-1000"
               />
             </form>
           )}
           {!boardData && !isLoading && (
-            <p className="order-2 block p-0 py-0 font-bold leading-[2.3rem] tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem] md:order-1">
+            <p className="order-2 block p-0 py-0 leading-[2.3rem] font-bold tracking-tight text-neutral-900 sm:text-[1.2rem] md:order-1 dark:text-dark-1000">
               {t`${isTemplate ? "Template" : "Board"} not found`}
             </p>
           )}
           <div className="order-1 mb-4 flex items-center justify-end space-x-1.5 sm:space-x-2 md:order-2 md:mb-0">
             {isTemplate && (
-              <div className="inline-flex cursor-default items-center justify-center whitespace-nowrap rounded-md border-[1px] border-light-300 bg-light-50 px-3 py-2 text-sm font-semibold text-light-950 shadow-sm dark:border-dark-300 dark:bg-dark-50 dark:text-dark-950">
+              <div className="inline-flex cursor-default items-center justify-center rounded-md border border-light-300 bg-light-50 px-3 py-2 text-sm font-semibold whitespace-nowrap text-light-950 shadow-xs dark:border-dark-300 dark:bg-dark-50 dark:text-dark-950">
                 <span className="mr-2">
                   <HiOutlineRectangleStack />
                 </span>
@@ -916,6 +932,9 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                       members={boardData.workspace.members.filter(
                         (member) => member.user !== null,
                       )}
+                      assignedMemberPublicIds={
+                        new Set(boardData.assignedMemberPublicIds)
+                      }
                       lists={boardData.allLists}
                       isLoading={!boardData}
                     />
@@ -977,10 +996,10 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
           <div
             ref={scrollRef}
             onMouseDown={onMouseDown}
-            className={`scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 flex-1 snap-x snap-mandatory scroll-pl-[10px] overflow-y-hidden overflow-x-scroll overscroll-contain scrollbar scrollbar-track-light-200 scrollbar-thumb-light-400 dark:scrollbar-track-dark-100 dark:scrollbar-thumb-dark-300 md:snap-none`}
+            className={`scrollbar-w-none scrollbar-track-rounded-[4px] scrollbar-thumb-rounded-[4px] scrollbar-h-[8px] z-0 scrollbar flex-1 snap-x snap-mandatory scroll-pl-[10px] scrollbar-thumb-light-400 scrollbar-track-light-200 overflow-x-scroll overflow-y-hidden overscroll-contain md:snap-none dark:scrollbar-thumb-dark-300 dark:scrollbar-track-dark-100`}
           >
             {isLoading ? (
-              <div className="ml-[2rem] flex">
+              <div className="ml-8 flex">
                 <div className="0 mr-5 h-[500px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
                 <div className="0 mr-5 h-[275px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
                 <div className="0 mr-5 h-[375px] w-[18rem] animate-pulse rounded-md bg-light-200 dark:bg-dark-100" />
@@ -991,7 +1010,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                   <div className="z-10 flex h-full w-full flex-col items-center justify-center space-y-8 pb-[150px]">
                     <div className="flex flex-col items-center">
                       <HiOutlineSquare3Stack3D className="h-10 w-10 text-light-800 dark:text-dark-800" />
-                      <p className="mb-2 mt-4 text-[14px] font-bold text-light-1000 dark:text-dark-950">
+                      <p className="mt-4 mb-2 text-[14px] font-bold text-light-1000 dark:text-dark-950">
                         {t`No lists`}
                       </p>
                       <p className="text-[14px] text-light-900 dark:text-dark-900">
@@ -1032,7 +1051,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                       strategy={horizontalListSortingStrategy}
                     >
                       <div className="flex w-max">
-                        <div className="min-w-[10px] md:min-w-[2rem]" />
+                        <div className="min-w-[10px] md:min-w-8" />
                         {lists.map((list) => (
                           <List
                             key={`list.${list.publicId}`}
@@ -1063,7 +1082,7 @@ export default function BoardPage({ isTemplate }: { isTemplate?: boolean }) {
                             />
                           </List>
                         ))}
-                        <div className="min-w-[calc(100vw-18rem)] md:min-w-[0.75rem]" />
+                        <div className="min-w-[calc(100vw-18rem)] md:min-w-3" />
                       </div>
                     </SortableContext>
                     <DragOverlay dropAnimation={activeCard ? undefined : null}>

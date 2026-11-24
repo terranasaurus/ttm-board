@@ -1,5 +1,7 @@
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
+
+import { useGetUser } from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 
 import Button from "~/components/Button";
 import FeedbackModal from "~/components/FeedbackModal";
@@ -9,7 +11,6 @@ import Modal from "~/components/modal";
 import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
-import { api } from "~/utils/api";
 import Avatar from "./components/Avatar";
 import { ChangePasswordFormConfirmation } from "./components/ChangePasswordConfirmation";
 import { DeleteAccountConfirmation } from "./components/DeleteAccountConfirmation";
@@ -19,34 +20,38 @@ export default function AccountSettings() {
   const { modalContentType, openModal, isOpen } = useModal();
   const isCredentialsEnabled =
     env("NEXT_PUBLIC_ALLOW_CREDENTIALS")?.toLowerCase() === "true";
-  const { data } = api.user.getUser.useQuery();
+  const { data } = useGetUser({
+    query: { select: (res) => res.data },
+  });
 
   return (
     <>
       <PageHead title={t`Settings | Account`} />
 
       <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Profile picture`}
         </h2>
         <Avatar userId={data?.id} userImage={data?.image} />
 
         <div className="mb-4">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Display name`}
           </h2>
           <UpdateDisplayNameForm displayName={data?.name ?? ""} />
         </div>
 
         <div className="mb-4">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Email`}
           </h2>
-          <p className="text-sm text-neutral-700 dark:text-dark-900">{data?.email}</p>
+          <p className="text-sm text-neutral-700 dark:text-dark-900">
+            {data?.email}
+          </p>
         </div>
 
         <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Language`}
           </h2>
           <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
@@ -56,7 +61,7 @@ export default function AccountSettings() {
         </div>
 
         <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Font size`}
           </h2>
           <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
@@ -66,7 +71,7 @@ export default function AccountSettings() {
         </div>
 
         <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Delete account`}
           </h2>
           <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
@@ -84,7 +89,7 @@ export default function AccountSettings() {
 
         {isCredentialsEnabled && (
           <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-            <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+            <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
               {data?.hasPassword ? t`Change Password` : t`Set Password`}
             </h2>
             <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
@@ -115,7 +120,9 @@ export default function AccountSettings() {
         modalSize="sm"
         isVisible={isOpen && modalContentType === "CHANGE_PASSWORD"}
       >
-        <ChangePasswordFormConfirmation hasPassword={data?.hasPassword ?? false} />
+        <ChangePasswordFormConfirmation
+          hasPassword={data?.hasPassword ?? false}
+        />
       </Modal>
 
       {/* Global modals */}

@@ -1,10 +1,10 @@
-import { env } from "next-runtime-env";
+import { env } from "@kan/shared/env";
 
 export const formatToArray = (
   value: string | string[] | undefined,
 ): string[] => {
   if (Array.isArray(value)) {
-    return value.filter((item) => item !== undefined);
+    return value;
   }
   return value ? [value] : [];
 };
@@ -55,19 +55,17 @@ export const getAvatarUrl = (imageOrKey: string | null) => {
     return imageOrKey;
   }
 
-  // Construct URL from S3 key
-  const useVirtualHosted = env("NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS") === "true";
+  const useVirtualHosted =
+    env("NEXT_PUBLIC_USE_VIRTUAL_HOSTED_URLS") === "true";
   const storageDomain = env("NEXT_PUBLIC_STORAGE_DOMAIN");
   const storageUrl = env("NEXT_PUBLIC_STORAGE_URL");
   const bucket = env("NEXT_PUBLIC_AVATAR_BUCKET_NAME");
 
   if (useVirtualHosted && storageDomain && bucket) {
-    // Virtual-hosted style: https://{bucket}.{domain}/{key}
     return `https://${bucket}.${storageDomain}/${imageOrKey}`;
   }
 
   if (storageUrl && bucket) {
-    // Path-style: {storageUrl}/{bucket}/{key}
     return `${storageUrl}/${bucket}/${imageOrKey}`;
   }
 

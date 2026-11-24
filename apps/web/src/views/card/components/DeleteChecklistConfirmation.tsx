@@ -1,9 +1,11 @@
 import { t } from "@lingui/core/macro";
 
+import { useDeleteChecklist } from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
 
 export function DeleteChecklistConfirmation({
@@ -15,33 +17,35 @@ export function DeleteChecklistConfirmation({
 }) {
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
 
-  const deleteChecklist = api.checklist.delete.useMutation({
-    onMutate: async () => {
-      await utils.card.byId.cancel({ cardPublicId });
-      const previous = utils.card.byId.getData({ cardPublicId });
-      utils.card.byId.setData({ cardPublicId }, (old) => {
-        if (!old) return old as any;
-        const updatedChecklists = old.checklists.filter(
-          (cl) => cl.publicId !== checklistPublicId,
-        );
-        return { ...old, checklists: updatedChecklists } as typeof old;
-      });
-      return { previous };
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous)
-        utils.card.byId.setData({ cardPublicId }, ctx.previous);
-      showPopup({
-        header: t`Unable to delete checklist`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      closeModal();
-      await invalidateCard(utils, cardPublicId);
+  const deleteChecklist = useDeleteChecklist({
+    mutation: {
+      onMutate: async () => {
+        await cardCache.byId.cancel({ cardPublicId });
+        const previous = cardCache.byId.getData({ cardPublicId });
+        cardCache.byId.setData({ cardPublicId }, (old) => {
+          if (!old) return old;
+          const updatedChecklists = old.checklists.filter(
+            (cl) => cl.publicId !== checklistPublicId,
+          );
+          return { ...old, checklists: updatedChecklists };
+        });
+        return { previous };
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous)
+          cardCache.byId.setData({ cardPublicId }, ctx.previous);
+        showPopup({
+          header: t`Unable to delete checklist`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        closeModal();
+        await invalidateCard(cardCache, cardPublicId);
+      },
     },
   });
 

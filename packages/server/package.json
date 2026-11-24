@@ -1,0 +1,90 @@
+{
+  "name": "@kan/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./utils/rateLimit": {
+      "types": "./src/utils/rateLimit.ts",
+      "default": "./src/utils/rateLimit.ts"
+    },
+    "./utils/activities": {
+      "types": "./src/utils/activities.ts",
+      "default": "./src/utils/activities.ts"
+    },
+    "./utils/redact": {
+      "types": "./src/utils/redact.ts",
+      "default": "./src/utils/redact.ts"
+    },
+    "./utils/permissions": {
+      "types": "./src/utils/permissions.ts",
+      "default": "./src/utils/permissions.ts"
+    },
+    "./utils/avatarUrls": {
+      "types": "./src/utils/avatarUrls.ts",
+      "default": "./src/utils/avatarUrls.ts"
+    },
+    "./utils/encryption": {
+      "types": "./src/utils/encryption.ts",
+      "default": "./src/utils/encryption.ts"
+    },
+    "./utils/webhook": {
+      "types": "./src/utils/webhook.ts",
+      "default": "./src/utils/webhook.ts"
+    },
+    "./utils/trello": {
+      "types": "./src/utils/trello.ts",
+      "default": "./src/utils/trello.ts"
+    },
+    "./utils/trello-token": {
+      "types": "./src/utils/trello-token.ts",
+      "default": "./src/utils/trello-token.ts"
+    },
+    "./utils/workspace": {
+      "types": "./src/utils/workspace.ts",
+      "default": "./src/utils/workspace.ts"
+    },
+    "./utils/apiToken": {
+      "types": "./src/utils/apiToken.ts",
+      "default": "./src/utils/apiToken.ts"
+    },
+    "./utils/notifications": {
+      "types": "./src/utils/notifications.ts",
+      "default": "./src/utils/notifications.ts"
+    },
+    "./utils/mention-permissions": {
+      "types": "./src/utils/mention-permissions.ts",
+      "default": "./src/utils/mention-permissions.ts"
+    }
+  },
+  "license": "GPL-3.0",
+  "scripts": {
+    "build": "tsc",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "dev": "tsc",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false"
+  },
+  "dependencies": {
+    "@kan/db": "workspace:*",
+    "@kan/email": "workspace:^",
+    "@kan/logger": "workspace:^",
+    "@kan/shared": "workspace:^",
+    "@nestjs/common": "^12.5.0",
+    "rate-limiter-flexible": "^11.4.1",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@kan/eslint-config": "workspace:*",
+    "@kan/prettier-config": "workspace:*",
+    "@kan/tsconfig": "workspace:*",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "^5.1.0"
+  },
+  "prettier": "@kan/prettier-config"
+}

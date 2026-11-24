@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { t } from "@lingui/core/macro";
 import { Trans } from "@lingui/react/macro";
 import { useQuery } from "@tanstack/react-query";
-import { env } from "next-runtime-env";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
@@ -31,6 +30,7 @@ import { TbBrandKick } from "react-icons/tb";
 import { z } from "zod";
 
 import { authClient } from "@kan/auth/client";
+import { env } from "@kan/shared/env";
 
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -255,7 +255,6 @@ export function Auth({
         );
       }
     } else {
-      // Only allow magic link if email sending is enabled and not in sign up mode
       if (isCloudEnv || (isEmailSendingEnabled && !isSignUp)) {
         await authClient.signIn.magicLink(
           {
@@ -268,7 +267,6 @@ export function Auth({
           },
         );
       } else {
-        // Provide a clear error feedback when password omitted but magic link unavailable
         setLoginError(
           isSignUp
             ? t`Password is required to sign up.`
@@ -284,22 +282,10 @@ export function Auth({
     setIsLoginWithProviderPending(provider);
     setLoginError(null);
 
-    let error;
-    if (provider === "oidc") {
-      // Use oauth2 signin for OIDC provider
-      const result = await authClient.signIn.oauth2({
-        providerId: "oidc",
-        callbackURL,
-      });
-      error = result.error;
-    } else {
-      // Use social signin for traditional social providers
-      const result = await authClient.signIn.social({
-        provider,
-        callbackURL,
-      });
-      error = result.error;
-    }
+    const { error } = await authClient.signIn.social({
+      provider,
+      callbackURL,
+    });
 
     setIsLoginWithProviderPending(null);
 
@@ -324,20 +310,15 @@ export function Auth({
     return isCloudEnv || (isEmailSendingEnabled && !isSignUp);
   }, [isCloudEnv, isEmailSendingEnabled, isSignUp]);
 
-  // Determine if we should operate in magic link mode for current form state (login only)
   const isMagicLinkMode = useMemo(() => {
-    // Magic link only viable when email sending enabled AND not sign up.
     if (!isEmailSendingEnabled || isSignUp) return false;
-    // If credentials disabled we always default to magic link.
     if (!isCredentialsEnabled) return true;
     // Credentials enabled: user chooses magic link by leaving password blank.
     return !password;
   }, [isEmailSendingEnabled, isSignUp, isCredentialsEnabled, password]);
 
-  // Auto-focus password field when an error indicates it's required
   useEffect(() => {
     if (!isCredentialsEnabled) return;
-    // Focus when: sign up and missing password; login error requiring password; validation error on password.
     const pwdEmpty = (password ?? "").length === 0;
     let needsPassword = false;
     if (isSignUp && pwdEmpty) {
@@ -363,7 +344,7 @@ export function Auth({
             return (
               <Button
                 key={key}
-                onClick={() => handleLoginWithProvider(key as AuthProvider)}
+                onClick={() => handleLoginWithProvider(key)}
                 isLoading={isLoginWithProviderPending === key}
                 iconLeft={<provider.icon />}
                 fullWidth
@@ -382,11 +363,11 @@ export function Auth({
         socialProviders?.length === 0 && (
           <div className="space-y-4">
             <div className="flex w-full items-center gap-4">
-              <div className="h-[1px] w-1/3 bg-light-600 dark:bg-dark-600" />
+              <div className="h-px w-1/3 bg-light-600 dark:bg-dark-600" />
               <span className="text-center text-sm text-light-900 dark:text-dark-900">
                 {t`No authentication methods are currently available`}
               </span>
-              <div className="h-[1px] w-1/3 bg-light-600 dark:bg-dark-600" />
+              <div className="h-px w-1/3 bg-light-600 dark:bg-dark-600" />
             </div>
             {!isCloudEnv && (
               <p className="text-center text-xs text-light-900 dark:text-dark-900">
@@ -412,12 +393,12 @@ export function Auth({
       {(isCredentialsEnabled || isMagicLinkAvailable) && (
         <form onSubmit={handleSubmit(onSubmit)}>
           {socialProviders?.length !== 0 && (
-            <div className="mb-[1.5rem] flex w-full items-center gap-4">
-              <div className="h-[1px] w-full bg-light-600 dark:bg-dark-600" />
+            <div className="mb-6 flex w-full items-center gap-4">
+              <div className="h-px w-full bg-light-600 dark:bg-dark-600" />
               <span className="text-sm text-light-900 dark:text-dark-900">
                 {t`or`}
               </span>
-              <div className="h-[1px] w-full bg-light-600 dark:bg-dark-600" />
+              <div className="h-px w-full bg-light-600 dark:bg-dark-600" />
             </div>
           )}
           <div className="space-y-2">
@@ -475,7 +456,7 @@ export function Auth({
               <p className="mt-2 text-xs text-red-400">{loginError}</p>
             )}
           </div>
-          <div className="mt-[1.5rem] flex items-center gap-4">
+          <div className="mt-6 flex items-center gap-4">
             <Button
               isLoading={isLoginWithEmailPending}
               fullWidth

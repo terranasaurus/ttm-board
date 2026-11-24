@@ -1,17 +1,17 @@
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t } from "@lingui/core/macro";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { getGetUserQueryKey, useSetPassword } from "@kan/api-client/hooks";
 import { authClient } from "@kan/auth/client";
 
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
 
 const buildSchema = (hasPassword: boolean) => {
   const base = z.object({
@@ -39,11 +39,7 @@ const buildSchema = (hasPassword: boolean) => {
     );
 };
 
-interface FormValues {
-  currentPassword?: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+type FormValues = z.infer<ReturnType<typeof buildSchema>>;
 
 interface Props {
   hasPassword: boolean;
@@ -53,7 +49,7 @@ export function ChangePasswordFormConfirmation({ hasPassword }: Props) {
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
   const router = useRouter();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const {
     register,
@@ -66,13 +62,13 @@ export function ChangePasswordFormConfirmation({ hasPassword }: Props) {
     mode: "onChange",
   });
 
-  const setPasswordMutation = api.user.setPassword.useMutation();
+  const setPasswordMutation = useSetPassword();
 
   const changePasswordMutation = useMutation({
     mutationFn: async (data: FormValues) => {
       if (!hasPassword) {
         await setPasswordMutation.mutateAsync({
-          newPassword: data.newPassword,
+          data: { newPassword: data.newPassword },
         });
         return;
       }
@@ -83,11 +79,11 @@ export function ChangePasswordFormConfirmation({ hasPassword }: Props) {
         revokeOtherSessions: true,
       });
 
-      if (response?.error) {
-        throw new Error(response?.error.message || "Invalid Password");
+      if (response.error) {
+        throw new Error(response.error.message || "Invalid Password");
       }
     },
-    onSuccess: async () => {
+    onSuccess: () => {
       closeModal();
       showPopup({
         header: hasPassword ? t`Password Changed` : t`Password Set`,
@@ -101,11 +97,11 @@ export function ChangePasswordFormConfirmation({ hasPassword }: Props) {
         sessionStorage.removeItem("set_password_prompted");
       }
 
-      utils.user.getUser.invalidate();
+      void queryClient.invalidateQueries({ queryKey: getGetUserQueryKey() });
       reset();
       router.push("/");
     },
-    onError: async (error: any) => {
+    onError: (error: Error) => {
       const errorMessage = error.message.toLowerCase();
 
       if (errorMessage.includes("invalid password")) {
@@ -195,7 +191,7 @@ export function ChangePasswordFormConfirmation({ hasPassword }: Props) {
           </div>
         </div>
 
-        <div className="mt-[1.5rem] flex items-center gap-4">
+        <div className="mt-6 flex items-center gap-4">
           <Button
             variant="secondary"
             onClick={handleCancel}

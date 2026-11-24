@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { HiXMark } from "react-icons/hi2";
 import { z } from "zod";
 
+import { useCreateBoard, useGetBoards } from "@kan/api-client/hooks";
+
 import type { Template } from "./TemplateBoards";
 import Button from "~/components/Button";
 import Input from "~/components/Input";
@@ -13,7 +15,7 @@ import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 import TemplateBoards from "./TemplateBoards";
 
 const schema = z.object({
@@ -32,15 +34,16 @@ interface NewBoardInputWithTemplate {
 }
 
 export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
   const { closeModal } = useModal();
   const router = useRouter();
   const { showPopup } = usePopup();
   const { workspace } = useWorkspace();
   const [showTemplates, setShowTemplates] = useState(false);
-  const { data: templates } = api.board.all.useQuery(
-    { workspacePublicId: workspace.publicId ?? "", type: "template" },
-    { enabled: !!workspace.publicId },
+  const { data: templates } = useGetBoards(
+    workspace.publicId,
+    { type: "template" },
+    { query: { enabled: !!workspace.publicId, select: (res) => res.data } },
   );
 
   const formattedTemplates = templates?.map((template) => ({
@@ -68,42 +71,38 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
 
   const currentTemplate = watch("template");
 
-  const refetchBoards = () => utils.board.all.refetch();
+  const refetchBoards = () => boardCache.refetchLists();
 
-  const createBoard = api.board.create.useMutation({
-    onSuccess: async (board) => {
-      if (!board) {
+  const createBoard = useCreateBoard({
+    mutation: {
+      onSuccess: async ({ data: board }) => {
+        router.push(
+          `${isTemplate ? "/templates" : "/boards"}/${board.publicId}`,
+        );
+        closeModal();
+
+        await refetchBoards();
+      },
+      onError: () => {
         showPopup({
           header: t`Error`,
           message: t`Failed to create board`,
           icon: "error",
         });
-      } else {
-        router.push(
-          `${isTemplate ? "/templates" : "/boards"}/${board.publicId}`,
-        );
-      }
-      closeModal();
-
-      await refetchBoards();
-    },
-    onError: () => {
-      showPopup({
-        header: t`Error`,
-        message: t`Failed to create board`,
-        icon: "error",
-      });
+      },
     },
   });
 
   const onSubmit = (data: NewBoardInputWithTemplate) => {
     createBoard.mutate({
-      name: data.name,
       workspacePublicId: data.workspacePublicId,
-      sourceBoardPublicId: data.template?.sourceBoardPublicId ?? undefined,
-      lists: data.template?.lists ?? [],
-      labels: data.template?.labels ?? [],
-      type: isTemplate ? "template" : "regular",
+      data: {
+        name: data.name,
+        sourceBoardPublicId: data.template?.sourceBoardPublicId ?? undefined,
+        lists: data.template?.lists ?? [],
+        labels: data.template?.labels ?? [],
+        type: isTemplate ? "template" : "regular",
+      },
     });
   };
 
@@ -120,7 +119,7 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
           <h2 className="text-sm font-bold">{t`New ${isTemplate ? "template" : "board"}`}</h2>
           <button
             type="button"
-            className="hover:bg-li ght-300 rounded p-1 focus:outline-none dark:hover:bg-dark-300"
+            className="hover:bg-li ght-300 rounded-sm p-1 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -148,7 +147,7 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
         showTemplates={showTemplates}
         customTemplates={formattedTemplates ?? []}
       />
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         {!isTemplate && (
           <Toggle
             label={t`Use template`}
@@ -156,7 +155,7 @@ export function NewBoardForm({ isTemplate }: { isTemplate?: boolean }) {
             onChange={() => {
               setShowTemplates(!showTemplates);
               if (!showTemplates && !currentTemplate) {
-                setValue("template", (templates?.[0] as any) ?? null);
+                setValue("template", formattedTemplates?.[0] ?? null);
               }
             }}
           />

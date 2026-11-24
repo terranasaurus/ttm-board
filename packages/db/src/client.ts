@@ -4,6 +4,7 @@ import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import { uuid_ossp } from "@electric-sql/pglite/contrib/uuid_ossp";
 import { attachDatabasePool } from "@vercel/functions";
 import { drizzle as drizzlePg } from "drizzle-orm/node-postgres";
+import { migrate as migratePg } from "drizzle-orm/node-postgres/migrator";
 import { drizzle as drizzlePgLite } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { Pool } from "pg";
@@ -14,6 +15,8 @@ import { createLogger } from "@kan/logger";
 import * as schema from "./schema";
 
 const log = createLogger("db");
+
+const MIGRATIONS_FOLDER = "../../packages/db/migrations";
 
 export const pgliteExtensions = { pg_trgm, uuid_ossp };
 
@@ -81,7 +84,9 @@ export const createDrizzleClient = (): dbClient => {
     });
     const db = drizzlePgLite(client, { schema });
 
-    migrate(db, { migrationsFolder: "../../packages/db/migrations" });
+    migrate(db, { migrationsFolder: MIGRATIONS_FOLDER }).catch((err: unknown) =>
+      log.error({ err }, "PGLite migration failed"),
+    );
 
     return db as unknown as dbClient;
   }
@@ -119,9 +124,16 @@ export const createDrizzleClient = (): dbClient => {
   // The pool drops the dead client and reconnects on the next query.
   pool.on("error", (err) => log.error({ err }, "Postgres pool error"));
 
+<<<<<<< HEAD
   // Lets Vercel drain the pool before a function instance is suspended, so
   // idle connections are released instead of lingering on the database side.
   attachDatabasePool(pool);
 
   return drizzlePg(pool, { schema }) as dbClient;
+=======
+  return drizzlePg(pool, { schema });
+>>>>>>> upstream/main
 };
+
+export const runMigrations = (db: dbClient) =>
+  migratePg(db, { migrationsFolder: MIGRATIONS_FOLDER });

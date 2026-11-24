@@ -3,22 +3,14 @@ import { and, asc, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 import type { dbClient } from "@kan/db/client";
 import { subscription } from "@kan/db/schema";
 
+type SubscriptionUpdate = Partial<
+  Omit<typeof subscription.$inferInsert, "id" | "createdAt">
+>;
+
 export const updateById = async (
   db: dbClient,
   subscriptionId: number,
-  updates: {
-    plan?: string;
-    unlimitedSeats?: boolean;
-    status?: string;
-    seats?: number | null;
-    periodStart?: Date | null;
-    periodEnd?: Date | null;
-    cancelAtPeriodEnd?: boolean | null;
-    stripeSubscriptionId?: string | null;
-    referenceId?: string | null;
-    partnerLicenseKey?: string;
-    partnerTier?: number;
-  },
+  updates: SubscriptionUpdate,
 ) => {
   const [result] = await db
     .update(subscription)
@@ -36,6 +28,12 @@ export const updateById = async (
     });
 
   return result;
+};
+
+export const getById = async (db: dbClient, subscriptionId: number) => {
+  return await db.query.subscription.findFirst({
+    where: eq(subscription.id, subscriptionId),
+  });
 };
 
 export const updateByStripeSubscriptionId = async (
@@ -67,24 +65,6 @@ export const updateByStripeSubscriptionId = async (
   return result;
 };
 
-export const updateAllByPartnerLicenseKey = async (
-  db: dbClient,
-  partnerLicenseKey: string,
-  updates: {
-    plan?: string;
-    status?: string;
-    partnerTier?: number;
-    seats?: number | null;
-    unlimitedSeats?: boolean;
-  },
-) => {
-  return await db
-    .update(subscription)
-    .set({ ...updates, updatedAt: new Date() })
-    .where(eq(subscription.partnerLicenseKey, partnerLicenseKey))
-    .returning({ id: subscription.id });
-};
-
 export const getByStripeSubscriptionId = async (
   db: dbClient,
   stripeSubscriptionId: string,
@@ -102,35 +82,10 @@ export const getByReferenceId = async (db: dbClient, referenceId: string) => {
 
 export const create = async (
   db: dbClient,
-  data: {
-    plan: string;
-    referenceId: string;
-    userId: string;
-    stripeCustomerId: string;
-    status: string;
-  },
+  data: SubscriptionUpdate & { plan: string; status: string },
 ) => {
   const [result] = await db.insert(subscription).values(data).returning();
   return result;
-};
-
-export const getByPartnerLicenseKey = async (
-  db: dbClient,
-  partnerLicenseKey: string,
-) => {
-  return await db.query.subscription.findFirst({
-    where: eq(subscription.partnerLicenseKey, partnerLicenseKey),
-  });
-};
-
-export const getAllByPartnerLicenseKey = async (
-  db: dbClient,
-  partnerLicenseKey: string,
-) => {
-  return await db.query.subscription.findMany({
-    where: eq(subscription.partnerLicenseKey, partnerLicenseKey),
-    orderBy: [asc(subscription.id)],
-  });
 };
 
 export const getFirstUnlinkedSlotByLicenseKey = async (
@@ -147,20 +102,6 @@ export const getFirstUnlinkedSlotByLicenseKey = async (
   });
 };
 
-export const getAllActivePartnerSubsByWorkspaceIds = async (
-  db: dbClient,
-  workspacePublicIds: string[],
-) => {
-  if (workspacePublicIds.length === 0) return [];
-  return await db.query.subscription.findMany({
-    where: and(
-      inArray(subscription.referenceId, workspacePublicIds),
-      isNotNull(subscription.partnerLicenseKey),
-      inArray(subscription.status, ["active", "trialing"]),
-    ),
-  });
-};
-
 export const getFirstActivePartnerSubByWorkspaceIds = async (
   db: dbClient,
   workspacePublicIds: string[],
@@ -172,24 +113,4 @@ export const getFirstActivePartnerSubByWorkspaceIds = async (
       inArray(subscription.status, ["active", "trialing"]),
     ),
   });
-};
-
-export const createPartnerLicenseSlots = async (
-  db: dbClient,
-  partnerLicenseKey: string,
-  data: {
-    plan: string;
-    status: string;
-    partnerTier: number;
-    seats: number | null;
-    unlimitedSeats: boolean;
-  },
-  count: number,
-) => {
-  const rows = Array.from({ length: count }, () => ({
-    partnerLicenseKey,
-    ...data,
-    referenceId: null,
-  }));
-  return await db.insert(subscription).values(rows).returning();
 };

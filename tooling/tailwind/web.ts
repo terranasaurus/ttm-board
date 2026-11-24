@@ -10,9 +10,6 @@ export default {
       fontFamily: {
         sans: ["var(--font-montserrat), Montserrat"],
       },
-      fontSize: {
-        sm: "0.8rem",
-      },
       boxShadow: {
         "3xl-dark": "0px 16px 70px rgba(0, 0, 0, 0.5)",
         "3xl-light":
@@ -57,6 +54,7 @@ export default {
           },
         },
       },
+<<<<<<< HEAD
       // TTM brand: green #134c00, orange #ff7900, gold #ffb000.
       // The light/dark scales keep Kan's names so every component picks up
       // the brand without per-file changes; dark mode uses the website's
@@ -97,6 +95,8 @@ export default {
         "light-950": "#4a4a4a",
         "light-1000": "#0a2a00",
       },
+=======
+>>>>>>> upstream/main
       screens: {
         "2xl": "1600px",
       },

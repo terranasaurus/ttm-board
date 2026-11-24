@@ -1,9 +1,12 @@
 import { t } from "@lingui/core/macro";
+import { useMutation } from "@tanstack/react-query";
 
 import CheckboxDropdown from "~/components/CheckboxDropdown";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
+import { updateCardFromInput } from "~/utils/cardMutations";
 
 interface ListSelectorProps {
   cardPublicId: string;
@@ -22,17 +25,19 @@ export default function ListSelector({
   isLoading,
   disabled = false,
 }: ListSelectorProps) {
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
+  const boardCache = useBoardCache();
 
   const { showPopup } = usePopup();
 
-  const updateCardList = api.card.update.useMutation({
+  const updateCardList = useMutation({
+    mutationFn: updateCardFromInput,
     onMutate: async (newList) => {
-      await utils.card.byId.cancel();
+      await cardCache.byId.cancel();
 
-      const previousCard = utils.card.byId.getData({ cardPublicId });
+      const previousCard = cardCache.byId.getData({ cardPublicId });
 
-      utils.card.byId.setData({ cardPublicId }, (oldCard) => {
+      cardCache.byId.setData({ cardPublicId }, (oldCard) => {
         if (!oldCard) return oldCard;
 
         return {
@@ -40,8 +45,8 @@ export default function ListSelector({
           list: {
             ...oldCard.list,
             publicId: newList.listPublicId ?? "",
-            name: oldCard.list.name ?? "",
-            board: oldCard.list.board ?? null,
+            name: oldCard.list.name,
+            board: oldCard.list.board,
           },
         };
       });
@@ -49,7 +54,7 @@ export default function ListSelector({
       return { previousCard };
     },
     onError: (_error, _newList, context) => {
-      utils.card.byId.setData({ cardPublicId }, context?.previousCard);
+      cardCache.byId.setData({ cardPublicId }, context?.previousCard);
       showPopup({
         header: t`Unable to update list`,
         message: t`Please try again later, or contact customer support.`,
@@ -57,8 +62,8 @@ export default function ListSelector({
       });
     },
     onSettled: async () => {
-      await invalidateCard(utils, cardPublicId);
-      await utils.board.byId.invalidate();
+      await invalidateCard(cardCache, cardPublicId);
+      await boardCache.invalidate();
     },
   });
 
@@ -85,7 +90,7 @@ export default function ListSelector({
           ariaLabel={t`Current list`}
         >
           <div
-            className={`flex h-full w-full items-center rounded-[5px] border-[1px] border-light-50 py-1 pl-2 text-left text-xs text-neutral-900 dark:border-dark-50 dark:text-dark-1000 ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-light-300 hover:bg-light-200 dark:hover:border-dark-200 dark:hover:bg-dark-100"}`}
+            className={`flex h-full w-full items-center rounded-[5px] border border-light-50 py-1 pl-2 text-left text-xs text-neutral-900 dark:border-dark-50 dark:text-dark-1000 ${disabled ? "cursor-not-allowed opacity-60" : "hover:border-light-300 hover:bg-light-200 dark:hover:border-dark-200 dark:hover:bg-dark-100"}`}
           >
             {selectedList?.value}
           </div>

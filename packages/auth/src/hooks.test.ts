@@ -1,13 +1,20 @@
+<<<<<<< HEAD
 import { env } from "next-runtime-env";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import * as memberRepo from "@kan/db/repository/member.repo";
 import * as ttmMemberRepo from "@kan/db/repository/ttmMember.repo";
 import * as userRepo from "@kan/db/repository/user.repo";
+=======
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import * as memberRepo from "@kan/db/repository/member.repo";
+import { env } from "@kan/shared/env";
+>>>>>>> upstream/main
 
 import { createDatabaseHooks } from "./hooks";
 
-vi.mock("next-runtime-env", () => ({
+vi.mock("@kan/shared/env", () => ({
   env: vi.fn(),
 }));
 

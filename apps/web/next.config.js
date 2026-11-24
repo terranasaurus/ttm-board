@@ -1,17 +1,19 @@
-import { fileURLToPath } from "url";
-import createJiti from "jiti";
-import { env } from "next-runtime-env";
-import { configureRuntimeEnv } from "next-runtime-env/build/configure.js";
+import { writeFileSync } from "node:fs";
+import { createJiti } from "jiti";
 
 // Import env files to validate at build time. Use jiti so we can load .ts files in here.
-createJiti(fileURLToPath(import.meta.url))("./src/env");
+await createJiti(import.meta.url).import("./src/env");
 
-configureRuntimeEnv();
+// bootstrap.cjs rewrites this at container start in the Docker image
+const publicEnv = Object.fromEntries(
+  Object.entries(process.env).filter(([key]) => key.startsWith("NEXT_PUBLIC_")),
+);
+writeFileSync("public/__ENV.js", `self.__ENV = ${JSON.stringify(publicEnv)};`);
 
 /** @type {import("next").NextConfig} */
 const config = {
   output:
-    env("NEXT_PUBLIC_USE_STANDALONE_OUTPUT") === "true"
+    process.env.NEXT_PUBLIC_USE_STANDALONE_OUTPUT === "true"
       ? "standalone"
       : undefined,
   reactStrictMode: true,
@@ -30,20 +32,15 @@ const config = {
 
   /** Enables hot reloading for local packages without a build step */
   transpilePackages: [
-    "@kan/api",
+    "@kan/server",
     "@kan/api-client",
     "@kan/db",
     "@kan/shared",
     "@kan/auth",
-    "@kan/stripe",
-    "@kan.bn/mcp",
   ],
 
   /** We already do linting and typechecking as separate tasks in CI */
   typescript: { ignoreBuildErrors: true },
-
-  // temporarily ignore eslint errors during build until we fix all the errors sigh
-  eslint: { ignoreDuringBuilds: true },
 
   images: {
     remotePatterns: (() => {
@@ -86,9 +83,9 @@ const config = {
 
 // Only allow external images when OIDC is configured (for OIDC provider avatars)
 if (
-  env("OIDC_CLIENT_ID") &&
-  env("OIDC_CLIENT_SECRET") &&
-  env("OIDC_DISCOVERY_URL")
+  process.env.OIDC_CLIENT_ID &&
+  process.env.OIDC_CLIENT_SECRET &&
+  process.env.OIDC_DISCOVERY_URL
 ) {
   config.images?.remotePatterns?.push({
     protocol: "https",

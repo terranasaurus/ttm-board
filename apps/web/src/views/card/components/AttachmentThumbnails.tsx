@@ -11,14 +11,17 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 
+import { useDeleteAttachment } from "@kan/api-client/hooks";
+
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
 
 interface Attachment {
   publicId: string;
   contentType: string;
   url: string | null;
+  downloadUrl?: string | null;
   originalFilename: string | null;
   s3Key: string;
   size?: number | null;
@@ -34,7 +37,7 @@ export function AttachmentThumbnails({
   isReadOnly?: boolean;
 }) {
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
   const imageAttachments =
     attachments?.filter(
       (attachment) =>
@@ -49,44 +52,44 @@ export function AttachmentThumbnails({
 
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  const deleteAttachment = api.attachment.delete.useMutation({
-    onMutate: async (args) => {
-      if (isReadOnly) return;
+  const deleteAttachment = useDeleteAttachment({
+    mutation: {
+      onMutate: async (args) => {
+        if (isReadOnly) return;
 
-      await utils.card.byId.cancel({ cardPublicId });
-      const currentState = utils.card.byId.getData({ cardPublicId });
+        await cardCache.byId.cancel({ cardPublicId });
+        const currentState = cardCache.byId.getData({ cardPublicId });
 
-      utils.card.byId.setData({ cardPublicId }, (oldCard) => {
-        if (!oldCard) return oldCard;
-        const updatedAttachments = oldCard.attachments.filter(
-          (attachment) => attachment.publicId !== args.attachmentPublicId,
-        );
-        return { ...oldCard, attachments: updatedAttachments };
-      });
+        cardCache.byId.setData({ cardPublicId }, (oldCard) => {
+          if (!oldCard) return oldCard;
+          const updatedAttachments = oldCard.attachments.filter(
+            (attachment) => attachment.publicId !== args.attachmentPublicId,
+          );
+          return { ...oldCard, attachments: updatedAttachments };
+        });
 
-      return { previousState: currentState };
-    },
-    onError: (_error, _args, context) => {
-      if (isReadOnly) return;
-      utils.card.byId.setData({ cardPublicId }, context?.previousState);
-      showPopup({
-        header: t`Unable to delete attachment`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSuccess: () => {
-      if (isReadOnly) return;
-      // Close viewer if the deleted image was being viewed
-      setSelectedIndex(null);
-    },
-    onSettled: async () => {
-      if (isReadOnly) return;
-      await invalidateCard(utils, cardPublicId);
+        return { previousState: currentState };
+      },
+      onError: (_error, _args, context) => {
+        if (isReadOnly) return;
+        cardCache.byId.setData({ cardPublicId }, context?.previousState);
+        showPopup({
+          header: t`Unable to delete attachment`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSuccess: () => {
+        if (isReadOnly) return;
+        setSelectedIndex(null);
+      },
+      onSettled: async () => {
+        if (isReadOnly) return;
+        await invalidateCard(cardCache, cardPublicId);
+      },
     },
   });
 
-  // Keyboard navigation
   useEffect(() => {
     if (selectedIndex === null) return;
 
@@ -146,10 +149,8 @@ export function AttachmentThumbnails({
       return;
     }
 
-    const downloadUrl = `/api/download/attatchment?url=${encodeURIComponent(attachment.url)}&filename=${encodeURIComponent(attachment.originalFilename ?? "attachment")}`;
-
     const link = document.createElement("a");
-    link.href = downloadUrl;
+    link.href = attachment.downloadUrl ?? attachment.url;
     link.style.display = "none";
     document.body.appendChild(link);
     link.click();
@@ -224,7 +225,6 @@ export function AttachmentThumbnails({
             <div
               className="fixed inset-0 bg-light-50 transition-opacity dark:bg-dark-50"
               onClick={(e) => {
-                // Only close if clicking directly on the background, not on buttons
                 if (e.target === e.currentTarget) {
                   closeViewer();
                 }
@@ -235,7 +235,7 @@ export function AttachmentThumbnails({
           <div className="fixed inset-0 z-10 overflow-y-auto">
             {selectedIndex !== null && selectedAttachment && (
               <div
-                className="fixed left-2 top-2 z-20 flex gap-1"
+                className="fixed top-2 left-2 z-20 flex gap-1"
                 onMouseDown={(e) => e.stopPropagation()}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -252,7 +252,7 @@ export function AttachmentThumbnails({
                         attachmentPublicId: selectedAttachment.publicId,
                       });
                     }}
-                    className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-none dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
+                    className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-hidden dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
                     aria-label="Delete image"
                     disabled={deleteAttachment.isPending}
                   >
@@ -269,7 +269,7 @@ export function AttachmentThumbnails({
                     e.stopPropagation();
                     handleDownload(selectedAttachment);
                   }}
-                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-none dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
+                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-hidden dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
                   aria-label="Download image"
                 >
                   <HiArrowDownTray className="h-4 w-4" />
@@ -277,14 +277,14 @@ export function AttachmentThumbnails({
               </div>
             )}
 
-            <div className="fixed right-2 top-2 z-20 flex gap-1">
+            <div className="fixed top-2 right-2 z-20 flex gap-1">
               {imageAttachments.length > 1 && selectedIndex !== null && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     goToPrevious();
                   }}
-                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-none dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
+                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-hidden dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
                   aria-label="Previous image"
                 >
                   <HiChevronLeft className="h-4 w-4" />
@@ -297,7 +297,7 @@ export function AttachmentThumbnails({
                     e.stopPropagation();
                     goToNext();
                   }}
-                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-none dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
+                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-hidden dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
                   aria-label="Next image"
                 >
                   <HiChevronRight className="h-4 w-4" />
@@ -310,7 +310,7 @@ export function AttachmentThumbnails({
                     e.stopPropagation();
                     closeViewer();
                   }}
-                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-none dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
+                  className="rounded-full bg-light-50 p-1.5 text-light-1000 transition-colors hover:bg-light-100 focus:outline-hidden dark:bg-dark-50 dark:text-dark-1000 dark:hover:bg-dark-100"
                   aria-label="Close"
                 >
                   <HiXMark className="h-4 w-4" />
@@ -421,7 +421,7 @@ function FileListItem({
 }) {
   return (
     <div className="group flex w-full items-center gap-3 rounded-lg border border-light-300 bg-light-50 px-3 py-2 dark:border-dark-200 dark:bg-dark-100">
-      <div className="flex-shrink-0">
+      <div className="shrink-0">
         <HiDocumentText className="h-5 w-5 text-light-700 dark:text-dark-700" />
       </div>
       <div className="min-w-0 flex-1 truncate text-sm text-light-1000 dark:text-dark-1000">
@@ -439,7 +439,7 @@ function FileListItem({
               e.stopPropagation();
               onDownload();
             }}
-            className="flex-shrink-0 rounded-full bg-light-100 p-1.5 text-light-1000 transition-colors hover:bg-light-200 focus:outline-none dark:bg-dark-100 dark:text-dark-950 dark:hover:bg-dark-300"
+            className="shrink-0 rounded-full bg-light-100 p-1.5 text-light-1000 transition-colors hover:bg-light-200 focus:outline-hidden dark:bg-dark-100 dark:text-dark-950 dark:hover:bg-dark-300"
             aria-label={`Download ${attachment.originalFilename}`}
           >
             <HiArrowDownTray className="h-4 w-4" />
@@ -450,7 +450,7 @@ function FileListItem({
                 e.stopPropagation();
                 onDelete();
               }}
-              className="flex-shrink-0 rounded-full bg-light-100 p-1.5 text-light-1000 transition-colors hover:bg-light-200 focus:outline-none dark:bg-dark-100 dark:text-dark-950 dark:hover:bg-dark-300"
+              className="shrink-0 rounded-full bg-light-100 p-1.5 text-light-1000 transition-colors hover:bg-light-200 focus:outline-hidden dark:bg-dark-100 dark:text-dark-950 dark:hover:bg-dark-300"
               aria-label={`Delete ${attachment.originalFilename}`}
             >
               <HiXMark className="h-4 w-4" />

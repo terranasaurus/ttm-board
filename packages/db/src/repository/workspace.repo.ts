@@ -29,7 +29,6 @@ import {
 
 import * as permissionRepo from "./permission.repo";
 
-// System role definitions
 const SYSTEM_ROLES: {
   name: Role;
   description: string;
@@ -98,7 +97,6 @@ export const create = async (
     });
 
   if (workspace) {
-    // Create system roles for the workspace
     let adminRoleId: number | null = null;
     for (const roleData of SYSTEM_ROLES) {
       const role = await permissionRepo.createRole(db, {
@@ -336,6 +334,7 @@ export const getMemberByPublicId = (
     columns: {
       id: true,
       role: true,
+      status: true,
     },
     where: and(
       eq(workspaceMembers.publicId, memberPublicId),
@@ -354,6 +353,7 @@ export const getAllMembersByPublicIds = (
     columns: {
       id: true,
       role: true,
+      status: true,
     },
     where: and(
       inArray(workspaceMembers.publicId, memberPublicIds),
@@ -380,15 +380,12 @@ export const isWorkspaceSlugAvailable = async (
     },
     where: and(
       isNull(workspaces.deletedAt),
+      excludeWorkspaceId ? ne(workspaces.id, excludeWorkspaceId) : undefined,
+      // A workspace's publicId is reserved as its fallback slug, so no other
+      // workspace may claim it as a custom slug.
       or(
         eq(workspaces.slug, workspaceSlug),
-        // A workspace's own publicId is always reserved for itself as a
-        // slug (that's what it falls back to when it has no custom slug),
-        // so no other workspace may claim it as a custom slug either.
-        and(
-          eq(workspaces.publicId, workspaceSlug),
-          excludeWorkspaceId ? ne(workspaces.id, excludeWorkspaceId) : undefined,
-        ),
+        eq(workspaces.publicId, workspaceSlug),
       ),
     ),
   });
@@ -422,8 +419,9 @@ const parseTicketId = (
   query: string,
 ): { prefix: string; number: number } | null => {
   const match = /^([A-Za-z0-9]{1,10})-(\d+)$/.exec(query);
-  if (!match) return null;
-  return { prefix: match[1]!.toUpperCase(), number: parseInt(match[2]!, 10) };
+  const [, prefix, number] = match ?? [];
+  if (!prefix || !number) return null;
+  return { prefix: prefix.toUpperCase(), number: parseInt(number, 10) };
 };
 
 export const searchBoardsAndCards = async (
@@ -438,15 +436,11 @@ export const searchBoardsAndCards = async (
   const searchQuery = `%${query}%`;
 
   const boardAccess = memberBoardIds
-    ? or(
-        eq(boards.type, "template"),
-        inArray(boards.id, memberBoardIds),
-      )
+    ? or(eq(boards.type, "template"), inArray(boards.id, memberBoardIds))
     : undefined;
 
   const ticketId = parseTicketId(query.trim());
 
-  // Search for boards
   const boardResults = await db
     .select({
       publicId: boards.publicId,
@@ -460,10 +454,9 @@ export const searchBoardsAndCards = async (
     .where(
       and(
         eq(boards.workspaceId, workspaceId),
-        // Combine exact and fuzzy matching
         or(
-          ilike(boards.name, `%${query}%`), // Exact substring match
-          sql`similarity(${boards.name}, ${query}) > 0.2`, // Fuzzy match
+          ilike(boards.name, `%${query}%`),
+          sql`similarity(${boards.name}, ${query}) > 0.2`,
         ),
         isNull(boards.deletedAt),
         boardAccess,
@@ -476,7 +469,6 @@ export const searchBoardsAndCards = async (
     )
     .limit(ticketId ? 0 : Math.ceil(limit * 0.4));
 
-  // Search for cards by ticket ID or by title
   const cardWhereConditions = ticketId
     ? and(
         eq(boards.workspaceId, workspaceId),
@@ -527,7 +519,6 @@ export const searchBoardsAndCards = async (
     )
     .limit(ticketId ? limit : Math.floor(limit * 0.6));
 
-  // Combine results
   const allResults = [
     ...boardResults.map((board) => ({
       ...board,
@@ -539,6 +530,5 @@ export const searchBoardsAndCards = async (
     })),
   ];
 
-  // Ensure we don't exceed the total limit
   return allResults.slice(0, limit);
 };

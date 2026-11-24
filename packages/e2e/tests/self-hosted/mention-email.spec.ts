@@ -2,6 +2,7 @@ import type { Browser, Locator, Page } from "@playwright/test";
 import { expect, test } from "@playwright/test";
 
 import type { TestUser } from "../support/test-user";
+import { apiBaseURL } from "../support/api-base-url";
 import {
   clearMailpitInbox,
   expectMailpitMessageCountToRemain,
@@ -13,7 +14,7 @@ import { DashboardPage } from "../support/pages/dashboard-page";
 import { MembersPage } from "../support/pages/members-page";
 import { SelfHostedOnboardingPage } from "../support/pages/self-hosted-onboarding-page";
 import { createTestUser } from "../support/test-user";
-import { waitForTrpcMutation } from "../support/wait-for-trpc";
+import { waitForApi } from "../support/wait-for-api";
 
 async function joinWorkspace(
   ownerPage: Page,
@@ -45,31 +46,17 @@ async function addToBoard(page: Page, boardPublicId: string, email: string) {
     throw new Error("workspacePublicId not found in localStorage");
 
   const workspaceResponse = await page.request.get(
-    `/api/trpc/workspace.byId?batch=1&input=${encodeURIComponent(
-      JSON.stringify({ "0": { json: { workspacePublicId } } }),
-    )}`,
+    `${apiBaseURL}/workspaces/${workspacePublicId}`,
   );
-  const workspaceBody = (await workspaceResponse.json()) as [
-    {
-      result: {
-        data: { json: { members: { publicId: string; email?: string }[] } };
-      };
-    },
-  ];
-  const member = workspaceBody[0].result.data.json.members.find(
-    (m) => m.email === email,
-  );
+  const workspaceBody = (await workspaceResponse.json()) as {
+    members: { publicId: string; email?: string }[];
+  };
+  const member = workspaceBody.members.find((m) => m.email === email);
   if (!member) throw new Error(`Could not resolve member ${email}`);
 
   const response = await page.request.post(
-    "/api/trpc/boardMember.add?batch=1",
-    {
-      data: {
-        "0": {
-          json: { boardPublicId, workspaceMemberPublicId: member.publicId },
-        },
-      },
-    },
+    `${apiBaseURL}/boards/${boardPublicId}/members`,
+    { data: { workspaceMemberPublicId: member.publicId } },
   );
   expect(response.ok()).toBe(true);
 }
@@ -104,7 +91,7 @@ async function startEditingComment(page: Page): Promise<Locator> {
 }
 
 async function saveComment(page: Page) {
-  const updated = waitForTrpcMutation(page, "card.updateComment");
+  const updated = waitForApi(page, "PUT", /^\/cards\/[^/]+\/comments\//);
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await updated;
 }
@@ -138,14 +125,14 @@ test(
     await addToBoard(page, boardPublicId, recipient.email);
     await page.goto(boardUrl);
     await board.openCard("Mention email card");
-    await clearMailpitInbox();
+    await clearMailpitInbox(recipient.email);
 
     const newCommentEditor = commentEditor(page);
     await newCommentEditor.click();
     await newCommentEditor.pressSequentially("Please review this, ");
     await insertMention(page, newCommentEditor, recipient.name);
 
-    const added = waitForTrpcMutation(page, "card.addComment");
+    const added = waitForApi(page, "POST", /^\/cards\/[^/]+\/comments$/);
     await page
       .getByRole("button", { name: "Submit comment", exact: true })
       .click();

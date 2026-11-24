@@ -1,17 +1,22 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { HiCheck, HiXMark } from "react-icons/hi2";
 import { z } from "zod";
+
+import {
+  useCheckBoardSlugAvailability,
+  useUpdateBoard,
+} from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 
 import Button from "~/components/Button";
 import Input from "~/components/Input";
 import { useDebounce } from "~/hooks/useDebounce";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 
 interface QueryParams {
   boardPublicId: string;
@@ -33,7 +38,7 @@ export function UpdateBoardSlugForm({
 }) {
   const { closeModal } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
 
   const schema = z.object({
     slug: z
@@ -66,27 +71,30 @@ export function UpdateBoardSlugForm({
 
   const [debouncedSlug] = useDebounce(slug, 500);
 
-  const updateBoardSlug = api.board.update.useMutation({
-    onError: () => {
-      showPopup({
-        header: t`Unable to update board URL`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      closeModal();
-      await utils.board.byId.invalidate(queryParams);
+  const updateBoardSlug = useUpdateBoard({
+    mutation: {
+      onError: () => {
+        showPopup({
+          header: t`Unable to update board URL`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        closeModal();
+        await boardCache.invalidate(queryParams.boardPublicId);
+      },
     },
   });
 
-  const checkBoardSlugAvailability = api.board.checkSlugAvailability.useQuery(
+  const checkBoardSlugAvailability = useCheckBoardSlugAvailability(
+    boardPublicId,
+    { boardSlug: debouncedSlug },
     {
-      boardSlug: debouncedSlug,
-      boardPublicId,
-    },
-    {
-      enabled: !!debouncedSlug && debouncedSlug !== boardSlug && !errors.slug,
+      query: {
+        enabled: !!debouncedSlug && debouncedSlug !== boardSlug && !errors.slug,
+        select: (res) => res.data,
+      },
     },
   );
 
@@ -102,10 +110,7 @@ export function UpdateBoardSlugForm({
     if (!isBoardSlugAvailable) return;
     if (isBoardSlugAvailable.isReserved) return;
 
-    updateBoardSlug.mutate({
-      slug: data.slug,
-      boardPublicId,
-    });
+    updateBoardSlug.mutate({ boardPublicId, data: { slug: data.slug } });
   };
 
   return (
@@ -117,7 +122,7 @@ export function UpdateBoardSlugForm({
           </h2>
           <button
             type="button"
-            className="rounded p-1 hover:bg-light-200 focus:outline-none dark:hover:bg-dark-300"
+            className="rounded-sm p-1 hover:bg-light-200 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -152,7 +157,7 @@ export function UpdateBoardSlugForm({
           }
         />
       </div>
-      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div className="flex items-center gap-2">
           <Button
             variant="secondary"

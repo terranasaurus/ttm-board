@@ -39,7 +39,7 @@ See our [roadmap](https://kan.bn/kan/roadmap) for upcoming features.
 ## Made With
 
 - [Next.js](https://nextjs.org/?ref=kan.bn)
-- [tRPC](https://trpc.io/?ref=kan.bn)
+- [NestJS](https://nestjs.com/?ref=kan.bn)
 - [Better Auth](https://better-auth.com/?ref=kan.bn)
 - [Tailwind CSS](https://tailwindcss.com/?ref=kan.bn)
 - [Drizzle ORM](https://orm.drizzle.team/?ref=kan.bn)
@@ -150,7 +150,7 @@ npx -y @kan.bn/mcp
 
 Configure it with two environment variables: `KAN_BASE_URL` (your Kan instance) and `KAN_API_TOKEN` (from **Settings → API Keys**). Then point your client's MCP config at the `npx -y @kan.bn/mcp` command.
 
-See the [MCP Server docs](https://docs.kan.bn/integrations/mcp-server) for per-client config (Claude Desktop, Codex, and others), example prompts, the full tool reference, and troubleshooting.
+See the [MCP Server docs](https://docs.kan.bn/mcp) for per-client config (Claude Desktop, Codex, and others), example prompts, the full tool reference, and troubleshooting.
 
 ## Contributing
 

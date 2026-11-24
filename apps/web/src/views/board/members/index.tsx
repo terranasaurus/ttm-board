@@ -1,8 +1,16 @@
 import { useParams } from "next/navigation";
 import { t } from "@lingui/core/macro";
+import { useQueryClient } from "@tanstack/react-query";
 import { HiEllipsisHorizontal, HiOutlinePlusSmall } from "react-icons/hi2";
 import { twMerge } from "tailwind-merge";
 
+import {
+  getGetBoardMembersQueryKey,
+  useGetBoard,
+  useGetBoardMembers,
+  useGetWorkspace,
+  useUpdateBoardMemberRole,
+} from "@kan/api-client/hooks";
 import { authClient } from "@kan/auth/client";
 
 import Avatar from "~/components/Avatar";
@@ -13,7 +21,6 @@ import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 import { formatMemberDisplayName, getAvatarUrl } from "~/utils/helpers";
 import { AddBoardMemberForm } from "./components/AddBoardMemberForm";
 import { RemoveBoardMemberConfirmation } from "./components/RemoveBoardMemberConfirmation";
@@ -26,26 +33,28 @@ export default function BoardMembersView() {
   const { data: session } = authClient.useSession();
   const { modalContentType, openModal, isOpen } = useModal();
   const { showPopup } = usePopup();
-  const utils = api.useUtils();
+  const queryClient = useQueryClient();
 
   const enabled = boardPublicId.length >= 12;
 
-  const { data: board } = api.board.byId.useQuery(
-    { boardPublicId },
-    { enabled },
-  );
+  const { data: board } = useGetBoard(boardPublicId, undefined, {
+    query: { enabled, select: (res) => res.data },
+  });
 
   const {
-    data: boardMembers,
+    data: boardMembersResult,
     isLoading,
     error: boardMembersError,
-  } = api.boardMember.all.useQuery({ boardPublicId }, { enabled, retry: false });
+  } = useGetBoardMembers(boardPublicId, { query: { enabled, retry: false } });
+  const boardMembers = boardMembersResult?.data;
 
   // board.byId only returns people already on the board, so fetch the full roster separately.
-  const { data: workspaceData } = api.workspace.byId.useQuery(
-    { workspacePublicId: workspace.publicId },
-    { enabled: workspace.publicId.length >= 12 },
-  );
+  const { data: workspaceData } = useGetWorkspace(workspace.publicId, {
+    query: {
+      enabled: workspace.publicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
   const workspaceMembers = workspaceData?.members ?? [];
 
   const myMembership = boardMembers?.find(
@@ -63,14 +72,22 @@ export default function BoardMembersView() {
       ),
   );
 
-  const updateRole = api.boardMember.updateRole.useMutation({
-    onSuccess: () => utils.boardMember.all.invalidate({ boardPublicId }),
-    onError: (error) => {
-      showPopup({
-        header: t`Unable to update role`,
-        message: error.message,
-        icon: "error",
-      });
+  const updateRole = useUpdateBoardMemberRole({
+    mutation: {
+      onSuccess: () =>
+        queryClient.invalidateQueries({
+          queryKey: getGetBoardMembersQueryKey(boardPublicId),
+        }),
+      onError: (error) => {
+        showPopup({
+          header: t`Unable to update role`,
+          message:
+            error instanceof Error
+              ? error.message
+              : t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -78,10 +95,15 @@ export default function BoardMembersView() {
     workspaceMemberPublicId: string,
     role: "admin" | "member",
   ) => {
-    updateRole.mutate({ boardPublicId, workspaceMemberPublicId, role });
+    updateRole.mutate({
+      boardPublicId,
+      workspaceMemberPublicId,
+      data: { role },
+    });
   };
 
-  const TableRow = ({
+  const renderTableRow = ({
+    key,
     memberPublicId,
     memberId,
     memberName,
@@ -91,6 +113,7 @@ export default function BoardMembersView() {
     isLastRow,
     showSkeleton,
   }: {
+    key?: string;
     memberPublicId?: string;
     memberId?: string | null;
     memberName?: string | null;
@@ -104,7 +127,7 @@ export default function BoardMembersView() {
     const canManageRow = isBoardAdmin && !isSelf;
 
     return (
-      <tr className="rounded-b-lg">
+      <tr key={key} className="rounded-b-lg">
         <td
           className={twMerge(
             "w-full sm:w-[65%]",
@@ -112,9 +135,9 @@ export default function BoardMembersView() {
           )}
         >
           <div className="flex items-center p-2 sm:p-4">
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               {showSkeleton ? (
-                <div className="h-8 w-8 animate-pulse rounded-full bg-light-200 dark:bg-dark-200 sm:h-9 sm:w-9" />
+                <div className="h-8 w-8 animate-pulse rounded-full bg-light-200 sm:h-9 sm:w-9 dark:bg-dark-200" />
               ) : (
                 <Avatar
                   name={memberName ?? ""}
@@ -126,9 +149,9 @@ export default function BoardMembersView() {
             <div className="ml-2 min-w-0 flex-1">
               <p
                 className={twMerge(
-                  "truncate text-xs font-medium text-neutral-900 dark:text-dark-1000 sm:text-sm",
+                  "truncate text-xs font-medium text-neutral-900 sm:text-sm dark:text-dark-1000",
                   showSkeleton &&
-                    "h-3 w-[125px] animate-pulse rounded-sm bg-light-200 dark:bg-dark-200",
+                    "h-3 w-[125px] animate-pulse rounded-xs bg-light-200 dark:bg-dark-200",
                 )}
               >
                 {memberName}
@@ -152,7 +175,7 @@ export default function BoardMembersView() {
               <span className="h-5 w-[50px] animate-pulse rounded-md bg-light-200 ring-0 dark:bg-dark-200" />
             ) : (
               <div className="relative inline-flex items-center">
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20 sm:text-[11px]">
+                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[10px] font-medium text-emerald-400 ring-1 ring-emerald-500/20 ring-inset sm:text-[11px]">
                   {memberRole === "admin" ? t`Admin` : t`Member`}
                 </span>
                 {canManageRow && (
@@ -167,7 +190,7 @@ export default function BoardMembersView() {
                     }
                     disabled={updateRole.isPending}
                     aria-label={t`Role`}
-                    className="absolute inset-0 h-full w-full cursor-pointer appearance-none border-none bg-transparent p-0 text-[10px] leading-none opacity-0 focus:outline-none focus-visible:outline-none sm:text-[11px]"
+                    className="absolute inset-0 h-full w-full cursor-pointer appearance-none border-none bg-transparent p-0 text-[10px] leading-none opacity-0 focus:outline-hidden focus-visible:outline-hidden sm:text-[11px]"
                   >
                     <option value="admin">{t`Admin`}</option>
                     <option value="member">{t`Member`}</option>
@@ -194,7 +217,7 @@ export default function BoardMembersView() {
               >
                 <HiEllipsisHorizontal
                   size={20}
-                  className="text-light-900 dark:text-dark-900 sm:size-[20px]"
+                  className="text-light-900 sm:size-[20px] dark:text-dark-900"
                 />
               </Dropdown>
             </div>
@@ -210,7 +233,7 @@ export default function BoardMembersView() {
       <div className="m-auto h-full max-w-[1100px] p-6 px-5 md:px-28 md:py-12">
         <div className="mb-8 flex w-full justify-between">
           <div className="flex items-center gap-3">
-            <h1 className="font-bold tracking-tight text-neutral-900 dark:text-dark-1000 sm:text-[1.2rem]">
+            <h1 className="font-bold tracking-tight text-neutral-900 sm:text-[1.2rem] dark:text-dark-1000">
               {t`Board members`}
             </h1>
           </div>
@@ -233,19 +256,19 @@ export default function BoardMembersView() {
           <div className="mt-8 flow-root">
             <div className="-mx-4 -my-2 sm:-mx-6 lg:-mx-8">
               <div className="inline-block min-w-full overflow-x-auto px-4 py-2 pb-16 align-middle sm:px-6 lg:px-8">
-                <div className="h-full shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                <div className="h-full shadow-sm ring-1 ring-black/5 sm:rounded-lg">
                   <table className="min-w-full divide-y divide-light-600 overflow-visible dark:divide-dark-600">
                     <thead className="rounded-t-lg bg-light-300 dark:bg-dark-200">
                       <tr>
                         <th
                           scope="col"
-                          className="w-full rounded-tl-lg py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-light-900 dark:text-dark-900 sm:w-[65%] sm:pl-6"
+                          className="w-full rounded-tl-lg py-3.5 pr-3 pl-4 text-left text-sm font-semibold text-light-900 sm:w-[65%] sm:pl-6 dark:text-dark-900"
                         >
                           {t`User`}
                         </th>
                         <th
                           scope="col"
-                          className="w-auto whitespace-nowrap rounded-tr-lg px-3 py-3.5 text-left text-sm font-semibold text-light-900 dark:text-dark-900 sm:w-[35%]"
+                          className="w-auto rounded-tr-lg px-3 py-3.5 text-left text-sm font-semibold whitespace-nowrap text-light-900 sm:w-[35%] dark:text-dark-900"
                         >
                           {t`Role`}
                         </th>
@@ -253,26 +276,29 @@ export default function BoardMembersView() {
                     </thead>
                     <tbody className="divide-y divide-light-600 overflow-visible bg-light-50 dark:divide-dark-600 dark:bg-dark-100">
                       {!isLoading &&
-                        boardMembers?.map((member, index) => (
-                          <TableRow
-                            key={member.publicId}
-                            memberPublicId={member.publicId}
-                            memberId={member.user?.id}
-                            memberName={formatMemberDisplayName(
+                        boardMembers?.map((member, index) =>
+                          renderTableRow({
+                            key: member.publicId,
+                            memberPublicId: member.publicId,
+                            memberId: member.user?.id,
+                            memberName: formatMemberDisplayName(
                               member.user?.name ?? null,
                               member.user?.email ?? member.email,
-                            )}
-                            memberEmail={member.user?.email ?? member.email}
-                            memberImage={member.user?.image}
-                            memberRole={member.role}
-                            isLastRow={index === boardMembers.length - 1}
-                          />
-                        ))}
+                            ),
+                            memberEmail: member.user?.email ?? member.email,
+                            memberImage: member.user?.image,
+                            memberRole: member.role,
+                            isLastRow: index === boardMembers.length - 1,
+                          }),
+                        )}
 
                       {isLoading && (
                         <>
-                          <TableRow showSkeleton />
-                          <TableRow showSkeleton isLastRow />
+                          {renderTableRow({ showSkeleton: true })}
+                          {renderTableRow({
+                            showSkeleton: true,
+                            isLastRow: true,
+                          })}
                         </>
                       )}
                     </tbody>

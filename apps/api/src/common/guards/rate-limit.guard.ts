@@ -10,13 +10,15 @@ import {
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 
+import { getClientIp } from "@kan/server/utils/rateLimit";
+
 import type { AuthenticatedRequest } from "../interfaces/request.interface.js";
 import { SKIP_RATE_LIMIT } from "../decorators/skip-rate-limit.decorator.js";
 import { RATE_LIMITER } from "../rate-limiter.js";
 
 const ERROR_MESSAGE = "Too many requests, please try again later.";
 
-// Duplicated from @kan/auth's getApiKeyFromHeaders / @kan/api's getApiToken
+// Duplicated from @kan/auth's getApiKeyFromHeaders / @kan/server's getApiToken
 // (not part of either package's public export map) — same 6-line extraction
 // kan already has twice, a third copy isn't worth a shared export for.
 function getApiToken(headers: AuthenticatedRequest["headers"]): string | null {
@@ -30,27 +32,12 @@ function getApiToken(headers: AuthenticatedRequest["headers"]): string | null {
   return typeof apiKeyHeader === "string" ? apiKeyHeader : null;
 }
 
-function getIp(request: AuthenticatedRequest): string {
-  const forwardedFor = request.headers["x-forwarded-for"];
-  const realIp = request.headers["x-real-ip"];
-  const cfConnectingIp = request.headers["cf-connecting-ip"];
-  return (
-    (typeof forwardedFor === "string"
-      ? forwardedFor.split(",")[0]?.trim()
-      : null) ??
-    (typeof realIp === "string" ? realIp : null) ??
-    (typeof cfConnectingIp === "string" ? cfConnectingIp : null) ??
-    request.socket.remoteAddress ??
-    "unknown"
-  );
-}
-
 function identify(request: AuthenticatedRequest): string {
   const token = getApiToken(request.headers);
   if (token) {
     return `token_${createHash("sha256").update(token).digest("hex")}`;
   }
-  return getIp(request);
+  return getClientIp(request.headers, request.socket.remoteAddress);
 }
 
 @Injectable()

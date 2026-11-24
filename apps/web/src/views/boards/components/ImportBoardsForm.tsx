@@ -12,16 +12,27 @@ import {
   HiXMark,
 } from "react-icons/hi2";
 
+import type { ImportTrelloBoardsResponseDtoOutputFailuresItemCode } from "@kan/api-client/hooks";
+import {
+  useGetGitHubProjects,
+  useGetGitHubStatus,
+  useGetIntegrationAuthorizationUrl,
+  useGetIntegrationProviders,
+  useGetTrelloBoards,
+  useImportGitHubProjects,
+  useImportTrelloBoards,
+} from "@kan/api-client/hooks";
+
 import Button from "~/components/Button";
 import Toggle from "~/components/Toggle";
 import { useModal } from "~/providers/modal";
 import { usePopup } from "~/providers/popup";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
+import { useBoardCache } from "~/utils/boardCache";
 
 const integrationProviders: Record<
   string,
-  { name: string; icon: JSX.Element }
+  { name: string; icon: React.JSX.Element }
 > = {
   trello: {
     name: "Trello",
@@ -39,9 +50,9 @@ const SelectSource = ({
   handleNextStep: (provider: string) => void;
 }) => {
   const { data: integrations, refetch: refetchIntegrations } =
-    api.integration.providers.useQuery();
+    useGetIntegrationProviders({ query: { select: (res) => res.data } });
   const { data: githubStatus, refetch: refetchGithubStatus } =
-    api.integration.getGitHubStatus.useQuery();
+    useGetGitHubStatus({ query: { select: (res) => res.data } });
 
   const { control, handleSubmit, watch } = useForm({
     defaultValues: {
@@ -49,12 +60,15 @@ const SelectSource = ({
     },
   });
 
-  const { data: trelloUrl } = api.integration.getAuthorizationUrl.useQuery(
+  const { data: trelloUrl } = useGetIntegrationAuthorizationUrl(
     { provider: "trello" },
     {
-      enabled: !integrations?.some(
-        (integration) => integration.provider === "trello",
-      ),
+      query: {
+        enabled: !integrations?.some(
+          (integration) => integration.provider === "trello",
+        ),
+        select: (res) => res.data,
+      },
     },
   );
 
@@ -98,11 +112,11 @@ const SelectSource = ({
           name="source"
           control={control}
           render={({ field }) => (
-            <Listbox {...field}>
+            <Listbox value={field.value} onChange={field.onChange}>
               {({ open }) => (
                 <>
                   <div className="relative">
-                    <Listbox.Button className="focus-ring-light-700 block w-full rounded-md border-0 bg-dark-300 bg-white/5 px-4 py-1.5 text-neutral-900 shadow-sm ring-1 ring-inset ring-light-600 focus:ring-2 focus:ring-inset dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700 sm:text-sm sm:leading-6">
+                    <Listbox.Button className="focus-ring-light-700 block w-full rounded-md border-0 bg-dark-300 bg-white/5 px-4 py-1.5 text-neutral-900 shadow-xs ring-1 ring-light-600 ring-inset focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 dark:text-dark-1000 dark:ring-dark-700 dark:focus:ring-dark-700">
                       <span className="flex items-center">
                         {integrationProviders[field.value]?.icon}
                         <span className="ml-2 block truncate text-sm">
@@ -124,12 +138,12 @@ const SelectSource = ({
                       leaveFrom="opacity-100"
                       leaveTo="opacity-0"
                     >
-                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-light-50 py-1 text-base text-neutral-900 shadow-lg ring-1 ring-light-600 ring-opacity-5 focus:outline-none dark:bg-dark-300 dark:text-dark-1000 sm:text-sm">
+                      <Listbox.Options className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-light-50 py-1 text-base text-neutral-900 shadow-lg ring-1 ring-light-600/5 focus:outline-hidden sm:text-sm dark:bg-dark-300 dark:text-dark-1000">
                         {hasIntegrations ? (
                           availableIntegrations.map((integration, index) => (
                             <Listbox.Option
                               key={`source_${index}`}
-                              className="relative cursor-default select-none px-1"
+                              className="relative cursor-default px-1 select-none"
                               value={integration.provider}
                             >
                               <div className="flex items-center rounded-[5px] p-1 hover:bg-light-200 dark:hover:bg-dark-400">
@@ -150,7 +164,7 @@ const SelectSource = ({
                           <>
                             <Listbox.Option
                               key="trello_placeholder"
-                              className="font-sm relative cursor-default select-none px-1"
+                              className="font-sm relative cursor-default px-1 select-none"
                               value="trello"
                             >
                               <div className="flex items-center rounded-[5px] p-1 text-sm hover:bg-light-200 dark:hover:bg-dark-400">
@@ -162,7 +176,7 @@ const SelectSource = ({
                             </Listbox.Option>
                             <Listbox.Option
                               key="github_placeholder"
-                              className="font-sm relative cursor-default select-none px-1"
+                              className="font-sm relative cursor-default px-1 select-none"
                               value="github"
                             >
                               <div className="flex items-center rounded-[5px] p-1 text-sm hover:bg-light-200 dark:hover:bg-dark-400">
@@ -184,7 +198,7 @@ const SelectSource = ({
         />
       </div>
 
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div>
           <Button
             type="submit"
@@ -201,16 +215,17 @@ const SelectSource = ({
 };
 
 const ImportGithub: React.FC = () => {
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
   const { closeModal } = useModal();
   const { workspace } = useWorkspace();
   const { showPopup } = usePopup();
   const [isSelectAllEnabled, setIsSelectAllEnabled] = useState(false);
 
-  const refetchBoards = () => utils.board.all.refetch();
+  const refetchBoards = () => boardCache.refetchLists();
 
-  const { data: projects, isLoading: projectsLoading } =
-    api.import.github.getProjects.useQuery();
+  const { data: projects, isLoading: projectsLoading } = useGetGitHubProjects({
+    query: { select: (res) => res.data },
+  });
 
   const {
     register: registerProjects,
@@ -223,26 +238,28 @@ const ImportGithub: React.FC = () => {
     ),
   });
 
-  const importProjects = api.import.github.importProjects.useMutation({
-    onSuccess: async () => {
-      showPopup({
-        header: t`Import complete`,
-        message: t`Your projects have been imported.`,
-        icon: "success",
-      });
-      try {
-        await refetchBoards();
-        closeModal();
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    onError: () => {
-      showPopup({
-        header: t`Import failed`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+  const importProjects = useImportGitHubProjects({
+    mutation: {
+      onSuccess: async () => {
+        showPopup({
+          header: t`Import complete`,
+          message: t`Your projects have been imported.`,
+          icon: "success",
+        });
+        try {
+          await refetchBoards();
+          closeModal();
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      onError: () => {
+        showPopup({
+          header: t`Import failed`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -260,8 +277,7 @@ const ImportGithub: React.FC = () => {
     );
 
     importProjects.mutate({
-      projectIds,
-      workspacePublicId: workspace.publicId,
+      data: { projectIds, workspacePublicId: workspace.publicId },
     });
   };
 
@@ -295,7 +311,7 @@ const ImportGithub: React.FC = () => {
           <input
             id={project.id}
             type="checkbox"
-            className="h-[14px] w-[14px] rounded bg-transparent ring-0 focus:outline-none focus:ring-0 focus:ring-offset-0"
+            className="h-[14px] w-[14px] rounded-sm bg-transparent ring-0 focus:ring-0 focus:ring-offset-0 focus:outline-hidden"
             {...registerProjects(project.id)}
           />
           <span className="ml-3 text-sm text-neutral-900 dark:text-dark-1000">
@@ -310,7 +326,7 @@ const ImportGithub: React.FC = () => {
     <form onSubmit={handleSubmitProjects(onSubmitProjects)}>
       <div className="h-[105px] overflow-auto px-5">{renderContent()}</div>
 
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <Toggle
           label={t`Select all`}
           isChecked={!!isSelectAllEnabled}
@@ -352,17 +368,38 @@ const ImportGithub: React.FC = () => {
   );
 };
 
+const importFailureMessage = (failure: {
+  boardName: string | null;
+  code: ImportTrelloBoardsResponseDtoOutputFailuresItemCode;
+}) => {
+  const board = failure.boardName
+    ? `"${failure.boardName}"`
+    : t`One of your boards`;
+  switch (failure.code) {
+    case "no_access":
+      return t`Kan couldn't open ${board} in Trello. Try reconnecting Trello and importing again.`;
+    case "not_found":
+      return t`${board} couldn't be found in Trello.`;
+    case "rate_limited":
+    case "timeout":
+      return t`Trello is busy right now. Please try importing ${board} again in a few minutes.`;
+    default:
+      return t`${board} couldn't be imported. Please try again, or contact support if this keeps happening.`;
+  }
+};
+
 const ImportTrello: React.FC = () => {
-  const utils = api.useUtils();
+  const boardCache = useBoardCache();
   const { closeModal } = useModal();
   const { workspace } = useWorkspace();
   const { showPopup } = usePopup();
   const [isSelectAllEnabled, setIsSelectAllEnabled] = useState(false);
 
-  const refetchBoards = () => utils.board.all.refetch();
+  const refetchBoards = () => boardCache.refetchLists();
 
-  const { data: boards, isLoading: boardsLoading } =
-    api.import.trello.getBoards.useQuery();
+  const { data: boards, isLoading: boardsLoading } = useGetTrelloBoards({
+    query: { select: (res) => res.data },
+  });
 
   const {
     register: registerBoards,
@@ -375,26 +412,46 @@ const ImportTrello: React.FC = () => {
     ),
   });
 
-  const importBoards = api.import.trello.importBoards.useMutation({
-    onSuccess: async () => {
-      showPopup({
-        header: t`Import complete`,
-        message: t`Your boards have been imported.`,
-        icon: "success",
-      });
-      try {
-        await refetchBoards();
-        closeModal();
-      } catch (e) {
-        console.error(e);
-      }
-    },
-    onError: () => {
-      showPopup({
-        header: t`Import failed`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
+  const importBoards = useImportTrelloBoards({
+    mutation: {
+      onSuccess: async (res) => {
+        const { boardsCreated, failures } = res.data;
+        const [failure] = failures;
+
+        if (!failure) {
+          showPopup({
+            header: t`Import complete`,
+            message: t`Your boards have been imported.`,
+            icon: "success",
+          });
+        } else {
+          showPopup({
+            header: boardsCreated
+              ? t`Some boards weren't imported`
+              : t`Import failed`,
+            message:
+              failures.length > 1
+                ? t`${failures.length} boards couldn't be imported. Please try again, or contact support if this keeps happening.`
+                : importFailureMessage(failure),
+            icon: "error",
+          });
+        }
+
+        if (!boardsCreated) return;
+        try {
+          await refetchBoards();
+          closeModal();
+        } catch (e) {
+          console.error(e);
+        }
+      },
+      onError: () => {
+        showPopup({
+          header: t`Import failed`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
     },
   });
 
@@ -409,8 +466,7 @@ const ImportTrello: React.FC = () => {
     const boardIds = Object.keys(values).filter((key) => values[key] === true);
 
     importBoards.mutate({
-      boardIds,
-      workspacePublicId: workspace.publicId,
+      data: { boardIds, workspacePublicId: workspace.publicId },
     });
   };
 
@@ -444,7 +500,7 @@ const ImportTrello: React.FC = () => {
           <input
             id={board.id}
             type="checkbox"
-            className="h-[14px] w-[14px] rounded bg-transparent ring-0 focus:outline-none focus:ring-0 focus:ring-offset-0"
+            className="h-[14px] w-[14px] rounded-sm bg-transparent ring-0 focus:ring-0 focus:ring-offset-0 focus:outline-hidden"
             {...registerBoards(board.id)}
           />
           <span className="ml-3 text-sm text-neutral-900 dark:text-dark-1000">
@@ -458,8 +514,11 @@ const ImportTrello: React.FC = () => {
   return (
     <form onSubmit={handleSubmitBoards(onSubmitBoards)}>
       <div className="h-[105px] overflow-auto px-5">{renderContent()}</div>
+      <p className="mt-3 px-5 text-xs text-neutral-500 dark:text-dark-900">
+        {t`Archived lists and cards aren't imported.`}
+      </p>
 
-      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end space-x-4 border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <Toggle
           label={t`Select all`}
           isChecked={!!isSelectAllEnabled}
@@ -507,7 +566,7 @@ export function ImportBoardsForm() {
 
   return (
     <div>
-      <div className="flex w-full items-center justify-between px-5 pb-4 pt-5">
+      <div className="flex w-full items-center justify-between px-5 pt-5 pb-4">
         <div className="flex items-center">
           <h2 className="text-sm font-medium text-neutral-900 dark:text-dark-1000">
             {t`New import`}
@@ -523,7 +582,7 @@ export function ImportBoardsForm() {
 
         <button
           type="button"
-          className="rounded p-1 hover:bg-light-200 dark:hover:bg-dark-300"
+          className="rounded-sm p-1 hover:bg-light-200 dark:hover:bg-dark-300"
           onClick={() => closeModal()}
         >
           <HiXMark size={18} className="text-dark-900" />

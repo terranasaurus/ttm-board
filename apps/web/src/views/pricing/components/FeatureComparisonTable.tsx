@@ -27,6 +27,81 @@ interface FeatureSection {
   features: PlanFeature[];
 }
 
+const CellValue = ({
+  value,
+  label,
+}: {
+  value:
+    | string
+    | boolean
+    | { text: string; highlight?: boolean; highlightFirstWord?: boolean };
+  label: string;
+}) => {
+  if (typeof value === "object") {
+    const { text, highlight, highlightFirstWord } = value;
+
+    if (highlightFirstWord) {
+      const spaceIndex = text.indexOf(" ");
+      const firstWord = spaceIndex === -1 ? text : text.slice(0, spaceIndex);
+      const rest = spaceIndex === -1 ? "" : text.slice(spaceIndex);
+      return (
+        <div className="flex items-center gap-2.5">
+          <HiCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-1000 dark:text-dark-1000" />
+          <span className="text-sm font-medium">
+            <span className="text-light-1000 dark:text-dark-1000">
+              {firstWord}
+            </span>
+            <span className="text-light-950 dark:text-dark-800">{rest}</span>
+          </span>
+        </div>
+      );
+    }
+
+    return (
+      <div className="flex items-center gap-2.5">
+        <HiCheckCircle
+          className={twMerge(
+            "mt-0.5 h-4 w-4 shrink-0",
+            highlight
+              ? "text-light-1000 dark:text-dark-1000"
+              : "text-light-400 dark:text-dark-600",
+          )}
+        />
+        <span
+          className={twMerge(
+            "text-sm font-medium",
+            highlight
+              ? "text-light-1000 dark:text-dark-950"
+              : "text-light-950 dark:text-dark-800",
+          )}
+        >
+          {text}
+        </span>
+      </div>
+    );
+  }
+
+  if (value) {
+    return (
+      <div className="flex items-center gap-2.5">
+        <HiCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-1000 dark:text-dark-1000" />
+        <span className="text-sm font-medium text-light-1000 dark:text-dark-950">
+          {label}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <HiXCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-400 dark:text-dark-600" />
+      <span className="text-sm font-medium text-light-800 dark:text-dark-800">
+        {label}
+      </span>
+    </div>
+  );
+};
+
 const FeatureComparisonTable = ({
   frequencyValue: _frequencyValue,
 }: {
@@ -48,7 +123,6 @@ const FeatureComparisonTable = ({
     const handleScroll = () => {
       if (!containerRef.current) return;
 
-      // Hide fixed header on mobile (screens smaller than 620px)
       if (window.innerWidth < 620) {
         setIsHeaderFixed(false);
         return;
@@ -95,16 +169,16 @@ const FeatureComparisonTable = ({
     {
       key: "file-uploads",
       label: t`File uploads`,
-      free: { text: t`10mb file uploads`, highlightFirstWord: true },
+      free: { text: t`10MB file uploads`, highlightFirstWord: true },
       teams: { text: t`Unlimited file uploads`, highlightFirstWord: true },
       enterprise: { text: t`Unlimited file uploads`, highlightFirstWord: true },
     },
     {
       key: "workspace-username",
-      label: t`Workspace username`,
-      free: { text: t`Default username`, highlightFirstWord: true },
-      teams: { text: t`Custom username`, highlightFirstWord: true },
-      enterprise: { text: t`Custom username`, highlightFirstWord: true },
+      label: t`Custom workspace URL`,
+      free: false,
+      teams: true,
+      enterprise: true,
     },
   ];
 
@@ -185,6 +259,16 @@ const FeatureComparisonTable = ({
     {
       key: "invite-links",
       label: t`Invite links`,
+      free: false,
+      teams: true,
+      enterprise: true,
+    },
+  ];
+
+  const agentFeatures: PlanFeature[] = [
+    {
+      key: "mcp",
+      label: t`MCP server`,
       free: false,
       teams: true,
       enterprise: true,
@@ -280,6 +364,10 @@ const FeatureComparisonTable = ({
       features: collaborationFeatures,
     },
     {
+      name: t`AI agents`,
+      features: agentFeatures,
+    },
+    {
       name: t`Imports`,
       features: importsFeatures,
     },
@@ -302,81 +390,6 @@ const FeatureComparisonTable = ({
     { id: "teams", name: t`Teams`, tierId: "tier-teams" },
     { id: "enterprise", name: t`Enterprise`, tierId: "tier-enterprise" },
   ];
-
-  const CellValue = ({
-    value,
-    label,
-  }: {
-    value:
-      | string
-      | boolean
-      | { text: string; highlight?: boolean; highlightFirstWord?: boolean };
-    label: string;
-  }) => {
-    if (typeof value === "object" && value !== null) {
-      const { text, highlight, highlightFirstWord } = value;
-
-      if (highlightFirstWord) {
-        const spaceIndex = text.indexOf(" ");
-        const firstWord = spaceIndex === -1 ? text : text.slice(0, spaceIndex);
-        const rest = spaceIndex === -1 ? "" : text.slice(spaceIndex);
-        return (
-          <div className="flex items-center gap-2.5">
-            <HiCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-1000 dark:text-dark-1000" />
-            <span className="text-sm font-medium">
-              <span className="text-light-1000 dark:text-dark-1000">
-                {firstWord}
-              </span>
-              <span className="text-light-950 dark:text-dark-800">{rest}</span>
-            </span>
-          </div>
-        );
-      }
-
-      return (
-        <div className="flex items-center gap-2.5">
-          <HiCheckCircle
-            className={twMerge(
-              "mt-0.5 h-4 w-4 shrink-0",
-              highlight
-                ? "text-light-1000 dark:text-dark-1000"
-                : "text-light-400 dark:text-dark-600",
-            )}
-          />
-          <span
-            className={twMerge(
-              "text-sm font-medium",
-              highlight
-                ? "text-light-1000 dark:text-dark-950"
-                : "text-light-950 dark:text-dark-800",
-            )}
-          >
-            {text}
-          </span>
-        </div>
-      );
-    }
-
-    if (value) {
-      return (
-        <div className="flex items-center gap-2.5">
-          <HiCheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-1000 dark:text-dark-1000" />
-          <span className="text-sm font-medium text-light-1000 dark:text-dark-950">
-            {label}
-          </span>
-        </div>
-      );
-    }
-
-    return (
-      <div className="flex items-center gap-2.5">
-        <HiXCircle className="mt-0.5 h-4 w-4 shrink-0 text-light-400 dark:text-dark-600" />
-        <span className="text-sm font-medium text-light-800 dark:text-dark-800">
-          {label}
-        </span>
-      </div>
-    );
-  };
 
   const getFeatureValue = (
     feature: PlanFeature,
@@ -406,7 +419,7 @@ const FeatureComparisonTable = ({
         >
           {isHeaderFixed && (
             <div
-              className="fixed z-40 hidden border-b border-light-300 bg-light-50/95 dark:border-dark-400 dark:bg-dark-50/95 sm:block"
+              className="fixed z-40 hidden border-b border-light-300 bg-light-50/95 sm:block dark:border-dark-400 dark:bg-dark-50/95"
               style={{
                 top: 64,
                 left: headerRect.left,
@@ -433,7 +446,7 @@ const FeatureComparisonTable = ({
               </div>
             </div>
           )}
-          <table className="w-full border-separate border-spacing-0">
+          <table className="w-full min-w-[640px] border-separate border-spacing-0">
             <thead>
               <tr>
                 {plans.map((plan) => {

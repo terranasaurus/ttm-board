@@ -3,10 +3,11 @@ import { useEffect, useRef } from "react";
 import ContentEditable from "react-contenteditable";
 import { useForm } from "react-hook-form";
 
+import { useCreateChecklistItem } from "@kan/api-client/hooks";
 import { generateUID } from "@kan/shared/utils";
 
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useCardCache } from "~/utils/cardCache";
 
 interface FormValues {
   title: string;
@@ -25,7 +26,7 @@ const NewChecklistItemForm = ({
   onCancel,
   readOnly = false,
 }: NewChecklistItemFormProps) => {
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
   const { showPopup } = usePopup();
 
   const { setValue, watch, reset, getValues } = useForm<FormValues>({
@@ -51,64 +52,65 @@ const NewChecklistItemForm = ({
     }, 100);
   };
 
-  const addChecklistItemMutation = api.checklist.createItem.useMutation({
-    onMutate: async (vars) => {
-      await utils.card.byId.cancel({ cardPublicId });
-      const previous = utils.card.byId.getData({ cardPublicId });
-      const optimisticPublicId = `PLACEHOLDER_${generateUID()}`;
+  const addChecklistItemMutation = useCreateChecklistItem({
+    mutation: {
+      onMutate: async (vars) => {
+        await cardCache.byId.cancel({ cardPublicId });
+        const previous = cardCache.byId.getData({ cardPublicId });
+        const optimisticPublicId = `PLACEHOLDER_${generateUID()}`;
 
-      utils.card.byId.setData({ cardPublicId }, (old) => {
-        if (!old) return old as any;
-        const placeholder = {
-          publicId: optimisticPublicId,
-          clientId: optimisticPublicId,
-          title: vars.title,
-          completed: false,
-        };
-        const updatedChecklists = old.checklists.map((cl) =>
-          cl.publicId === checklistPublicId
-            ? { ...cl, items: [...cl.items, placeholder] }
-            : cl,
-        );
-        return { ...old, checklists: updatedChecklists } as typeof old;
-      });
+        cardCache.byId.setData({ cardPublicId }, (old) => {
+          if (!old) return old;
+          const placeholder = {
+            publicId: optimisticPublicId,
+            clientId: optimisticPublicId,
+            title: vars.data.title,
+            completed: false,
+          };
+          const updatedChecklists = old.checklists.map((cl) =>
+            cl.publicId === checklistPublicId
+              ? { ...cl, items: [...cl.items, placeholder] }
+              : cl,
+          );
+          return { ...old, checklists: updatedChecklists } as typeof old;
+        });
 
-      if (keepOpenRef.current) {
-        reset({ title: "" });
-        if (editableRef.current) editableRef.current.innerHTML = "";
-        refocusEditable();
-      } else {
-        onCancel();
-      }
+        if (keepOpenRef.current) {
+          reset({ title: "" });
+          if (editableRef.current) editableRef.current.innerHTML = "";
+          refocusEditable();
+        } else {
+          onCancel();
+        }
 
-      return { previous, optimisticPublicId };
-    },
-    onSuccess: (result, _vars, context) => {
-      if (!context) return;
-      utils.card.byId.setData({ cardPublicId }, (old) => {
-        if (!old) return old as any;
-        const updatedChecklists = old.checklists.map((cl) => ({
-          ...cl,
-          items: cl.items.map((item) =>
-            item.publicId === context.optimisticPublicId
-              ? { ...item, publicId: result.publicId }
-              : item,
-          ),
-        }));
-        return { ...old, checklists: updatedChecklists } as typeof old;
-      });
-    },
-    onError: (_err, _vars, ctx) => {
-      if (ctx?.previous)
-        utils.card.byId.setData({ cardPublicId }, ctx.previous);
-      showPopup({
-        header: t`Unable to add checklist item`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      await utils.card.getActivities.invalidate({ cardPublicId });
+        return { previous, optimisticPublicId };
+      },
+      onSuccess: (result, _vars, context) => {
+        cardCache.byId.setData({ cardPublicId }, (old) => {
+          if (!old) return old;
+          const updatedChecklists = old.checklists.map((cl) => ({
+            ...cl,
+            items: cl.items.map((item) =>
+              item.publicId === context.optimisticPublicId
+                ? { ...item, publicId: result.data.publicId }
+                : item,
+            ),
+          }));
+          return { ...old, checklists: updatedChecklists };
+        });
+      },
+      onError: (_err, _vars, ctx) => {
+        if (ctx?.previous)
+          cardCache.byId.setData({ cardPublicId }, ctx.previous);
+        showPopup({
+          header: t`Unable to add checklist item`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        await cardCache.getActivities.invalidate({ cardPublicId });
+      },
     },
   });
 
@@ -124,7 +126,7 @@ const NewChecklistItemForm = ({
   const submitIfNotEmpty = (keepOpen: boolean) => {
     if (readOnly) return;
     keepOpenRef.current = keepOpen;
-    const currentHtml = getValues("title") ?? "";
+    const currentHtml = getValues("title");
     const plain = sanitizeHtmlToPlainText(currentHtml);
     if (!plain) {
       onCancel();
@@ -132,22 +134,23 @@ const NewChecklistItemForm = ({
     }
     addChecklistItemMutation.mutate({
       checklistPublicId,
-      title: plain,
+      data: { title: plain },
     });
   };
 
   useEffect(() => {
     refocusEditable();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- focus once on open
   }, []);
 
   return (
     <form onSubmit={(e) => e.preventDefault()}>
       <div className="group relative flex h-9 items-center gap-3 rounded-md pl-4 hover:bg-light-100 dark:hover:bg-dark-100">
-        <label className="relative inline-flex h-[16px] w-[16px] flex-shrink-0 cursor-default items-center justify-center">
+        <label className="relative inline-flex h-[16px] w-[16px] shrink-0 cursor-default items-center justify-center">
           <input
             type="checkbox"
             disabled
-            className="peer h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent outline-none ring-0 hover:border-light-500 hover:bg-transparent focus:outline-none focus:ring-0 focus-visible:outline-none dark:border-dark-500 dark:hover:border-dark-500"
+            className="peer h-[16px] w-[16px] appearance-none rounded-md border border-light-500 bg-transparent ring-0 outline-hidden hover:border-light-500 hover:bg-transparent focus:ring-0 focus:outline-hidden focus-visible:outline-hidden dark:border-dark-500 dark:hover:border-dark-500"
           />
         </label>
         <div className="flex-1 pr-7">
@@ -158,9 +161,9 @@ const NewChecklistItemForm = ({
             html={title}
             disabled={readOnly}
             onChange={(e) => setValue("title", e.target.value)}
-            className="m-0 min-h-[20px] w-full p-0 text-sm leading-5 text-light-900 outline-none focus-visible:outline-none dark:text-dark-950"
+            className="m-0 min-h-[20px] w-full p-0 text-sm leading-5 text-light-900 outline-hidden focus-visible:outline-hidden dark:text-dark-950"
             onBlur={() => submitIfNotEmpty(false)}
-            onKeyDown={async (e) => {
+            onKeyDown={(e) => {
               if (readOnly) return;
               if (e.key === "Enter") {
                 e.preventDefault();

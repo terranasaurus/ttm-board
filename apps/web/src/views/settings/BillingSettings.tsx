@@ -1,7 +1,9 @@
 import { useRouter } from "next/navigation";
 import { t } from "@lingui/core/macro";
-import { env } from "next-runtime-env";
 import { HiMiniArrowTopRightOnSquare } from "react-icons/hi2";
+
+import { useGetWorkspace } from "@kan/api-client/hooks";
+import { env } from "@kan/shared/env";
 
 import Button from "~/components/Button";
 import FeedbackModal from "~/components/FeedbackModal";
@@ -10,7 +12,6 @@ import { NewWorkspaceForm } from "~/components/NewWorkspaceForm";
 import { PageHead } from "~/components/PageHead";
 import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 
 export default function BillingSettings() {
   const { modalContentType, isOpen } = useModal();
@@ -18,10 +19,12 @@ export default function BillingSettings() {
   const isCloud = env("NEXT_PUBLIC_KAN_ENV") === "cloud";
   const { workspace } = useWorkspace();
 
-  const { data: workspaceData } = api.workspace.byId.useQuery(
-    { workspacePublicId: workspace.publicId },
-    { enabled: !!workspace.publicId && workspace.publicId.length >= 12 },
-  );
+  const { data: workspaceData } = useGetWorkspace(workspace.publicId, {
+    query: {
+      enabled: !!workspace.publicId && workspace.publicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   const subscription = workspaceData?.subscriptions.find((s) =>
     ["active", "trialing", "past_due"].includes(s.status),
@@ -46,7 +49,7 @@ export default function BillingSettings() {
 
   const handleOpenBillingPortal = async () => {
     try {
-      const response = await fetch("/api/stripe/create_billing_session", {
+      const response = await fetch("/api/v1/billing/portal-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
@@ -62,7 +65,7 @@ export default function BillingSettings() {
       <PageHead title={t`Settings | Billing`} />
 
       <div className="border-t border-light-300 dark:border-dark-300">
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Plan`}
         </h2>
         <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">
@@ -84,7 +87,7 @@ export default function BillingSettings() {
       </div>
 
       <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Billing`}
         </h2>
         <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">

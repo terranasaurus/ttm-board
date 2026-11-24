@@ -16,16 +16,12 @@ declare module "react-contenteditable" {
     className?: string;
     style?: React.CSSProperties;
     innerRef?:
-      | React.RefObject<HTMLElement>
+      | React.RefObject<HTMLElement | null>
       | ((instance: HTMLElement | null) => void);
     placeholder?: string;
   }
 
   class ContentEditable extends React.Component<ContentEditableProps> {}
-
-  interface ContentEditableElement extends HTMLElement {
-    value: string;
-  }
 
   export default ContentEditable;
 }

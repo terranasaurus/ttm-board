@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import React from "react";
 import {
   Dialog,
   DialogBackdrop,
@@ -7,7 +6,7 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { t } from "@lingui/core/macro";
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -260,13 +259,11 @@ export function KeyboardShortcutProvider({
 
   useEventListener("keydown", handleKeyDown);
 
-  // Register built-in shortcut to open legend
   useEffect(() => {
     const cleanup = registerShortcut(openLegendShortcut);
     return cleanup;
   }, [registerShortcut, openLegendShortcut]);
 
-  // Cleanup timeout on unmount
   useEffect(() => {
     return () => {
       if (sequenceTimeoutRef.current) {
@@ -308,7 +305,7 @@ export function KeyboardShortcutProvider({
       >
         <DialogBackdrop
           transition
-          className="data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in fixed inset-0 bg-light-50 bg-opacity-40 transition-opacity dark:bg-dark-50 dark:bg-opacity-40"
+          className="fixed inset-0 bg-light-50/40 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in dark:bg-dark-50/40"
         />
 
         <div className="fixed inset-0 flex min-h-full w-screen items-center justify-center overflow-y-auto p-4">
@@ -322,7 +319,7 @@ export function KeyboardShortcutProvider({
               </DialogTitle>
               <button
                 onClick={() => setIsLegendOpen(false)}
-                className="rounded p-1 hover:bg-light-200 dark:hover:bg-dark-200"
+                className="rounded-sm p-1 hover:bg-light-200 dark:hover:bg-dark-200"
               >
                 <HiXMark className="h-5 w-5 text-neutral-700 dark:text-dark-700" />
               </button>
@@ -341,7 +338,7 @@ export function KeyboardShortcutProvider({
                     const groupInfo = getShortcutGroupInfo();
                     return (
                       <div key={`${group}-${idx}`}>
-                        <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-light-1000 dark:text-dark-1000">
+                        <h3 className="mb-3 text-xs font-semibold tracking-wide text-light-1000 uppercase dark:text-dark-1000">
                           {groupInfo[group].label}
                         </h3>
                         <div className="flex flex-col gap-y-2">
@@ -365,32 +362,6 @@ export function KeyboardShortcutProvider({
   );
 }
 
-/**
- * Hook to register a keyboard shortcut. Cleanup is handled automatically.
- * Returns both formatted keys and pre-built tooltip content.
- *
- * IMPORTANT: The shortcut object reference must be stable. If it changes
- * on every render, the shortcut will be continuously registered and unregistered.
- *
- * @example
- * ```tsx
- * const { keys, tooltipContent } = useKeyboardShortcut({
- *   type: "PRESS",
- *   stroke: { key: "k", modifiers: ["META"] },
- *   action: () => openCommandPalette(),
- *   description: "Open command palette",
- *   group: "GENERAL"
- * });
- *
- * // Use tooltip for Tooltip component
- * <Tooltip content={tooltipContent}>
- *   <button>Search</button>
- * </Tooltip>
- *
- * // Or use keys directly for custom formatting
- * <span>Press {keys} to search</span>
- * ```
- */
 export function useKeyboardShortcuts(): KeyboardShortcutContextType {
   const context = useContext(KeyboardShortcutContext);
 
@@ -403,6 +374,7 @@ export function useKeyboardShortcuts(): KeyboardShortcutContextType {
   return context;
 }
 
+// The shortcut object must be a stable reference, or it re-registers on every render.
 export function useKeyboardShortcut(shortcut: KeyboardShortcut): {
   keys: ReactNode;
   tooltipContent: ReactNode;
@@ -445,7 +417,7 @@ function ShortcutListItem({ shortcut }: { shortcut: KeyboardShortcut }) {
 
 function FormattedShortcut({ shortcut }: { shortcut: KeyboardShortcut }) {
   const kbdClassName =
-    "inline-flex h-5 w-5 items-center justify-center rounded border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-center text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950";
+    "inline-flex h-5 w-5 items-center justify-center rounded-sm border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-center text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950";
 
   const stringifyModifier = (modifier: ModifierKey): string => {
     const isMac =
@@ -486,7 +458,6 @@ function FormattedShortcut({ shortcut }: { shortcut: KeyboardShortcut }) {
     const parts: ReactNode[] = [];
     shortcut.strokes.forEach((stroke, strokeIndex) => {
       const strokeParts = formatStroke(stroke);
-      // Add stroke index to keys to ensure uniqueness across multiple strokes
       const keyedParts = strokeParts.map((part, partIndex) => {
         if (React.isValidElement(part)) {
           return React.cloneElement(part, {
@@ -501,16 +472,12 @@ function FormattedShortcut({ shortcut }: { shortcut: KeyboardShortcut }) {
   }
 
   return (
-    <span className="inline-flex flex-shrink-0 items-center gap-1 text-[11px]">
+    <span className="inline-flex shrink-0 items-center gap-1 text-[11px]">
       {formatStroke(shortcut.stroke)}
     </span>
   );
 }
 
-/** Checks for conflicts given existing nodes and current path
- * Throws an error if conflict is found
- *
- */
 function validateNoConflict(
   existingNode: ShortcutTreeNode,
   isLastKey: boolean,
@@ -542,9 +509,6 @@ function validateNoConflict(
   }
 }
 
-/**
- * Checks if the user is currently typing in an input field
- */
 function isTypingInInput(event: KeyboardEvent): boolean {
   if (!event.target) return false;
 
@@ -556,10 +520,6 @@ function isTypingInInput(event: KeyboardEvent): boolean {
   return isInput || isContentEditable;
 }
 
-/**
- * Serializes a KeyStroke to a consistent string format
- * Returns lowercase string like "ctrl+shift+k" with alphabetically sorted modifiers
- */
 function serializeKeyStroke(stroke: KeyStroke): string {
   const key = stroke.key.toLowerCase();
   if (!stroke.modifiers || stroke.modifiers.length === 0) return key;
@@ -567,9 +527,6 @@ function serializeKeyStroke(stroke: KeyStroke): string {
   return `${sorted.join("+")}+${key}`;
 }
 
-/**
- * Converts a keyboard event to a KeyStroke
- */
 function eventToKeyStroke(event: KeyboardEvent): KeyStroke {
   const modifiers: ModifierKey[] = [];
   if (event.altKey) modifiers.push(ModifierKey.ALT);
@@ -581,16 +538,10 @@ function eventToKeyStroke(event: KeyboardEvent): KeyStroke {
   return { key: event.key, modifiers };
 }
 
-/**
- * Serializes a keyboard event to a consistent string format
- */
 function serializeEvent(event: KeyboardEvent): string {
   return serializeKeyStroke(eventToKeyStroke(event));
 }
 
-/**
- * Removes a path from the tree and prunes empty branches
- */
 function removePathAndPrune(tree: ShortcutTreeLevel, path: string[]): void {
   const [first, ...rest] = path;
   if (!first) return;
@@ -601,7 +552,7 @@ function removePathAndPrune(tree: ShortcutTreeLevel, path: string[]): void {
   }
 
   const node = tree[first];
-  if (!node || node.type !== "STEP") return;
+  if (node?.type !== "STEP") return;
 
   removePathAndPrune(node.children, rest);
 

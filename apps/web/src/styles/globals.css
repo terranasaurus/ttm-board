@@ -1,18 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-html {
-  font-size: 14px;
+@config "../../tailwind.config.ts";
+
+/* v4 limits hover to devices that can hover; keep v3 so tapping still reveals hover-only controls */
+@custom-variant hover (&:hover);
+
+/* Our text-sm sets only the font size, as it did in v3, so line height still
+   comes from the parent or other classes */
+@theme {
+  --text-sm: initial;
+  --color-dark-50: #161616;
+  --color-dark-100: #1c1c1c;
+  --color-dark-200: #232323;
+  --color-dark-300: #282828;
+  --color-dark-400: #2e2e2e;
+  --color-dark-500: #343434;
+  --color-dark-600: #3e3e3e;
+  --color-dark-700: #505050;
+  --color-dark-800: #707070;
+  --color-dark-900: #7e7e7e;
+  --color-dark-950: #bbb;
+  --color-dark-1000: #ededed;
+  --color-light-50: hsl(0deg 0% 98.8%);
+  --color-light-100: hsl(0deg 0% 97.3%);
+  --color-light-200: hsl(0deg 0% 95.3%);
+  --color-light-300: hsl(0deg 0% 92.9%);
+  --color-light-400: hsl(0deg 0% 91%);
+  --color-light-500: hsl(0deg 0% 88.6%);
+  --color-light-600: hsl(0deg 0% 85.9%);
+  --color-light-700: hsl(0deg 0% 78%);
+  --color-light-800: hsl(0deg 0% 56.1%);
+  --color-light-900: hsl(0deg 0% 52.2%);
+  --color-light-950: hsl(0deg 0% 43.5%);
+  --color-light-1000: hsl(0deg 0% 9%);
 }
 
-[contenteditable="true"]:empty:before {
-  content: attr(placeholder);
-  display: block;
-  color: #707070;
+@utility text-sm {
   font-size: 0.8rem;
 }
 
+<<<<<<< HEAD
 .gradient-border::before {
   background: conic-gradient(
     from 0deg,
@@ -28,19 +55,66 @@ html {
   inset: -50%;
   width: 200%;
   height: 200%;
+=======
+/* Keep Tailwind v3 defaults for borders, placeholders and button cursors */
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+>>>>>>> upstream/main
 }
 
-@layer utilities {
+@utility break-anywhere {
   @supports not (overflow-wrap: anywhere) {
-    .break-anywhere {
-      word-break: break-word;
-    }
+    word-break: break-word;
   }
 
   @supports (overflow-wrap: anywhere) {
-    .break-anywhere {
-      overflow-wrap: anywhere;
-    }
+    overflow-wrap: anywhere;
+  }
+}
+
+@layer utilities {
+  html {
+    font-size: 14px;
+  }
+
+  [contenteditable="true"]:empty:before {
+    content: attr(placeholder);
+    display: block;
+    color: #707070;
+    font-size: 0.8rem;
+  }
+
+  .gradient-border::before {
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      transparent 45deg,
+      rgba(244, 114, 182, 0.4) 85deg,
+      rgba(192, 132, 252, 0.4) 95deg,
+      transparent 110deg,
+      transparent 360deg
+    );
+    content: "";
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
   }
 }
 
@@ -58,6 +132,7 @@ html {
   @apply border-b-light-600 dark:border-b-dark-600;
 }
 
+<<<<<<< HEAD
 /* TTM: iOS Safari gives date inputs an intrinsic width (overflowing w-full
    boxes), centres the value, and collapses the height when empty. */
 input[type="date"],
@@ -70,4 +145,36 @@ input[type="time"] {
 input[type="date"]::-webkit-date-and-time-value,
 input[type="time"]::-webkit-date-and-time-value {
   text-align: left;
+=======
+/* Marketing pages use a slightly deeper dark palette and higher-contrast light greys */
+html:not(.dark) .marketing {
+  --color-light-800: hsl(0deg 0% 44%);
+  --color-light-900: hsl(0deg 0% 44%);
+  --color-light-950: hsl(0deg 0% 35%);
+}
+
+.dark .marketing {
+  --color-dark-50: #0e0e10;
+  --color-dark-100: #141416;
+  --color-dark-200: #1a1b1d;
+  --color-dark-300: #202123;
+  --color-dark-400: #27282b;
+  --color-dark-500: #2d2e31;
+  --color-dark-600: #38393d;
+  --color-dark-700: #4d4e53;
+  --color-dark-800: #7c8088;
+  --color-dark-900: #8f939b;
+  --color-dark-950: #d0d6e0;
+  --color-dark-1000: #f7f8f8;
+}
+
+html:has(.marketing) {
+  scroll-behavior: smooth;
+  overflow: auto;
+  background-color: var(--color-light-100);
+}
+
+html.dark:has(.marketing) {
+  background-color: #0e0e10;
+>>>>>>> upstream/main
 }

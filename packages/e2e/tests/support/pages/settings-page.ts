@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect } from "@playwright/test";
 
-import { waitForTrpcMutation } from "../wait-for-trpc";
+import { waitForResponsePath } from "../wait-for-api";
 
 export class SettingsPage {
   constructor(private readonly page: Page) {}
@@ -20,14 +20,14 @@ export class SettingsPage {
 
   async updateWorkspaceName(name: string) {
     await this.page.getByRole("textbox", { name: "Workspace name" }).fill(name);
-    const updated = waitForTrpcMutation(this.page, "workspace.update");
+    const updated = waitForResponsePath(this.page, "/workspaces/", "PUT");
     await this.page.getByRole("button", { name: "Update" }).click();
     await updated;
   }
 
   async updateDisplayName(name: string) {
     await this.page.getByRole("textbox", { name: "Display name" }).fill(name);
-    const updated = waitForTrpcMutation(this.page, "user.update");
+    const updated = waitForResponsePath(this.page, "/users", "PUT");
     await this.page.getByRole("button", { name: "Update" }).click();
     await updated;
   }
@@ -41,7 +41,7 @@ export class SettingsPage {
 
   async updateWorkspaceSlug(slug: string) {
     await this.fillAvailableWorkspaceSlug(slug);
-    const updated = waitForTrpcMutation(this.page, "workspace.update");
+    const updated = waitForResponsePath(this.page, "/workspaces/", "PUT");
     await this.page.getByRole("button", { name: "Update" }).click();
     await updated;
   }
@@ -64,7 +64,9 @@ export class SettingsPage {
     await this.page.getByRole("button", { name: "Create API key" }).click();
     const dialog = this.page.getByRole("dialog");
     await dialog.getByRole("heading", { name: "API key created" }).waitFor();
+    const key = await dialog.locator("input[readonly]").first().inputValue();
     await dialog.getByRole("button", { name: "Close" }).click();
+    return key;
   }
 
   async revokeApiKey() {
@@ -83,7 +85,7 @@ export class SettingsPage {
     await dialog.getByPlaceholder("My webhook").fill(name);
     await dialog.getByPlaceholder("https://example.com/webhook").fill(url);
 
-    const created = waitForTrpcMutation(this.page, "webhook.create");
+    const created = waitForResponsePath(this.page, "/webhooks", "POST");
     await dialog.getByRole("button", { name: "Create webhook" }).click();
     await created;
 
@@ -96,7 +98,7 @@ export class SettingsPage {
       .click();
     await this.page.getByRole("menuitem", { name: "Delete" }).click();
 
-    const deleted = waitForTrpcMutation(this.page, "webhook.delete");
+    const deleted = waitForResponsePath(this.page, "/webhooks/", "DELETE");
     await this.page
       .getByRole("button", { name: "Delete", exact: true })
       .click();
@@ -118,11 +120,10 @@ export class SettingsPage {
     role: "member" | "guest",
     enabled: boolean,
   ) {
-    const updated = waitForTrpcMutation(
+    const updated = waitForResponsePath(
       this.page,
-      enabled
-        ? "permission.grantRolePermission"
-        : "permission.revokeRolePermission",
+      enabled ? "/permissions/grant" : "/permissions/revoke",
+      "POST",
     );
     await this.rolePermissionCheckbox(permissionLabel, role).click();
     await updated;
@@ -140,7 +141,7 @@ export class SettingsPage {
     const dialog = this.page.getByRole("dialog");
     await dialog.getByRole("checkbox").check();
 
-    const deleted = waitForTrpcMutation(this.page, "workspace.delete");
+    const deleted = waitForResponsePath(this.page, "/workspaces/", "DELETE");
     await dialog
       .getByRole("button", { name: "Delete workspace", exact: true })
       .click();

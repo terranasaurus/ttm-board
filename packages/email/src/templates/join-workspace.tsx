@@ -1,15 +1,18 @@
-import { Body } from "@react-email/body";
-import { Button } from "@react-email/button";
-import { Container } from "@react-email/container";
-import { Head } from "@react-email/head";
-import { Heading } from "@react-email/heading";
-import { Hr } from "@react-email/hr";
-import { Html } from "@react-email/html";
-import { Link } from "@react-email/link";
-import { Preview } from "@react-email/preview";
-import { Text } from "@react-email/text";
-import { env } from "next-runtime-env";
 import * as React from "react";
+import {
+  Body,
+  Button,
+  Container,
+  Head,
+  Heading,
+  Hr,
+  Html,
+  Link,
+  Preview,
+  Text,
+} from "react-email";
+
+import { env } from "@kan/shared/env";
 
 export const JoinWorkspaceTemplate = ({
   magicLoginUrl,
@@ -88,7 +91,8 @@ export const JoinWorkspaceTemplate = ({
             color: "#7e7e7e",
           }}
         >
-          If you don&apos;t want to join this workspace, you can safely ignore this email.
+          If you don&apos;t want to join this workspace, you can safely ignore
+          this email.
         </Text>
         {env("NEXT_PUBLIC_WHITE_LABEL_HIDE_POWERED_BY") !== "true" && (
           <>

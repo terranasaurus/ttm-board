@@ -1,0 +1,61 @@
+import { createZodDto } from "nestjs-zod";
+import { z } from "zod";
+
+export const importFailureCodes = [
+  "no_access",
+  "not_found",
+  "rate_limited",
+  "timeout",
+  "unknown",
+] as const;
+export type ImportFailureCode = (typeof importFailureCodes)[number];
+
+export const ExternalSourceItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+});
+
+export class ExternalSourceItemDto extends createZodDto(
+  ExternalSourceItemSchema,
+) {}
+
+export const ImportTrelloBoardsSchema = z.object({
+  boardIds: z.array(z.string()),
+  workspacePublicId: z.string().min(12),
+});
+
+export class ImportTrelloBoardsDto extends createZodDto(
+  ImportTrelloBoardsSchema,
+) {}
+
+export const ImportTrelloBoardsResponseSchema = z.object({
+  boardsCreated: z.number(),
+  failures: z.array(
+    z.object({
+      boardId: z.string(),
+      boardName: z.string().nullable(),
+      code: z.enum(importFailureCodes),
+    }),
+  ),
+});
+
+export class ImportTrelloBoardsResponseDto extends createZodDto(
+  ImportTrelloBoardsResponseSchema,
+) {}
+
+export const ImportGitHubProjectsSchema = z.object({
+  projectIds: z.array(z.string()),
+  workspacePublicId: z.string().min(12),
+});
+
+export class ImportGitHubProjectsDto extends createZodDto(
+  ImportGitHubProjectsSchema,
+) {}
+
+export const ImportGitHubProjectsResponseSchema = z.object({
+  projectsImported: z.number(),
+});
+
+export class ImportGitHubProjectsResponseDto extends createZodDto(
+  ImportGitHubProjectsResponseSchema,
+) {}

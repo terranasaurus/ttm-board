@@ -4,12 +4,23 @@ import type { Response } from "express";
 import { NestFactory } from "@nestjs/core";
 import { ZodValidationPipe } from "nestjs-zod";
 
+import { runMigrations } from "@kan/db/client";
+import { createLogger } from "@kan/logger";
+
 import { AppModule } from "./app.module.js";
-import { TrpcErrorFilter } from "./common/filters/trpc-error.filter.js";
+import { NestPinoLogger } from "./common/logging/nest-pino.logger.js";
+import { db } from "./common/session.util.js";
+import { mcpStrategy } from "./modules/mcp/mcp.strategy.js";
 import { buildOpenApiDocument } from "./openapi.js";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // ponytail: assumes one api replica starts at a time; add an advisory lock if it scales out
+  if (process.env.RUN_MIGRATIONS === "true") await runMigrations(db);
+
+  const app = await NestFactory.create(AppModule, {
+    logger: new NestPinoLogger(),
+    rawBody: true,
+  });
   app.enableShutdownHooks(["SIGINT"]);
 
   app.enableCors({
@@ -21,7 +32,6 @@ async function bootstrap() {
   });
 
   app.useGlobalPipes(new ZodValidationPipe());
-  app.useGlobalFilters(new TrpcErrorFilter());
 
   // Served from memory, not disk — openapi.json on disk is produced by the
   // dedicated `pnpm openapi` script (see openapi.generate.ts), not on boot.
@@ -30,9 +40,13 @@ async function bootstrap() {
     .getHttpAdapter()
     .get("/openapi.json", (_req, res: Response) => res.json(document));
 
+  mcpStrategy.setHttpAdapter(app.getHttpAdapter());
+  app.connectMicroservice({ strategy: mcpStrategy });
+  await app.startAllMicroservices();
+
   const port = process.env.API_PORT ?? 4000;
   await app.listen(port);
-  console.log(`🚀 API server running on http://localhost:${port}`);
+  createLogger("api").info({ port }, "API server running");
 }
 
 void bootstrap();

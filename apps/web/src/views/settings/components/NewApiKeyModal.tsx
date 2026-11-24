@@ -54,15 +54,12 @@ export default function NewApiKeyModal() {
       void qc.invalidateQueries({
         queryKey: ["apiKeys"],
       });
-      if (apiKey && apiKey.key && apiKey.name) {
+      if (apiKey?.key && apiKey.name) {
         setCreatedApiKey({
           key: apiKey.key,
           name: apiKey.name,
         });
       }
-    },
-    onError: () => {
-      // Handle error if needed
     },
   });
 
@@ -71,7 +68,6 @@ export default function NewApiKeyModal() {
   };
 
   useEffect(() => {
-    // Reset state and form when modal opens
     setCreatedApiKey(null);
     reset();
   }, [reset]);
@@ -91,7 +87,7 @@ export default function NewApiKeyModal() {
             <h2 className="text-sm font-bold">{t`API key created`}</h2>
             <button
               type="button"
-              className="rounded p-1 hover:bg-light-300 focus:outline-none dark:hover:bg-dark-300"
+              className="rounded-sm p-1 hover:bg-light-300 focus:outline-hidden dark:hover:bg-dark-300"
               onClick={(e) => {
                 e.preventDefault();
                 closeModal();
@@ -131,7 +127,7 @@ export default function NewApiKeyModal() {
             </div>
           </div>
         </div>
-        <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+        <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
           <div>
             <Button onClick={() => closeModal()}>{t`Close`}</Button>
           </div>
@@ -147,7 +143,7 @@ export default function NewApiKeyModal() {
           <h2 className="text-sm font-bold">{t`New API key`}</h2>
           <button
             type="button"
-            className="rounded p-1 hover:bg-light-300 focus:outline-none dark:hover:bg-dark-300"
+            className="rounded-sm p-1 hover:bg-light-300 focus:outline-hidden dark:hover:bg-dark-300"
             onClick={(e) => {
               e.preventDefault();
               closeModal();
@@ -169,7 +165,7 @@ export default function NewApiKeyModal() {
           }}
         />
       </div>
-      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pb-5 pt-5 dark:border-dark-600">
+      <div className="mt-12 flex items-center justify-end border-t border-light-600 px-5 pt-5 pb-5 dark:border-dark-600">
         <div>
           <Button type="submit" isLoading={createApiKeyMutation.isPending}>
             {t`Create API key`}

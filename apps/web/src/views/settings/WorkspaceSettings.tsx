@@ -1,6 +1,6 @@
 import { t } from "@lingui/core/macro";
 
-import type { Subscription } from "@kan/shared/utils";
+import { useGetWorkspace } from "@kan/api-client/hooks";
 
 import Button from "~/components/Button";
 import FeedbackModal from "~/components/FeedbackModal";
@@ -10,7 +10,6 @@ import { PageHead } from "~/components/PageHead";
 import { usePermissions } from "~/hooks/usePermissions";
 import { useModal } from "~/providers/modal";
 import { useWorkspace } from "~/providers/workspace";
-import { api } from "~/utils/api";
 import { DeleteWorkspaceConfirmation } from "./components/DeleteWorkspaceConfirmation";
 import UpdateWeekStartDayForm from "./components/UpdateWeekStartDayForm";
 import UpdateWorkspaceDescriptionForm from "./components/UpdateWorkspaceDescriptionForm";
@@ -22,17 +21,19 @@ export default function WorkspaceSettings() {
   const { modalContentType, openModal, isOpen } = useModal();
   const { workspace } = useWorkspace();
   const { canEditWorkspace } = usePermissions();
-  const { data: workspaceData } = api.workspace.byId.useQuery(
-    { workspacePublicId: workspace.publicId },
-    { enabled: !!workspace.publicId && workspace.publicId.length >= 12 },
-  );
+  const { data: workspaceData } = useGetWorkspace(workspace.publicId, {
+    query: {
+      enabled: !!workspace.publicId && workspace.publicId.length >= 12,
+      select: (res) => res.data,
+    },
+  });
 
   return (
     <>
       <PageHead title={t`Settings | Workspace`} />
 
       <div className="mb-8 border-t border-light-300 dark:border-dark-300">
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Workspace name`}
         </h2>
         <UpdateWorkspaceNameForm
@@ -41,7 +42,7 @@ export default function WorkspaceSettings() {
           disabled={!canEditWorkspace}
         />
 
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Workspace URL`}
         </h2>
         <UpdateWorkspaceUrlForm
@@ -51,7 +52,7 @@ export default function WorkspaceSettings() {
           disabled={!canEditWorkspace}
         />
 
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Workspace description`}
         </h2>
         <UpdateWorkspaceDescriptionForm
@@ -60,7 +61,7 @@ export default function WorkspaceSettings() {
           disabled={!canEditWorkspace}
         />
 
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Week start day`}
         </h2>
         <UpdateWeekStartDayForm
@@ -69,7 +70,7 @@ export default function WorkspaceSettings() {
           disabled={!canEditWorkspace}
         />
 
-        <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+        <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
           {t`Email visibility`}
         </h2>
         <UpdateWorkspaceEmailVisibilityForm
@@ -81,7 +82,7 @@ export default function WorkspaceSettings() {
         />
 
         <div className="border-t border-light-300 dark:border-dark-300">
-          <h2 className="mb-4 mt-8 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
+          <h2 className="mt-8 mb-4 text-[14px] font-bold text-neutral-900 dark:text-dark-1000">
             {t`Delete workspace`}
           </h2>
           <p className="mb-8 text-sm text-neutral-500 dark:text-dark-900">

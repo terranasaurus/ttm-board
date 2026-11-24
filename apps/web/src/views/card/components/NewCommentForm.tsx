@@ -2,13 +2,15 @@ import { t } from "@lingui/core/macro";
 import { useForm } from "react-hook-form";
 import { HiOutlineArrowUp } from "react-icons/hi2";
 
+import { useAddCardComment } from "@kan/api-client/hooks";
+
 import type { WorkspaceMember } from "~/components/Editor";
 import Editor from "~/components/Editor";
 import LoadingSpinner from "~/components/LoadingSpinner";
 import { Tooltip } from "~/components/Tooltip";
 import { usePermissions } from "~/hooks/usePermissions";
 import { usePopup } from "~/providers/popup";
-import { api } from "~/utils/api";
+import { useCardCache } from "~/utils/cardCache";
 import { invalidateCard } from "~/utils/cardInvalidation";
 
 interface FormValues {
@@ -24,7 +26,7 @@ const NewCommentForm = ({
   workspaceMembers: WorkspaceMember[];
   onCommentCreated?: (commentPublicId: string) => void;
 }) => {
-  const utils = api.useUtils();
+  const cardCache = useCardCache();
   const { showPopup } = usePopup();
   const { canCreateComment } = usePermissions();
   const { handleSubmit, setValue, watch, reset } = useForm<FormValues>({
@@ -33,27 +35,29 @@ const NewCommentForm = ({
     },
   });
 
-  const addCommentMutation = api.card.addComment.useMutation({
-    onSuccess: (comment) => {
-      onCommentCreated?.(comment.publicId);
-    },
-    onError: (_error, _newList) => {
-      showPopup({
-        header: t`Unable to add comment`,
-        message: t`Please try again later, or contact customer support.`,
-        icon: "error",
-      });
-    },
-    onSettled: async () => {
-      reset();
-      await invalidateCard(utils, cardPublicId);
+  const addCommentMutation = useAddCardComment({
+    mutation: {
+      onSuccess: ({ data: comment }) => {
+        onCommentCreated?.(comment.publicId);
+      },
+      onError: (_error, _newList) => {
+        showPopup({
+          header: t`Unable to add comment`,
+          message: t`Please try again later, or contact customer support.`,
+          icon: "error",
+        });
+      },
+      onSettled: async () => {
+        reset();
+        await invalidateCard(cardCache, cardPublicId);
+      },
     },
   });
 
   const onSubmit = (data: FormValues) => {
     addCommentMutation.mutate({
       cardPublicId,
-      comment: data.comment,
+      data: { comment: data.comment },
     });
   };
 
@@ -63,10 +67,10 @@ const NewCommentForm = ({
   const submitTooltip = (
     <div className="flex flex-row items-center gap-2 text-[11px]">
       {t`Submit`}
-      <span className="inline-flex items-center justify-center rounded border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950">
+      <span className="inline-flex items-center justify-center rounded-sm border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950">
         {isMac ? "⌘" : "Ctrl"}
       </span>
-      <span className="inline-flex items-center justify-center rounded border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950">
+      <span className="inline-flex items-center justify-center rounded-sm border border-light-400 bg-light-200 px-1.5 py-0.5 font-mono text-[8px] font-semibold text-neutral-900 dark:border-dark-400 dark:bg-dark-200 dark:text-dark-950">
         Enter
       </span>
     </div>
@@ -79,7 +83,7 @@ const NewCommentForm = ({
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="flex w-full max-w-[800px] flex-col rounded-xl border border-light-600 bg-light-100 p-4 text-light-900 focus-visible:outline-none dark:border-dark-400 dark:bg-dark-100 dark:text-dark-1000 sm:text-sm sm:leading-6"
+      className="flex w-full max-w-[800px] flex-col rounded-xl border border-light-600 bg-light-100 p-4 text-light-900 focus-visible:outline-hidden sm:text-sm sm:leading-6 dark:border-dark-400 dark:bg-dark-100 dark:text-dark-1000"
     >
       <Editor
         content={watch("comment")}

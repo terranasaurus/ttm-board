@@ -42,7 +42,6 @@ const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
     { label: t`Contact`, href: "mailto:support@kan.bn", group: "Resources" },
   ];
 
-  // Group mobile menu items by their group property
   const groupedMenuItems = mobileMenuItems.reduce(
     (acc, item) => {
       (acc[item.group] ??= []).push(item);
@@ -71,39 +70,49 @@ const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
           "fixed z-50 flex w-full transition-all duration-500",
         )}
       >
-        <div className="flex h-[4rem] min-h-[4rem] w-full border-b border-light-300 bg-light-50/80 px-5 py-2 align-middle opacity-100 shadow-sm backdrop-blur-[10px] transition-all duration-500 dark:border-dark-300 dark:bg-dark-50/90">
+        <div className="flex h-16 min-h-16 w-full border-b border-light-300 bg-light-50/80 px-5 py-2 align-middle opacity-100 shadow-xs backdrop-blur-[10px] transition-all duration-500 dark:border-dark-300 dark:bg-dark-50/90">
           <div className="mx-auto flex w-full max-w-[1100px] items-center justify-between lg:px-4">
             <div className="my-auto flex items-center justify-between">
               <Link href="/">
-                <h1 className="text-lg font-bold tracking-tight text-neutral-900 dark:text-dark-1000 lg:w-[200px]">
+                <h1 className="text-base font-bold tracking-tight text-neutral-900 dark:text-dark-1000">
                   kan.bn
                 </h1>
               </Link>
             </div>
-            {/* Desktop Menu */}
-            <div className="hidden justify-center gap-10 dark:text-dark-1000 lg:flex">
-              {desktopMenuItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  target={item.openInNewTab ? "_blank" : undefined}
-                  rel={item.openInNewTab ? "noopener noreferrer" : undefined}
-                  className="text-sm font-bold"
-                >
-                  {item.label}
-                </Link>
-              ))}
-            </div>
-            <div className="flex items-center justify-end gap-4 lg:w-[200px]">
+            <div className="flex items-center justify-end gap-4">
+              <nav className="hidden items-center gap-6 lg:flex">
+                {desktopMenuItems.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    target={item.openInNewTab ? "_blank" : undefined}
+                    rel={item.openInNewTab ? "noopener noreferrer" : undefined}
+                    className="text-xs font-medium text-light-900 transition-colors hover:text-light-1000 dark:text-dark-800 dark:hover:text-dark-1000"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </nav>
+              <span
+                aria-hidden="true"
+                className="hidden h-4 w-px bg-light-400 lg:block dark:bg-dark-300"
+              />
               <div className="justify-end gap-2">
                 {isLoggedIn ? (
-                  <Button href="/boards">{t`Go to app`}</Button>
+                  <Button href="/boards" size="sm">
+                    {t`Go to app`}
+                  </Button>
                 ) : (
                   <div className="flex items-center justify-end gap-2">
-                    <Button href="/login" variant="ghost">
+                    <Link
+                      href="/login"
+                      className="px-2 text-xs font-medium text-light-900 transition-colors hover:text-light-1000 dark:text-dark-800 dark:hover:text-dark-1000"
+                    >
                       {t`Sign in`}
+                    </Link>
+                    <Button href="/signup" size="sm">
+                      {t`Get started`}
                     </Button>
-                    <Button href="/signup">{t`Get started`}</Button>
                   </div>
                 )}
               </div>
@@ -115,13 +124,13 @@ const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
               >
                 <div
                   className={twMerge(
-                    "absolute left-1/2 top-1/2 h-[1px] w-4 -translate-x-1/2 -translate-y-[4px] bg-current bg-light-1000 transition-all duration-300 ease-in-out dark:bg-dark-1000",
+                    "absolute top-1/2 left-1/2 h-px w-4 -translate-x-1/2 translate-y-[-4px] bg-current bg-light-1000 transition-all duration-300 ease-in-out dark:bg-dark-1000",
                     isMenuOpen ? "translate-y-0 rotate-45" : "",
                   )}
                 />
                 <div
                   className={twMerge(
-                    "absolute left-1/2 top-1/2 h-[1px] w-4 -translate-x-1/2 translate-y-[4px] bg-current bg-light-1000 transition-all duration-300 ease-in-out dark:bg-dark-1000",
+                    "absolute top-1/2 left-1/2 h-px w-4 -translate-x-1/2 translate-y-[4px] bg-current bg-light-1000 transition-all duration-300 ease-in-out dark:bg-dark-1000",
                     isMenuOpen ? "translate-y-0 -rotate-45" : "",
                   )}
                 />
@@ -139,7 +148,7 @@ const Header = ({ isLoggedIn }: { isLoggedIn: boolean }) => {
         }`}
       >
         <div className="absolute inset-0 bg-light-50/80 bg-white backdrop-blur-[15px] dark:bg-dark-50 dark:bg-dark-50/90">
-          <div className="mt-[6rem] flex h-full flex-col space-y-8 px-5">
+          <div className="mt-24 flex h-full flex-col space-y-8 px-5">
             {Object.entries(groupedMenuItems).map(([group, items]) => (
               <div key={group} className="flex flex-col space-y-4">
                 <div className="text-sm font-bold text-light-900 dark:text-dark-900">
